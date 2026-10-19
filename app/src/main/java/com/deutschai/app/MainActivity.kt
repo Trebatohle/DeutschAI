@@ -1130,8 +1130,7 @@ private fun ChatBubble(message: ConversationMessage) {
     var showTranslation by remember(message.text) { mutableStateOf(false) }
     val background = when {
         !message.fromBeatrice -> Forest
-        message.feedback && message.recognized -> Correct
-        message.feedback -> Incorrect
+        message.feedback -> Mint
         else -> Color.White
     }
     val foreground = if (message.fromBeatrice) Ink else Color.White
