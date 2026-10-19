@@ -1,5 +1,6 @@
 package com.deutschai.app
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,8 +20,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.School
@@ -40,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,36 +62,124 @@ private data class LessonQuestion(
     val explanation: String
 )
 
-private val firstLesson = listOf(
-    LessonQuestion(
-        prompt = "Jak se německy řekne „Dobrý den“?",
-        choices = listOf("Gute Nacht", "Guten Tag", "Auf Wiedersehen", "Danke"),
-        correctIndex = 1,
-        explanation = "„Guten Tag“ znamená „Dobrý den“. Použiješ ho při běžném denním pozdravu."
+private data class Lesson(
+    val id: String,
+    val title: String,
+    val subtitle: String,
+    val questions: List<LessonQuestion>
+)
+
+private val lessons = listOf(
+    Lesson(
+        id = "first_steps",
+        title = "První kroky",
+        subtitle = "Pozdravy, slovíčka a jednoduché věty",
+        questions = listOf(
+            LessonQuestion(
+                "Jak se německy řekne „Dobrý den“?",
+                listOf("Gute Nacht", "Guten Tag", "Auf Wiedersehen", "Danke"),
+                1,
+                "„Guten Tag“ znamená „Dobrý den“. Použiješ ho při běžném denním pozdravu."
+            ),
+            LessonQuestion(
+                "Doplň větu: Ich ___ Erik.",
+                listOf("bist", "ist", "bin", "sind"),
+                2,
+                "Sloveso „sein“ (být): ich bin, du bist, er/sie/es ist. Proto říkáme „Ich bin Erik“."
+            ),
+            LessonQuestion(
+                "Co znamená německé „Danke“?",
+                listOf("Prosím", "Promiňte", "Na shledanou", "Děkuji"),
+                3,
+                "„Danke“ znamená „Děkuji“. Odpovědět můžeš například „Bitte“ — „Prosím / Není zač“."
+            ),
+            LessonQuestion(
+                "Vyber správný člen: ___ Haus (dům)",
+                listOf("der", "die", "das", "den"),
+                2,
+                "Správně je „das Haus“. Německá podstatná jména se učíme společně s členem: das Haus, die Tür, der Tisch."
+            ),
+            LessonQuestion(
+                "Co znamená „Wie geht es dir?“",
+                listOf("Jak se máš?", "Kde bydlíš?", "Kolik je hodin?", "Jak se jmenuješ?"),
+                0,
+                "„Wie geht es dir?“ znamená „Jak se máš?“. Neformálně můžeš odpovědět „Gut, danke“ — „Dobře, děkuji“."
+            )
+        )
     ),
-    LessonQuestion(
-        prompt = "Doplň větu: Ich ___ Erik.",
-        choices = listOf("bist", "ist", "bin", "sind"),
-        correctIndex = 2,
-        explanation = "Sloveso „sein“ (být): ich bin, du bist, er/sie/es ist. Proto říkáme „Ich bin Erik“."
+    Lesson(
+        id = "sein",
+        title = "Sloveso sein",
+        subtitle = "Řekni, kdo jsi, jak se máš a odkud jsi",
+        questions = listOf(
+            LessonQuestion(
+                "Doplň: Ich ___ müde. (Jsem unavený.)",
+                listOf("bist", "bin", "ist", "seid"),
+                1,
+                "S osobou „ich“ používáme „bin“: ich bin — já jsem."
+            ),
+            LessonQuestion(
+                "Doplň: Du ___ nett. (Jsi milý.)",
+                listOf("bin", "sind", "bist", "ist"),
+                2,
+                "S osobou „du“ používáme „bist“: du bist — ty jsi."
+            ),
+            LessonQuestion(
+                "Která věta je správně?",
+                listOf("Er bin hier.", "Er bist hier.", "Er sind hier.", "Er ist hier."),
+                3,
+                "Pro „er/sie/es“ používáme „ist“: er ist — on je, sie ist — ona je."
+            ),
+            LessonQuestion(
+                "Jak německy řekneš „My jsme tady“?",
+                listOf("Wir sind hier.", "Wir ist hier.", "Wir seid hier.", "Wir bin hier."),
+                0,
+                "S „wir“ (my) používáme tvar „sind“: wir sind."
+            ),
+            LessonQuestion(
+                "Doplň: Ihr ___ heute pünktlich. (Vy jste dnes přesní.)",
+                listOf("sind", "bist", "seid", "bin"),
+                2,
+                "S „ihr“ (vy, množné číslo) používáme „seid“: ihr seid."
+            )
+        )
     ),
-    LessonQuestion(
-        prompt = "Co znamená německé „Danke“?",
-        choices = listOf("Prosím", "Promiňte", "Na shledanou", "Děkuji"),
-        correctIndex = 3,
-        explanation = "„Danke“ znamená „Děkuji“. Odpovědět můžeš například „Bitte“ — „Prosím / Není zač“."
-    ),
-    LessonQuestion(
-        prompt = "Vyber správný člen: ___ Haus (dům)",
-        choices = listOf("der", "die", "das", "den"),
-        correctIndex = 2,
-        explanation = "Správně je „das Haus“. Německá podstatná jména se učíme společně s členem: das Haus, die Tür, der Tisch."
-    ),
-    LessonQuestion(
-        prompt = "Co znamená „Wie geht es dir?“",
-        choices = listOf("Jak se máš?", "Kde bydlíš?", "Kolik je hodin?", "Jak se jmenuješ?"),
-        correctIndex = 0,
-        explanation = "„Wie geht es dir?“ znamená „Jak se máš?“. Neformálně můžeš odpovědět „Gut, danke“ — „Dobře, děkuji“."
+    Lesson(
+        id = "articles",
+        title = "Členy der, die, das",
+        subtitle = "Procvič si rod běžných německých podstatných jmen",
+        questions = listOf(
+            LessonQuestion(
+                "Který člen patří ke slovu „Tisch“ (stůl)?",
+                listOf("die Tisch", "das Tisch", "der Tisch", "den Tisch"),
+                2,
+                "Správně je „der Tisch“. Uč se vždy celé spojení včetně členu."
+            ),
+            LessonQuestion(
+                "Který člen patří ke slovu „Schule“ (škola)?",
+                listOf("der Schule", "die Schule", "das Schule", "den Schule"),
+                1,
+                "Správně je „die Schule“."
+            ),
+            LessonQuestion(
+                "Který člen patří ke slovu „Auto“ (auto)?",
+                listOf("das Auto", "die Auto", "der Auto", "den Auto"),
+                0,
+                "Správně je „das Auto“."
+            ),
+            LessonQuestion(
+                "Který člen patří ke slovu „Frau“ (žena/paní)?",
+                listOf("das Frau", "der Frau", "die Frau", "den Frau"),
+                2,
+                "Správně je „die Frau“."
+            ),
+            LessonQuestion(
+                "Který člen patří ke slovu „Kind“ (dítě)?",
+                listOf("der Kind", "die Kind", "das Kind", "den Kind"),
+                2,
+                "Správně je „das Kind“. Pozor: gramatický rod se nemusí vždy shodovat s přirozeným rodem."
+            )
+        )
     )
 )
 
@@ -106,11 +196,45 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun DeutschAIHome() {
-    var showLesson by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val preferences = remember(context) {
+        context.getSharedPreferences("deutschai_progress", Context.MODE_PRIVATE)
+    }
+    var completedSessions by remember(preferences) {
+        mutableStateOf(preferences.getInt("completed_sessions", 0))
+    }
+    var bestScore by remember(preferences) {
+        mutableStateOf(preferences.getInt("best_score", 0))
+    }
+
+    var showLessonLibrary by remember { mutableStateOf(false) }
+    var selectedLesson by remember { mutableStateOf<Lesson?>(null) }
     var selectedTab by remember { mutableStateOf("Učení") }
 
-    if (showLesson) {
-        LessonScreen(onBack = { showLesson = false })
+    if (selectedLesson != null) {
+        LessonScreen(
+            lesson = selectedLesson!!,
+            onBack = { selectedLesson = null; showLessonLibrary = true },
+            onComplete = { score, total ->
+                completedSessions += 1
+                preferences.edit().putInt("completed_sessions", completedSessions).apply()
+                if (score > bestScore) {
+                    bestScore = score
+                    preferences.edit().putInt("best_score", bestScore).apply()
+                }
+            }
+        )
+        return
+    }
+
+    if (showLessonLibrary) {
+        LessonLibraryScreen(
+            onBack = { showLessonLibrary = false },
+            onSelectLesson = { lesson ->
+                selectedLesson = lesson
+                showLessonLibrary = false
+            }
+        )
         return
     }
 
@@ -190,14 +314,14 @@ private fun DeutschAIHome() {
                         lineHeight = 21.sp
                     )
                     Button(
-                        onClick = { showLesson = true },
+                        onClick = { showLessonLibrary = true },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Gold,
                             contentColor = Ink
                         ),
                         shape = RoundedCornerShape(14.dp)
                     ) {
-                        Text("Začít dnešní lekci", fontWeight = FontWeight.Bold)
+                        Text("Vybrat lekci", fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -228,9 +352,27 @@ private fun DeutschAIHome() {
                 )
                 ProgressCard(
                     modifier = Modifier.weight(1f),
-                    title = "Dnešní cíl",
-                    value = "5 otázek",
-                    detail = "Krátká lekce"
+                    title = "Dokončeno",
+                    value = completedSessions.toString(),
+                    detail = "Výukových sezení"
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                ProgressCard(
+                    modifier = Modifier.weight(1f),
+                    title = "Nejlepší skóre",
+                    value = bestScore.toString() + "/5",
+                    detail = "Správných odpovědí"
+                )
+                ProgressCard(
+                    modifier = Modifier.weight(1f),
+                    title = "Dostupné",
+                    value = lessons.size.toString(),
+                    detail = "Offline lekce"
                 )
             }
 
@@ -244,8 +386,8 @@ private fun DeutschAIHome() {
             FeatureCard(
                 icon = { Icon(Icons.Default.MenuBook, contentDescription = null, tint = Forest) },
                 title = "Slovíčka a gramatika",
-                subtitle = "První A1 lekce s vysvětlením v češtině",
-                onClick = { showLesson = true }
+                subtitle = "Tři první A1 lekce s vysvětlením v češtině",
+                onClick = { showLessonLibrary = true }
             )
             FeatureCard(
                 icon = { Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = Forest) },
@@ -256,7 +398,7 @@ private fun DeutschAIHome() {
             FeatureCard(
                 icon = { Icon(Icons.Default.School, contentDescription = null, tint = Forest) },
                 title = "Moje pokroky",
-                subtitle = "Postupně budovaný přehled tvého učení",
+                subtitle = "Výsledky se ukládají přímo v telefonu",
                 onClick = { selectedTab = "Pokroky" }
             )
 
@@ -265,15 +407,28 @@ private fun DeutschAIHome() {
                     colors = CardDefaults.cardColors(containerColor = Mint),
                     shape = RoundedCornerShape(18.dp)
                 ) {
-                    Text(
-                        text = if (selectedTab == "Konverzace")
-                            "Konverzaci s Beatrice připravíme v další fázi. První lekce už funguje offline."
-                        else
-                            "Historii výsledků a přehled pokroku doplníme v další fázi.",
-                        color = Forest,
+                    Column(
                         modifier = Modifier.padding(16.dp),
-                        fontWeight = FontWeight.Medium
-                    )
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = if (selectedTab == "Konverzace") "Konverzace s Beatrice" else "Tvoje pokroky",
+                            color = Forest,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = if (selectedTab == "Konverzace") {
+                                "Tuto část připravíme jako další. Kvízy a vysvětlení fungují offline."
+                            } else {
+                                "Dokončená výuková sezení: " + completedSessions +
+                                    "\nNejlepší výsledek: " + bestScore + "/5" +
+                                    "\nVýsledky zůstávají uložené v tomto telefonu."
+                            },
+                            color = Forest,
+                            lineHeight = 22.sp,
+                            fontSize = 14.sp
+                        )
+                    }
                 }
             }
 
@@ -290,23 +445,11 @@ private fun DeutschAIHome() {
 }
 
 @Composable
-private fun LessonScreen(onBack: () -> Unit) {
-    var questionIndex by remember { mutableStateOf(0) }
-    var selectedAnswer by remember { mutableStateOf<Int?>(null) }
-    var score by remember { mutableStateOf(0) }
-    var finished by remember { mutableStateOf(false) }
-
-    fun restartLesson() {
-        questionIndex = 0
-        selectedAnswer = null
-        score = 0
-        finished = false
-    }
-
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = Cream
-    ) {
+private fun LessonLibraryScreen(
+    onBack: () -> Unit,
+    onSelectLesson: (Lesson) -> Unit
+) {
+    Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -320,24 +463,113 @@ private fun LessonScreen(onBack: () -> Unit) {
             ) {
                 Button(
                     onClick = onBack,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Mint,
-                        contentColor = Forest
-                    ),
+                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Zpět")
                     Text("Zpět")
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(
-                        text = "DEUTSCHAI",
-                        color = Forest,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp,
-                        letterSpacing = 2.sp
-                    )
-                    Text("Lekce A1 · Základy", color = Muted, fontSize = 13.sp)
+                    Text("DEUTSCHAI", color = Forest, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
+                    Text("Knihovna lekcí", color = Muted, fontSize = 13.sp)
+                }
+            }
+
+            Text(
+                text = "Co se dnes naučíme?",
+                color = Ink,
+                fontSize = 27.sp,
+                fontWeight = FontWeight.Bold,
+                lineHeight = 32.sp
+            )
+            Text(
+                text = "Vyber si krátkou lekci. Všechny otázky a vysvětlení jsou dostupné bez internetu.",
+                color = Muted,
+                fontSize = 14.sp,
+                lineHeight = 21.sp
+            )
+
+            lessons.forEachIndexed { index, lesson ->
+                Card(
+                    onClick = { onSelectLesson(lesson) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(18.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .background(Mint, RoundedCornerShape(15.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = (index + 1).toString(),
+                                color = Forest,
+                                fontSize = 21.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(5.dp)
+                        ) {
+                            Text(lesson.title, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                            Text(lesson.subtitle, color = Muted, fontSize = 13.sp, lineHeight = 18.sp)
+                            Text("A1  •  " + lesson.questions.size + " otázek", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LessonScreen(
+    lesson: Lesson,
+    onBack: () -> Unit,
+    onComplete: (score: Int, total: Int) -> Unit
+) {
+    var questionIndex by remember(lesson.id) { mutableStateOf(0) }
+    var selectedAnswer by remember(lesson.id) { mutableStateOf<Int?>(null) }
+    var score by remember(lesson.id) { mutableStateOf(0) }
+    var finished by remember(lesson.id) { mutableStateOf(false) }
+
+    fun restartLesson() {
+        questionIndex = 0
+        selectedAnswer = null
+        score = 0
+        finished = false
+    }
+
+    Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 22.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Button(
+                    onClick = onBack,
+                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Zpět")
+                    Text("Zpět")
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text("DEUTSCHAI", color = Forest, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
+                    Text(lesson.title + " · A1", color = Muted, fontSize = 13.sp)
                 }
             }
 
@@ -352,27 +584,17 @@ private fun LessonScreen(onBack: () -> Unit) {
                         verticalArrangement = Arrangement.spacedBy(14.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.School,
-                            contentDescription = null,
-                            tint = Gold,
-                            modifier = Modifier.size(48.dp)
-                        )
+                        Icon(Icons.Default.School, contentDescription = null, tint = Gold, modifier = Modifier.size(48.dp))
+                        Text("Lekce dokončena!", color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Bold)
                         Text(
-                            text = "Lekce dokončena!",
-                            color = Color.White,
-                            fontSize = 25.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "$score z ${firstLesson.size} správně",
+                            score.toString() + " z " + lesson.questions.size + " správně",
                             color = Gold,
                             fontSize = 30.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = when {
-                                score == firstLesson.size -> "Výborně! Všech pět odpovědí je správně."
+                                score == lesson.questions.size -> "Výborně! Všechny odpovědi jsou správně."
                                 score >= 3 -> "Dobrá práce. Krátké opakování ti pomůže zapamatovat si zbytek."
                                 else -> "Každý začátek se počítá. Zkus si lekci zopakovat."
                             },
@@ -385,10 +607,7 @@ private fun LessonScreen(onBack: () -> Unit) {
                 Button(
                     onClick = { restartLesson() },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Gold,
-                        contentColor = Ink
-                    ),
+                    colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Ink),
                     shape = RoundedCornerShape(14.dp)
                 ) {
                     Text("Zopakovat lekci", fontWeight = FontWeight.Bold)
@@ -396,16 +615,13 @@ private fun LessonScreen(onBack: () -> Unit) {
                 Button(
                     onClick = onBack,
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Mint,
-                        contentColor = Forest
-                    ),
+                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
                     shape = RoundedCornerShape(14.dp)
                 ) {
-                    Text("Zpět na hlavní obrazovku", fontWeight = FontWeight.Bold)
+                    Text("Vybrat jinou lekci", fontWeight = FontWeight.Bold)
                 }
             } else {
-                val question = firstLesson[questionIndex]
+                val question = lesson.questions[questionIndex]
 
                 Text(
                     text = "PRVNÍ KROKY V NĚMČINĚ",
@@ -415,17 +631,14 @@ private fun LessonScreen(onBack: () -> Unit) {
                     letterSpacing = 1.3.sp
                 )
                 Text(
-                    text = "Otázka ${questionIndex + 1} z ${firstLesson.size}",
+                    text = "Otázka " + (questionIndex + 1) + " z " + lesson.questions.size,
                     color = Forest,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
                 )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    repeat(firstLesson.size) { index ->
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    repeat(lesson.questions.size) { index ->
                         Box(
                             modifier = Modifier
                                 .weight(1f)
@@ -465,9 +678,7 @@ private fun LessonScreen(onBack: () -> Unit) {
                                 onClick = {
                                     if (selectedAnswer == null) {
                                         selectedAnswer = index
-                                        if (index == question.correctIndex) {
-                                            score += 1
-                                        }
+                                        if (index == question.correctIndex) score += 1
                                     }
                                 },
                                 modifier = Modifier.fillMaxWidth(),
@@ -478,11 +689,8 @@ private fun LessonScreen(onBack: () -> Unit) {
                                     text = choice,
                                     color = Ink,
                                     fontSize = 16.sp,
-                                    fontWeight = if (selectedAnswer != null && index == question.correctIndex)
-                                        FontWeight.Bold else FontWeight.Medium,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 15.dp)
+                                    fontWeight = if (selectedAnswer != null && index == question.correctIndex) FontWeight.Bold else FontWeight.Medium,
+                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 15.dp)
                                 )
                             }
                         }
@@ -493,9 +701,7 @@ private fun LessonScreen(onBack: () -> Unit) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(18.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (selectedAnswer == question.correctIndex) Correct else Incorrect
-                        )
+                        colors = CardDefaults.cardColors(containerColor = if (selectedAnswer == question.correctIndex) Correct else Incorrect)
                     ) {
                         Column(
                             modifier = Modifier.padding(16.dp),
@@ -507,32 +713,25 @@ private fun LessonScreen(onBack: () -> Unit) {
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.Bold
                             )
-                            Text(
-                                text = question.explanation,
-                                color = Ink,
-                                fontSize = 14.sp,
-                                lineHeight = 21.sp
-                            )
+                            Text(question.explanation, color = Ink, fontSize = 14.sp, lineHeight = 21.sp)
                         }
                     }
                     Button(
                         onClick = {
-                            if (questionIndex < firstLesson.lastIndex) {
+                            if (questionIndex < lesson.questions.lastIndex) {
                                 questionIndex += 1
                                 selectedAnswer = null
                             } else {
+                                onComplete(score, lesson.questions.size)
                                 finished = true
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Forest,
-                            contentColor = Color.White
-                        ),
+                        colors = ButtonDefaults.buttonColors(containerColor = Forest, contentColor = Color.White),
                         shape = RoundedCornerShape(14.dp)
                     ) {
                         Text(
-                            text = if (questionIndex == firstLesson.lastIndex) "Zobrazit výsledek" else "Další otázka",
+                            text = if (questionIndex == lesson.questions.lastIndex) "Zobrazit výsledek" else "Další otázka",
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -591,9 +790,7 @@ private fun FeatureCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(Mint, RoundedCornerShape(15.dp)),
+                modifier = Modifier.size(48.dp).background(Mint, RoundedCornerShape(15.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 icon()
