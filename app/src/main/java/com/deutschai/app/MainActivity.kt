@@ -555,8 +555,9 @@ private fun LessonScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .navigationBarsPadding()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 22.dp, vertical = 20.dp),
+                .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(
