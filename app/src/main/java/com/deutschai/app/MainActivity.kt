@@ -16,6 +16,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -34,8 +37,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -185,6 +190,72 @@ private val lessons = listOf(
     )
 )
 
+private data class ConversationPrompt(
+    val prompt: String,
+    val recognizedPhrases: List<String>,
+    val example: String,
+    val explanation: String
+)
+
+private data class ConversationMessage(
+    val text: String,
+    val fromBeatrice: Boolean,
+    val feedback: Boolean = false,
+    val recognized: Boolean = false
+)
+
+private val conversationPrompts = listOf(
+    ConversationPrompt(
+        prompt = "Hallo! Wie heißt du?",
+        recognizedPhrases = listOf("ich heiße", "ich heisse", "mein name ist", "ich bin"),
+        example = "Ich heiße …",
+        explanation = "Při představování můžeš použít „Ich heiße …“ nebo „Mein Name ist …“."
+    ),
+    ConversationPrompt(
+        prompt = "Woher kommst du?",
+        recognizedPhrases = listOf("ich komme aus", "ich wohne in"),
+        example = "Ich komme aus Tschechien.",
+        explanation = "„Woher kommst du?“ znamená „Odkud pocházíš?“"
+    ),
+    ConversationPrompt(
+        prompt = "Wie geht es dir heute?",
+        recognizedPhrases = listOf("mir geht es gut", "mir geht's gut", "gut", "prima", "super", "nicht so gut", "es geht", "müde"),
+        example = "Mir geht es gut, danke.",
+        explanation = "„Wie geht es dir?“ znamená „Jak se máš?“. „Mir geht es gut“ znamená „Mám se dobře“."
+    ),
+    ConversationPrompt(
+        prompt = "Was machst du gern in deiner Freizeit?",
+        recognizedPhrases = listOf("ich spiele", "ich lese", "ich höre", "ich hore", "ich koche", "ich schwimme", "ich gehe", "ich mache", "ich mag", "gern"),
+        example = "Ich lese gern.",
+        explanation = "Slovo „gern“ používáme, když říkáme, co rádi děláme. Například „Ich lese gern“ — „Rád čtu“."
+    ),
+    ConversationPrompt(
+        prompt = "Was machst du am Wochenende?",
+        recognizedPhrases = listOf("am wochenende", "ich gehe", "ich spiele", "ich treffe", "ich besuche", "ich bleibe", "ich fahre"),
+        example = "Am Wochenende treffe ich Freunde.",
+        explanation = "„Am Wochenende“ znamená „o víkendu“. Můžeš začít právě touto frází."
+    )
+)
+
+private fun evaluateConversationAnswer(
+    answer: String,
+    prompt: ConversationPrompt
+): Pair<Boolean, String> {
+    val normalized = answer
+        .lowercase()
+        .replace(Regex("[.!?,;:]"), " ")
+        .replace(Regex("\\s+"), " ")
+        .trim()
+    val recognized = prompt.recognizedPhrases.any { normalized.contains(it) }
+    val response = if (recognized) {
+        "Sehr gut! Rozpoznal jsem užitečnou frázi. Vzor: " + prompt.example + " " + prompt.explanation
+    } else {
+        "Dobrá snaha! Tahle offline verze neumí rozpoznat každou možnou větu. Zkus například: " +
+            prompt.example + " " + prompt.explanation
+    }
+    return recognized to response
+}
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -209,9 +280,15 @@ private fun DeutschAIHome() {
         mutableStateOf(preferences.getInt("best_score", 0))
     }
 
+    var showConversation by remember { mutableStateOf(false) }
     var showLessonLibrary by remember { mutableStateOf(false) }
     var selectedLesson by remember { mutableStateOf<Lesson?>(null) }
     var selectedTab by remember { mutableStateOf("Učení") }
+
+    if (showConversation) {
+        ConversationScreen(onBack = { showConversation = false })
+        return
+    }
 
     if (selectedLesson != null) {
         LessonScreen(
@@ -395,8 +472,8 @@ private fun DeutschAIHome() {
             FeatureCard(
                 icon = { Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = Forest) },
                 title = "Konverzace s Beatrice",
-                subtitle = "Procvičuj běžné situace a uč se z chyb",
-                onClick = { selectedTab = "Konverzace" }
+                subtitle = "Mluv vlastními slovy a uč se z oprav",
+                onClick = { showConversation = true }
             )
             FeatureCard(
                 icon = { Icon(Icons.Default.School, contentDescription = null, tint = Forest) },
@@ -748,6 +825,248 @@ private fun LessonScreen(
                         lineHeight = 19.sp
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ConversationScreen(onBack: () -> Unit) {
+    var input by remember { mutableStateOf("") }
+    var promptIndex by remember { mutableStateOf(0) }
+    var recognizedCount by remember { mutableStateOf(0) }
+    var finished by remember { mutableStateOf(false) }
+    var messages by remember {
+        mutableStateOf(
+            listOf(
+                ConversationMessage(
+                    "Hallo! Ich bin Beatrice. Wir üben heute ein paar einfache Gespräche auf Deutsch.",
+                    true
+                ),
+                ConversationMessage(conversationPrompts[0].prompt, true)
+            )
+        )
+    }
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(messages.size) {
+        if (messages.isNotEmpty()) {
+            listState.animateScrollToItem(messages.lastIndex)
+        }
+    }
+
+    fun sendAnswer() {
+        val answer = input.trim()
+        if (answer.isEmpty() || finished) return
+        val currentPrompt = conversationPrompts[promptIndex]
+        val evaluation = evaluateConversationAnswer(answer, currentPrompt)
+        messages = messages +
+            ConversationMessage(answer, false) +
+            ConversationMessage(evaluation.second, true, feedback = true, recognized = evaluation.first)
+        if (evaluation.first) recognizedCount += 1
+        input = ""
+
+        if (promptIndex < conversationPrompts.lastIndex) {
+            promptIndex += 1
+            messages = messages + ConversationMessage(conversationPrompts[promptIndex].prompt, true)
+        } else {
+            finished = true
+            messages = messages + ConversationMessage(
+                "Danke für das Gespräch! Du kannst es jederzeit noch einmal versuchen.",
+                true
+            )
+        }
+    }
+
+    fun restartConversation() {
+        input = ""
+        promptIndex = 0
+        recognizedCount = 0
+        finished = false
+        messages = listOf(
+            ConversationMessage(
+                "Hallo! Ich bin Beatrice. Wir üben heute ein paar einfache Gespräche auf Deutsch.",
+                true
+            ),
+            ConversationMessage(conversationPrompts[0].prompt, true)
+        )
+    }
+
+    Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .navigationBarsPadding()
+                .padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = onBack,
+                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.heightIn(min = 52.dp)
+                ) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Zpět")
+                    Text("Zpět")
+                }
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(Forest, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("B", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                }
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text("Beatrice", color = Forest, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Text("Němčina A1 · offline konverzace", color = Muted, fontSize = 12.sp)
+                }
+            }
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Mint)
+            ) {
+                Text(
+                    text = "Odpovídej německy vlastními slovy. Beatrice ti ukáže užitečný vzor a vysvětlí ho česky.",
+                    modifier = Modifier.padding(12.dp),
+                    color = Forest,
+                    fontSize = 13.sp,
+                    lineHeight = 19.sp
+                )
+            }
+
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(messages) { message ->
+                    ChatBubble(message)
+                }
+            }
+
+            if (finished) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Forest)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text("Rozhovor dokončen", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            "Rozpoznané fráze: " + recognizedCount + " z " + conversationPrompts.size,
+                            color = Gold,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            "Jde o jednoduchou offline kontrolu vybraných frází, ne o plnou AI ani úplnou kontrolu gramatiky.",
+                            color = Color(0xFFE0EAE5),
+                            fontSize = 12.sp,
+                            lineHeight = 18.sp
+                        )
+                    }
+                }
+                Button(
+                    onClick = { restartConversation() },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Ink),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Text("Začít znovu", fontWeight = FontWeight.Bold)
+                }
+                Button(
+                    onClick = onBack,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Text("Zpět na hlavní obrazovku", fontWeight = FontWeight.Bold)
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    OutlinedTextField(
+                        value = input,
+                        onValueChange = { input = it },
+                        modifier = Modifier.weight(1f),
+                        placeholder = { Text("Napiš odpověď německy…") },
+                        maxLines = 3,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    Button(
+                        onClick = { sendAnswer() },
+                        enabled = input.isNotBlank(),
+                        modifier = Modifier.heightIn(min = 56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Forest, contentColor = Color.White),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Text("Odeslat")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChatBubble(message: ConversationMessage) {
+    val background = when {
+        !message.fromBeatrice -> Forest
+        message.feedback && message.recognized -> Correct
+        message.feedback -> Incorrect
+        else -> Color.White
+    }
+    val foreground = if (message.fromBeatrice) Ink else Color.White
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = if (message.fromBeatrice) Arrangement.Start else Arrangement.End
+    ) {
+        Card(
+            modifier = Modifier.fillMaxWidth(0.92f),
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(containerColor = background)
+        ) {
+            Column(
+                modifier = Modifier.padding(14.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                if (message.fromBeatrice) {
+                    Text(
+                        text = if (message.feedback) "BEATRICE · VYSVĚTLENÍ" else "BEATRICE",
+                        color = Forest,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp
+                    )
+                } else {
+                    Text(
+                        text = "TY",
+                        color = Color(0xFFDDEFE6),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp
+                    )
+                }
+                Text(
+                    text = message.text,
+                    color = foreground,
+                    fontSize = 14.sp,
+                    lineHeight = 21.sp
+                )
             }
         }
     }
