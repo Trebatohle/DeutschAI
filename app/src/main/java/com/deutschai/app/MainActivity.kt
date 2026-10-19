@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.School
@@ -49,6 +50,48 @@ private val Cream = Color(0xFFF7F5EF)
 private val Ink = Color(0xFF1E2925)
 private val Muted = Color(0xFF66736D)
 private val Gold = Color(0xFFE7B96A)
+private val Correct = Color(0xFFD9EDE1)
+private val Incorrect = Color(0xFFF7E0DC)
+
+private data class LessonQuestion(
+    val prompt: String,
+    val choices: List<String>,
+    val correctIndex: Int,
+    val explanation: String
+)
+
+private val firstLesson = listOf(
+    LessonQuestion(
+        prompt = "Jak se německy řekne „Dobrý den“?",
+        choices = listOf("Gute Nacht", "Guten Tag", "Auf Wiedersehen", "Danke"),
+        correctIndex = 1,
+        explanation = "„Guten Tag“ znamená „Dobrý den“. Použiješ ho při běžném denním pozdravu."
+    ),
+    LessonQuestion(
+        prompt = "Doplň větu: Ich ___ Erik.",
+        choices = listOf("bist", "ist", "bin", "sind"),
+        correctIndex = 2,
+        explanation = "Sloveso „sein“ (být): ich bin, du bist, er/sie/es ist. Proto říkáme „Ich bin Erik“."
+    ),
+    LessonQuestion(
+        prompt = "Co znamená německé „Danke“?",
+        choices = listOf("Prosím", "Promiňte", "Na shledanou", "Děkuji"),
+        correctIndex = 3,
+        explanation = "„Danke“ znamená „Děkuji“. Odpovědět můžeš například „Bitte“ — „Prosím / Není zač“."
+    ),
+    LessonQuestion(
+        prompt = "Vyber správný člen: ___ Haus (dům)",
+        choices = listOf("der", "die", "das", "den"),
+        correctIndex = 2,
+        explanation = "Správně je „das Haus“. Německá podstatná jména se učíme společně s členem: das Haus, die Tür, der Tisch."
+    ),
+    LessonQuestion(
+        prompt = "Co znamená „Wie geht es dir?“",
+        choices = listOf("Jak se máš?", "Kde bydlíš?", "Kolik je hodin?", "Jak se jmenuješ?"),
+        correctIndex = 0,
+        explanation = "„Wie geht es dir?“ znamená „Jak se máš?“. Neformálně můžeš odpovědět „Gut, danke“ — „Dobře, děkuji“."
+    )
+)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,8 +106,13 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun DeutschAIHome() {
+    var showLesson by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf("Učení") }
-    var showLessonMessage by remember { mutableStateOf(false) }
+
+    if (showLesson) {
+        LessonScreen(onBack = { showLesson = false })
+        return
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -142,7 +190,7 @@ private fun DeutschAIHome() {
                         lineHeight = 21.sp
                     )
                     Button(
-                        onClick = { showLessonMessage = !showLessonMessage },
+                        onClick = { showLesson = true },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Gold,
                             contentColor = Ink
@@ -150,14 +198,6 @@ private fun DeutschAIHome() {
                         shape = RoundedCornerShape(14.dp)
                     ) {
                         Text("Začít dnešní lekci", fontWeight = FontWeight.Bold)
-                    }
-                    if (showLessonMessage) {
-                        Text(
-                            text = "Brzy tu na tebe bude čekat první lekce A1. Tohle je zatím návrh úvodní obrazovky.",
-                            color = Color.White,
-                            fontSize = 13.sp,
-                            lineHeight = 19.sp
-                        )
                     }
                 }
             }
@@ -189,7 +229,7 @@ private fun DeutschAIHome() {
                 ProgressCard(
                     modifier = Modifier.weight(1f),
                     title = "Dnešní cíl",
-                    value = "10 min",
+                    value = "5 otázek",
                     detail = "Krátká lekce"
                 )
             }
@@ -204,8 +244,8 @@ private fun DeutschAIHome() {
             FeatureCard(
                 icon = { Icon(Icons.Default.MenuBook, contentDescription = null, tint = Forest) },
                 title = "Slovíčka a gramatika",
-                subtitle = "Užitečná němčina s vysvětlením v češtině",
-                onClick = { selectedTab = "Lekce" }
+                subtitle = "První A1 lekce s vysvětlením v češtině",
+                onClick = { showLesson = true }
             )
             FeatureCard(
                 icon = { Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = Forest) },
@@ -226,7 +266,10 @@ private fun DeutschAIHome() {
                     shape = RoundedCornerShape(18.dp)
                 ) {
                     Text(
-                        text = "Vybráno: $selectedTab. Tuto část doplníme v další fázi.",
+                        text = if (selectedTab == "Konverzace")
+                            "Konverzaci s Beatrice připravíme v další fázi. První lekce už funguje offline."
+                        else
+                            "Historii výsledků a přehled pokroku doplníme v další fázi.",
                         color = Forest,
                         modifier = Modifier.padding(16.dp),
                         fontWeight = FontWeight.Medium
@@ -242,6 +285,266 @@ private fun DeutschAIHome() {
                 letterSpacing = 1.sp,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
+        }
+    }
+}
+
+@Composable
+private fun LessonScreen(onBack: () -> Unit) {
+    var questionIndex by remember { mutableStateOf(0) }
+    var selectedAnswer by remember { mutableStateOf<Int?>(null) }
+    var score by remember { mutableStateOf(0) }
+    var finished by remember { mutableStateOf(false) }
+
+    fun restartLesson() {
+        questionIndex = 0
+        selectedAnswer = null
+        score = 0
+        finished = false
+    }
+
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = Cream
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 22.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Button(
+                    onClick = onBack,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Mint,
+                        contentColor = Forest
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Zpět")
+                    Text("Zpět")
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        text = "DEUTSCHAI",
+                        color = Forest,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp,
+                        letterSpacing = 2.sp
+                    )
+                    Text("Lekce A1 · Základy", color = Muted, fontSize = 13.sp)
+                }
+            }
+
+            if (finished) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(26.dp),
+                    colors = CardDefaults.cardColors(containerColor = Forest)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.School,
+                            contentDescription = null,
+                            tint = Gold,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Text(
+                            text = "Lekce dokončena!",
+                            color = Color.White,
+                            fontSize = 25.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "$score z ${firstLesson.size} správně",
+                            color = Gold,
+                            fontSize = 30.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = when {
+                                score == firstLesson.size -> "Výborně! Všech pět odpovědí je správně."
+                                score >= 3 -> "Dobrá práce. Krátké opakování ti pomůže zapamatovat si zbytek."
+                                else -> "Každý začátek se počítá. Zkus si lekci zopakovat."
+                            },
+                            color = Color(0xFFE0EAE5),
+                            fontSize = 14.sp,
+                            lineHeight = 21.sp
+                        )
+                    }
+                }
+                Button(
+                    onClick = { restartLesson() },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Gold,
+                        contentColor = Ink
+                    ),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Text("Zopakovat lekci", fontWeight = FontWeight.Bold)
+                }
+                Button(
+                    onClick = onBack,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Mint,
+                        contentColor = Forest
+                    ),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Text("Zpět na hlavní obrazovku", fontWeight = FontWeight.Bold)
+                }
+            } else {
+                val question = firstLesson[questionIndex]
+
+                Text(
+                    text = "PRVNÍ KROKY V NĚMČINĚ",
+                    color = Muted,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.3.sp
+                )
+                Text(
+                    text = "Otázka ${questionIndex + 1} z ${firstLesson.size}",
+                    color = Forest,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    repeat(firstLesson.size) { index ->
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(6.dp)
+                                .background(
+                                    color = if (index <= questionIndex) Forest else Color(0xFFE3E5DF),
+                                    shape = CircleShape
+                                )
+                        )
+                    }
+                }
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Text(
+                            text = question.prompt,
+                            color = Ink,
+                            fontSize = 21.sp,
+                            lineHeight = 28.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        question.choices.forEachIndexed { index, choice ->
+                            val choiceColor = when {
+                                selectedAnswer == null -> Cream
+                                index == question.correctIndex -> Correct
+                                selectedAnswer == index -> Incorrect
+                                else -> Cream
+                            }
+                            Card(
+                                onClick = {
+                                    if (selectedAnswer == null) {
+                                        selectedAnswer = index
+                                        if (index == question.correctIndex) {
+                                            score += 1
+                                        }
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(14.dp),
+                                colors = CardDefaults.cardColors(containerColor = choiceColor)
+                            ) {
+                                Text(
+                                    text = choice,
+                                    color = Ink,
+                                    fontSize = 16.sp,
+                                    fontWeight = if (selectedAnswer != null && index == question.correctIndex)
+                                        FontWeight.Bold else FontWeight.Medium,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 15.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (selectedAnswer != null) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (selectedAnswer == question.correctIndex) Correct else Incorrect
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = if (selectedAnswer == question.correctIndex) "Správně! Gut gemacht!" else "To nevadí — učíme se.",
+                                color = Forest,
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = question.explanation,
+                                color = Ink,
+                                fontSize = 14.sp,
+                                lineHeight = 21.sp
+                            )
+                        }
+                    }
+                    Button(
+                        onClick = {
+                            if (questionIndex < firstLesson.lastIndex) {
+                                questionIndex += 1
+                                selectedAnswer = null
+                            } else {
+                                finished = true
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Forest,
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Text(
+                            text = if (questionIndex == firstLesson.lastIndex) "Zobrazit výsledek" else "Další otázka",
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                } else {
+                    Text(
+                        text = "Vyber jednu odpověď. Lekce funguje i bez připojení k internetu.",
+                        color = Muted,
+                        fontSize = 13.sp,
+                        lineHeight = 19.sp
+                    )
+                }
+            }
         }
     }
 }
