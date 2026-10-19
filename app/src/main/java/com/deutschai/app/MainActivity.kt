@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -245,8 +247,9 @@ private fun DeutschAIHome() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .navigationBarsPadding()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 22.dp, vertical = 24.dp),
+                .padding(start = 22.dp, top = 24.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             Row(
@@ -453,8 +456,9 @@ private fun LessonLibraryScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .navigationBarsPadding()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 22.dp, vertical = 20.dp),
+                .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(
@@ -606,7 +610,7 @@ private fun LessonScreen(
                 }
                 Button(
                     onClick = { restartLesson() },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Ink),
                     shape = RoundedCornerShape(14.dp)
                 ) {
@@ -614,7 +618,7 @@ private fun LessonScreen(
                 }
                 Button(
                     onClick = onBack,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
                     shape = RoundedCornerShape(14.dp)
                 ) {
@@ -726,7 +730,7 @@ private fun LessonScreen(
                                 finished = true
                             }
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Forest, contentColor = Color.White),
                         shape = RoundedCornerShape(14.dp)
                     ) {
