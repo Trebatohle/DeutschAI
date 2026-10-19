@@ -52,6 +52,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.text.Normalizer
 
 private val Forest = Color(0xFF163D35)
 private val Mint = Color(0xFFDDEFE6)
@@ -201,7 +202,8 @@ private data class ConversationMessage(
     val text: String,
     val fromBeatrice: Boolean,
     val feedback: Boolean = false,
-    val recognized: Boolean = false
+    val recognized: Boolean = false,
+    val translation: String? = null
 )
 
 private val conversationPrompts = listOf(
@@ -237,23 +239,84 @@ private val conversationPrompts = listOf(
     )
 )
 
+private fun normalizeGerman(text: String): String {
+    val expanded = text.lowercase().replace("ß", "ss")
+    return Normalizer.normalize(expanded, Normalizer.Form.NFD)
+        .replace(Regex("\\p{Mn}+"), "")
+        .replace(Regex("[^a-z0-9 ]"), " ")
+        .replace(Regex("\\s+"), " ")
+        .trim()
+}
+
 private fun evaluateConversationAnswer(
     answer: String,
     prompt: ConversationPrompt
 ): Pair<Boolean, String> {
-    val normalized = answer
-        .lowercase()
-        .replace(Regex("[.!?,;:]"), " ")
-        .replace(Regex("\\s+"), " ")
-        .trim()
-    val recognized = prompt.recognizedPhrases.any { normalized.contains(it) }
-    val response = if (recognized) {
-        "Sehr gut! Rozpoznal jsem užitečnou frázi. Vzor: " + prompt.example + " " + prompt.explanation
-    } else {
-        "Dobrá snaha! Tahle offline verze neumí rozpoznat každou možnou větu. Zkus například: " +
-            prompt.example + " " + prompt.explanation
+    val normalized = normalizeGerman(answer)
+    val knownPhraseMatched = prompt.recognizedPhrases.any {
+        val phrase = normalizeGerman(it)
+        phrase.isNotBlank() && normalized.contains(phrase)
     }
-    return recognized to response
+
+    // Forgiving, context-aware offline check: common word stems and short natural replies.
+    val contextualMatch = when (prompt.prompt) {
+        "Hallo! Wie heißt du?" ->
+            normalized.split(" ").size in 1..4 ||
+                listOf("heiss", "heisse", "name", "ich bin").any { normalized.contains(it) }
+
+        "Woher kommst du?" ->
+            listOf(
+                "komm", "komme", "wohn", "wohne", "aus",
+                "tschechien", "deutschland", "osterreich", "schweiz",
+                "prag", "praha", "brno", "slowakei", "berlin", "wien"
+            ).any { normalized.contains(it) } ||
+                normalized.split(" ").size in 1..3
+
+        "Wie geht es dir heute?" ->
+            listOf("gut", "prima", "super", "schlecht", "mude", "geht",
+                "danke", "okay", "ok", "nicht so", "fine")
+                .any { normalized.contains(it) }
+
+        "Was machst du gern in deiner Freizeit?" ->
+            listOf(
+                "spiel", "les", "hor", "koch", "schwimm", "geh", "mach",
+                "mag", "lieb", "sport", "musik", "buch", "rad", "fussball",
+                "reise", "freund", "garten", "wander", "kino", "tanz",
+                "lauf", "jogg", "zeichn", "lern", "back", "fotograf"
+            ).any { normalized.contains(it) }
+
+        "Was machst du am Wochenende?" ->
+            listOf(
+                "wochenende", "samstag", "sonntag", "geh", "spiel", "treff",
+                "besuch", "bleib", "fahr", "arbeit", "entspann", "schlaf",
+                "reis", "seh", "mach", "koch", "freund", "familie", "kino",
+                "sport", "ausflug"
+            ).any { normalized.contains(it) }
+
+        else -> false
+    }
+
+    // These offline rules are only hints, not a full grammar checker or generative AI.
+    val recognized = knownPhraseMatched || contextualMatch
+    return recognized to prompt.explanation
+}
+
+private fun promptTranslation(prompt: ConversationPrompt): String = when (prompt.prompt) {
+    "Hallo! Wie heißt du?" -> "Ahoj! Jak se jmenuješ?"
+    "Woher kommst du?" -> "Odkud pocházíš?"
+    "Wie geht es dir heute?" -> "Jak se dnes máš?"
+    "Was machst du gern in deiner Freizeit?" -> "Co rád/a děláš ve volném čase?"
+    "Was machst du am Wochenende?" -> "Co děláš o víkendu?"
+    else -> "Český překlad zatím není k dispozici."
+}
+
+private fun exampleTranslation(example: String): String = when (example) {
+    "Ich heiße …" -> "Jmenuji se …"
+    "Ich komme aus Tschechien." -> "Pocházím z Česka."
+    "Mir geht es gut, danke." -> "Mám se dobře, děkuji."
+    "Ich lese gern." -> "Rád/a čtu."
+    "Am Wochenende treffe ich Freunde." -> "O víkendu se setkávám s přáteli."
+    else -> "Český překlad zatím není k dispozici."
 }
 
 class MainActivity : ComponentActivity() {
@@ -841,9 +904,14 @@ private fun ConversationScreen(onBack: () -> Unit) {
             listOf(
                 ConversationMessage(
                     "Hallo! Ich bin Beatrice. Wir üben heute ein paar einfache Gespräche auf Deutsch.",
-                    true
+                    true,
+                    translation = "Ahoj! Jsem Beatrice. Dnes si procvičíme několik jednoduchých rozhovorů v němčině."
                 ),
-                ConversationMessage(conversationPrompts[0].prompt, true)
+                ConversationMessage(
+                    conversationPrompts[0].prompt,
+                    true,
+                    translation = promptTranslation(conversationPrompts[0])
+                )
             )
         )
     }
@@ -860,20 +928,50 @@ private fun ConversationScreen(onBack: () -> Unit) {
         if (answer.isEmpty() || finished) return
         val currentPrompt = conversationPrompts[promptIndex]
         val evaluation = evaluateConversationAnswer(answer, currentPrompt)
+        val shortFeedback = if (evaluation.first) {
+            ConversationMessage(
+                "Sehr gut! Danke für deine Antwort.",
+                true,
+                feedback = true,
+                recognized = true,
+                translation = "Výborně! Děkuji za odpověď."
+            )
+        } else {
+            ConversationMessage(
+                "Danke für deine Antwort!",
+                true,
+                feedback = true,
+                recognized = false,
+                translation = "Děkuji za odpověď."
+            )
+        }
+
         messages = messages +
             ConversationMessage(answer, false) +
+            shortFeedback +
+            ConversationMessage(
+                "Beispiel: " + currentPrompt.example,
+                true,
+                translation = "Česky: " + exampleTranslation(currentPrompt.example)
+            ) +
             ConversationMessage(evaluation.second, true, feedback = true, recognized = evaluation.first)
         if (evaluation.first) recognizedCount += 1
         input = ""
 
         if (promptIndex < conversationPrompts.lastIndex) {
             promptIndex += 1
-            messages = messages + ConversationMessage(conversationPrompts[promptIndex].prompt, true)
+            val nextPrompt = conversationPrompts[promptIndex]
+            messages = messages + ConversationMessage(
+                nextPrompt.prompt,
+                true,
+                translation = promptTranslation(nextPrompt)
+            )
         } else {
             finished = true
             messages = messages + ConversationMessage(
                 "Danke für das Gespräch! Du kannst es jederzeit noch einmal versuchen.",
-                true
+                true,
+                translation = "Děkuji za rozhovor! Můžeš si ho kdykoliv zkusit znovu."
             )
         }
     }
@@ -886,9 +984,14 @@ private fun ConversationScreen(onBack: () -> Unit) {
         messages = listOf(
             ConversationMessage(
                 "Hallo! Ich bin Beatrice. Wir üben heute ein paar einfache Gespräche auf Deutsch.",
-                true
+                true,
+                translation = "Ahoj! Jsem Beatrice. Dnes si procvičíme několik jednoduchých rozhovorů v němčině."
             ),
-            ConversationMessage(conversationPrompts[0].prompt, true)
+            ConversationMessage(
+                conversationPrompts[0].prompt,
+                true,
+                translation = promptTranslation(conversationPrompts[0])
+            )
         )
     }
 
@@ -1024,6 +1127,7 @@ private fun ConversationScreen(onBack: () -> Unit) {
 
 @Composable
 private fun ChatBubble(message: ConversationMessage) {
+    var showTranslation by remember(message.text) { mutableStateOf(false) }
     val background = when {
         !message.fromBeatrice -> Forest
         message.feedback && message.recognized -> Correct
@@ -1036,13 +1140,18 @@ private fun ChatBubble(message: ConversationMessage) {
         horizontalArrangement = if (message.fromBeatrice) Arrangement.Start else Arrangement.End
     ) {
         Card(
+            onClick = {
+                if (message.fromBeatrice && message.translation != null) {
+                    showTranslation = !showTranslation
+                }
+            },
             modifier = Modifier.fillMaxWidth(0.92f),
             shape = RoundedCornerShape(18.dp),
             colors = CardDefaults.cardColors(containerColor = background)
         ) {
             Column(
                 modifier = Modifier.padding(14.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 if (message.fromBeatrice) {
                     Text(
@@ -1067,11 +1176,24 @@ private fun ChatBubble(message: ConversationMessage) {
                     fontSize = 14.sp,
                     lineHeight = 21.sp
                 )
+                if (message.fromBeatrice && message.translation != null) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = if (showTranslation) {
+                            "Česky: " + message.translation + "  ·  klepnutím skryješ"
+                        } else {
+                            "Klepnutím zobrazíš český překlad  ↓"
+                        },
+                        color = Forest,
+                        fontSize = 12.sp,
+                        lineHeight = 17.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
         }
     }
 }
-
 @Composable
 private fun ProgressCard(
     modifier: Modifier = Modifier,
