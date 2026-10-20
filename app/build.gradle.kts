@@ -43,5 +43,9 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
+
+    // Local on-device language model runtime (no cloud inference).
+    implementation("com.google.ai.edge.litertlm:litertlm-android:0.18.0")
+
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
