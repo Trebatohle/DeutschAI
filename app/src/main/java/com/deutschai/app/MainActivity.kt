@@ -39,7 +39,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -895,6 +897,40 @@ private fun LessonScreen(
 
 @Composable
 private fun ConversationScreen(onBack: () -> Unit) {
+    val context = LocalContext.current
+    val tutor = remember(context) { OfflineAiTutor(context.applicationContext) }
+    DisposableEffect(tutor) {
+        onDispose { tutor.close() }
+    }
+
+    var modelInstalled by remember(context) {
+        mutableStateOf(OfflineAiTutor.isModelInstalled(context))
+    }
+    var isDownloading by remember { mutableStateOf(false) }
+    var downloadProgress by remember { mutableStateOf(0f) }
+    var isInitializing by remember { mutableStateOf(false) }
+    var aiReady by remember { mutableStateOf(false) }
+    var aiWorking by remember { mutableStateOf(false) }
+    var aiError by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(modelInstalled) {
+        if (modelInstalled && !aiReady && !isInitializing) {
+            isInitializing = true
+            tutor.initialize { result ->
+                isInitializing = false
+                result.fold(
+                    onSuccess = {
+                        aiReady = true
+                        aiError = null
+                    },
+                    onFailure = { error ->
+                        aiError = error.message ?: "Offline AI se nepodařilo spustit."
+                    }
+                )
+            }
+        }
+    }
+
     var input by remember { mutableStateOf("") }
     var promptIndex by remember { mutableStateOf(0) }
     var recognizedCount by remember { mutableStateOf(0) }
@@ -923,10 +959,61 @@ private fun ConversationScreen(onBack: () -> Unit) {
         }
     }
 
+    fun advanceConversation() {
+        if (promptIndex < conversationPrompts.lastIndex) {
+            promptIndex += 1
+            val nextPrompt = conversationPrompts[promptIndex]
+            messages = messages + ConversationMessage(
+                nextPrompt.prompt,
+                true,
+                translation = promptTranslation(nextPrompt)
+            )
+        } else {
+            finished = true
+            messages = messages + ConversationMessage(
+                "Danke für das Gespräch! Du kannst es jederzeit noch einmal versuchen.",
+                true,
+                translation = "Děkuji za rozhovor! Můžeš si ho kdykoliv zkusit znovu."
+            )
+        }
+    }
+
     fun sendAnswer() {
         val answer = input.trim()
-        if (answer.isEmpty() || finished) return
+        if (answer.isEmpty() || finished || aiWorking || isInitializing || isDownloading) return
         val currentPrompt = conversationPrompts[promptIndex]
+        input = ""
+
+        if (aiReady) {
+            messages = messages + ConversationMessage(answer, false)
+            aiWorking = true
+            tutor.reviewAnswer(currentPrompt.prompt, answer) { result ->
+                aiWorking = false
+                result.fold(
+                    onSuccess = { response ->
+                        messages = messages + ConversationMessage(
+                            response,
+                            true,
+                            feedback = true
+                        )
+                        advanceConversation()
+                    },
+                    onFailure = { error ->
+                        val details = error.message ?: "Neznámá chyba"
+                        messages = messages + ConversationMessage(
+                            "Teď se mi odpověď nepodařilo vyhodnotit ($details). Můžeš to zkusit znovu.",
+                            true,
+                            feedback = true,
+                            translation = "Při vyhodnocení došlo k chybě. Zkus prosím odpovědět ještě jednou."
+                        )
+                    }
+                )
+            }
+            return
+        }
+
+        // Compatibility mode keeps the original scripted lesson available before the
+        // larger language model has been downloaded and initialized.
         val evaluation = evaluateConversationAnswer(answer, currentPrompt)
         val shortFeedback = if (evaluation.first) {
             ConversationMessage(
@@ -956,24 +1043,7 @@ private fun ConversationScreen(onBack: () -> Unit) {
             ) +
             ConversationMessage(evaluation.second, true, feedback = true, recognized = evaluation.first)
         if (evaluation.first) recognizedCount += 1
-        input = ""
-
-        if (promptIndex < conversationPrompts.lastIndex) {
-            promptIndex += 1
-            val nextPrompt = conversationPrompts[promptIndex]
-            messages = messages + ConversationMessage(
-                nextPrompt.prompt,
-                true,
-                translation = promptTranslation(nextPrompt)
-            )
-        } else {
-            finished = true
-            messages = messages + ConversationMessage(
-                "Danke für das Gespräch! Du kannst es jederzeit noch einmal versuchen.",
-                true,
-                translation = "Děkuji za rozhovor! Můžeš si ho kdykoliv zkusit znovu."
-            )
-        }
+        advanceConversation()
     }
 
     fun restartConversation() {
@@ -1027,7 +1097,12 @@ private fun ConversationScreen(onBack: () -> Unit) {
                 }
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text("Beatrice", color = Forest, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    Text("Němčina A1 · offline konverzace", color = Muted, fontSize = 12.sp)
+                    Text(
+                        if (aiReady) "Němčina A1 · skutečná offline AI"
+                        else "Němčina A1 · offline režim",
+                        color = Muted,
+                        fontSize = 12.sp
+                    )
                 }
             }
 
@@ -1037,12 +1112,142 @@ private fun ConversationScreen(onBack: () -> Unit) {
                 colors = CardDefaults.cardColors(containerColor = Mint)
             ) {
                 Text(
-                    text = "Odpovídej německy vlastními slovy. Beatrice ti ukáže užitečný vzor a vysvětlí ho česky.",
+                    text = if (aiReady) {
+                        "Odpovídej německy vlastními slovy. Beatrice teď kontroluje věty pomocí jazykového modelu přímo v telefonu."
+                    } else {
+                        "Odpovídej německy vlastními slovy. Stále můžeš procvičovat i bez staženého AI modelu."
+                    },
                     modifier = Modifier.padding(12.dp),
                     color = Forest,
                     fontSize = 13.sp,
                     lineHeight = 19.sp
                 )
+            }
+
+            if (!modelInstalled) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            "Zapnout skutečnou offline AI",
+                            color = Forest,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            "Stáhne se model o velikosti přibližně ${OfflineAiTutor.MODEL_DOWNLOAD_LABEL}. To proveď přes Wi-Fi. Po stažení bude vyhodnocování vět fungovat bez internetu.",
+                            color = Muted,
+                            fontSize = 13.sp,
+                            lineHeight = 19.sp
+                        )
+                        if (isDownloading) {
+                            if (downloadProgress > 0f) {
+                                LinearProgressIndicator(
+                                    progress = { downloadProgress },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                                Text(
+                                    "${(downloadProgress * 100).toInt()} % staženo",
+                                    color = Forest,
+                                    fontSize = 12.sp
+                                )
+                            } else {
+                                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                                Text("Připojuji se a zahajuji stahování…", color = Muted, fontSize = 12.sp)
+                            }
+                        } else {
+                            Button(
+                                onClick = {
+                                    aiError = null
+                                    isDownloading = true
+                                    downloadProgress = 0f
+                                    tutor.downloadModel(
+                                        onProgress = { progress -> downloadProgress = progress },
+                                        onComplete = { result ->
+                                            isDownloading = false
+                                            result.fold(
+                                                onSuccess = {
+                                                    modelInstalled = true
+                                                    aiError = null
+                                                },
+                                                onFailure = { error ->
+                                                    aiError = error.message ?: "Stažení modelu se nezdařilo."
+                                                }
+                                            )
+                                        }
+                                    )
+                                },
+                                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Forest, contentColor = Color.White),
+                                shape = RoundedCornerShape(14.dp)
+                            ) {
+                                Text("Stáhnout offline AI", fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        if (aiError != null) {
+                            Text(aiError!!, color = Color(0xFF9D3429), fontSize = 12.sp, lineHeight = 18.sp)
+                        }
+                    }
+                }
+            } else {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = if (aiReady) Mint else Color.White)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            when {
+                                aiReady -> "Offline AI je připravena"
+                                isInitializing -> "Načítám AI model do paměti…"
+                                else -> "Model je stažený, ale ještě není připraven"
+                            },
+                            color = Forest,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        if (isInitializing) {
+                            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                        }
+                        if (aiError != null) {
+                            Text(aiError!!, color = Color(0xFF9D3429), fontSize = 12.sp, lineHeight = 18.sp)
+                            if (!isInitializing && !aiReady) {
+                                Button(
+                                    onClick = {
+                                        aiError = null
+                                        isInitializing = true
+                                        tutor.initialize { result ->
+                                            isInitializing = false
+                                            result.fold(
+                                                onSuccess = {
+                                                    aiReady = true
+                                                    aiError = null
+                                                },
+                                                onFailure = { error ->
+                                                    aiError = error.message ?: "Offline AI se nepodařilo spustit."
+                                                }
+                                            )
+                                        }
+                                    },
+                                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Forest, contentColor = Color.White),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Text("Zkusit načíst znovu")
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             LazyColumn(
@@ -1066,18 +1271,27 @@ private fun ConversationScreen(onBack: () -> Unit) {
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text("Rozhovor dokončen", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        Text(
-                            "Rozpoznané fráze: " + recognizedCount + " z " + conversationPrompts.size,
-                            color = Gold,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            "Jde o jednoduchou offline kontrolu vybraných frází, ne o plnou AI ani úplnou kontrolu gramatiky.",
-                            color = Color(0xFFE0EAE5),
-                            fontSize = 12.sp,
-                            lineHeight = 18.sp
-                        )
+                        if (aiReady) {
+                            Text(
+                                "Odpovědi vyhodnocoval jazykový model v telefonu.",
+                                color = Gold,
+                                fontSize = 14.sp,
+                                lineHeight = 20.sp
+                            )
+                        } else {
+                            Text(
+                                "Rozpoznané fráze: " + recognizedCount + " z " + conversationPrompts.size,
+                                color = Gold,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                "Jde o jednoduchou offline kontrolu vybraných frází, ne o plnou AI ani úplnou kontrolu gramatiky.",
+                                color = Color(0xFFE0EAE5),
+                                fontSize = 12.sp,
+                                lineHeight = 18.sp
+                            )
+                        }
                     }
                 }
                 Button(
@@ -1108,16 +1322,17 @@ private fun ConversationScreen(onBack: () -> Unit) {
                         modifier = Modifier.weight(1f),
                         placeholder = { Text("Napiš odpověď německy…") },
                         maxLines = 3,
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(16.dp),
+                        enabled = !aiWorking && !isInitializing && !isDownloading
                     )
                     Button(
                         onClick = { sendAnswer() },
-                        enabled = input.isNotBlank(),
+                        enabled = input.isNotBlank() && !aiWorking && !isInitializing && !isDownloading,
                         modifier = Modifier.heightIn(min = 56.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Forest, contentColor = Color.White),
                         shape = RoundedCornerShape(14.dp)
                     ) {
-                        Text("Odeslat")
+                        Text(if (aiWorking) "Myslím…" else "Odeslat")
                     }
                 }
             }
