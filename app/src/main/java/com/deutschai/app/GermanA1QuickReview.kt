@@ -37,6 +37,12 @@ internal object GermanA1QuickReview {
         if (languageMatch != null) {
             val subject = languageMatch.groupValues[1]
             val verb = languageMatch.groupValues[2]
+            val knownSpeakForms = setOf(
+                "sprech", "spreche", "sprechen", "sprechst", "sprich", "sprichst",
+                "spricht", "sprichts", "sprechst", "sprecht"
+            )
+            if (verb !in knownSpeakForms) return null
+
             val expectedVerb = when (subject) {
                 "ich" -> "spreche"
                 "du" -> "sprichst"
