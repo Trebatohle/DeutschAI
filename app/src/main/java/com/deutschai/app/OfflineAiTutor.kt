@@ -10,6 +10,7 @@ import com.google.ai.edge.litertlm.Contents
 import com.google.ai.edge.litertlm.Engine
 import com.google.ai.edge.litertlm.EngineConfig
 import com.google.ai.edge.litertlm.SamplerConfig
+import com.google.ai.edge.litertlm.ThinkingConfig
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -169,7 +170,8 @@ internal class OfflineAiTutor(context: Context) {
                     val createdEngine = Engine(
                         EngineConfig(
                             modelPath = file.absolutePath,
-                            backend = Backend.CPU(),
+                            backend = Backend.CPU(threadCount = 4),
+                            maxNumTokens = 2048,
                             cacheDir = File(appContext.cacheDir, "litertlm").apply { mkdirs() }.absolutePath
                         )
                     )
@@ -183,7 +185,14 @@ internal class OfflineAiTutor(context: Context) {
                                 samplerConfig = SamplerConfig(
                                     topK = 10,
                                     topP = 0.9,
-                                    temperature = 0.3
+                                    temperature = 0.2
+                                ),
+                                // Qwen3 can otherwise spend the output budget on hidden reasoning.
+                                // This tutor needs a short correction, not a long chain of thought.
+                                maxOutputToken = 96,
+                                thinkingConfig = ThinkingConfig(
+                                    enableThinking = false,
+                                    thinkingTokenBudget = 0
                                 )
                             )
                         )
@@ -220,18 +229,26 @@ internal class OfflineAiTutor(context: Context) {
                 val activeConversation = conversation
                     ?: throw IllegalStateException("Beatrice se ještě připravuje. Zkus to za chvíli.")
                 val prompt = """
-                    /no_think
-                    Aktuální otázka, kterou Beatrice položila: $question
+                    Aktuální otázka: $question
                     Odpověď studenta: $answer
 
-                    Posuď právě tuto odpověď jako lektorka němčiny pro českého studenta A1.
-                    Oprav případnou chybu, vysvětli ji česky a buď laskavá. Neopakuj otázku.
+                    Oprav větu podle pravidel v instrukci. Odpověz stručně.
                 """.trimIndent()
-                val response = activeConversation.sendMessage(prompt, maxOutputToken = 180)
-                    .toString()
+                val modelMessage = activeConversation.sendMessage(
+                    prompt,
+                    maxOutputToken = 96,
+                    thinkingConfig = ThinkingConfig(
+                        enableThinking = false,
+                        thinkingTokenBudget = 0
+                    )
+                )
+                // Some model templates return the final answer in a named channel.
+                val response = modelMessage.contents.toString()
+                    .ifBlank { modelMessage.channels["final"].orEmpty() }
                     .trim()
                 if (response.isBlank()) {
-                    throw IOException("Model nevrátil žádnou odpověď. Zkus to prosím znovu.")
+                    val channels = modelMessage.channels.keys.joinToString().ifBlank { "žádné" }
+                    throw IOException("Model nevrátil text odpovědi (kanály: $channels). Zkus to prosím znovu.")
                 }
                 postToMain { onComplete(Result.success(response)) }
             } catch (error: Exception) {
