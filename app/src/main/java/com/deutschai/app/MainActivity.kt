@@ -56,16 +56,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.text.Normalizer
 
-private val Forest = Color(0xFF163D35)
-private val Mint = Color(0xFFDDEFE6)
-private val Cream = Color(0xFFF7F5EF)
-private val Ink = Color(0xFF1E2925)
-private val Muted = Color(0xFF66736D)
-private val Gold = Color(0xFFE7B96A)
-private val Correct = Color(0xFFD9EDE1)
-private val Incorrect = Color(0xFFF7E0DC)
+internal val Forest = Color(0xFF163D35)
+internal val Mint = Color(0xFFDDEFE6)
+internal val Cream = Color(0xFFF7F5EF)
+internal val Ink = Color(0xFF1E2925)
+internal val Muted = Color(0xFF66736D)
+internal val Gold = Color(0xFFE7B96A)
+internal val Correct = Color(0xFFD9EDE1)
+internal val Incorrect = Color(0xFFF7E0DC)
 
-private data class LessonQuestion(
+internal data class LessonQuestion(
     val prompt: String,
     val choices: List<String>,
     val correctIndex: Int,
@@ -79,7 +79,7 @@ private data class Lesson(
     val questions: List<LessonQuestion>
 )
 
-private val lessons = listOf(
+private val baseLessons = listOf(
     Lesson(
         id = "first_steps",
         title = "První kroky",
@@ -192,6 +192,10 @@ private val lessons = listOf(
         )
     )
 )
+
+private val lessons = baseLessons.map { lesson ->
+    lesson.copy(questions = lesson.questions + expandedCourseQuestions(lesson.id))
+}
 
 private data class ConversationPrompt(
     val prompt: String,
@@ -346,12 +350,84 @@ private fun DeutschAIHome() {
     }
 
     var showConversation by remember { mutableStateOf(false) }
+    var showLearningHub by remember { mutableStateOf(false) }
     var showLessonLibrary by remember { mutableStateOf(false) }
+    var showArticleCategories by remember { mutableStateOf(false) }
+    var selectedArticleCategory by remember { mutableStateOf<ArticleCategory?>(null) }
+    var showVerbCategories by remember { mutableStateOf(false) }
+    var selectedVerbTopic by remember { mutableStateOf<VerbPracticeTopic?>(null) }
     var selectedLesson by remember { mutableStateOf<Lesson?>(null) }
     var selectedTab by remember { mutableStateOf("Učení") }
 
+    fun recordSession() {
+        completedSessions += 1
+        preferences.edit().putInt("completed_sessions", completedSessions).apply()
+    }
+
+    fun recordScore(score: Int) {
+        recordSession()
+        if (score > bestScore) {
+            bestScore = score
+            preferences.edit().putInt("best_score", bestScore).apply()
+        }
+    }
+
     if (showConversation) {
-        ConversationScreen(onBack = { showConversation = false })
+        GuidedDialogueScreen(
+            onBack = { showConversation = false },
+            onComplete = { recordSession() }
+        )
+        return
+    }
+
+    if (selectedArticleCategory != null) {
+        ArticleQuizScreen(
+            category = selectedArticleCategory!!,
+            onBack = { selectedArticleCategory = null; showArticleCategories = true },
+            onComplete = { score -> recordScore(score) }
+        )
+        return
+    }
+
+    if (selectedVerbTopic != null) {
+        VerbQuizScreen(
+            topic = selectedVerbTopic!!,
+            onBack = { selectedVerbTopic = null; showVerbCategories = true },
+            onComplete = { score -> recordScore(score) }
+        )
+        return
+    }
+
+    if (showArticleCategories) {
+        ArticleCategoryLibraryScreen(
+            onBack = { showArticleCategories = false; showLearningHub = true },
+            onSelectCategory = { category ->
+                selectedArticleCategory = category
+                showArticleCategories = false
+            }
+        )
+        return
+    }
+
+    if (showVerbCategories) {
+        VerbCategoryLibraryScreen(
+            onBack = { showVerbCategories = false; showLearningHub = true },
+            onSelectTopic = { topic ->
+                selectedVerbTopic = topic
+                showVerbCategories = false
+            }
+        )
+        return
+    }
+
+    if (showLearningHub) {
+        LearningHubScreen(
+            onBack = { showLearningHub = false },
+            onCourses = { showLearningHub = false; showLessonLibrary = true },
+            onArticles = { showLearningHub = false; showArticleCategories = true },
+            onVerbs = { showLearningHub = false; showVerbCategories = true },
+            onDialogues = { showLearningHub = false; showConversation = true }
+        )
         return
     }
 
@@ -359,21 +435,14 @@ private fun DeutschAIHome() {
         LessonScreen(
             lesson = selectedLesson!!,
             onBack = { selectedLesson = null; showLessonLibrary = true },
-            onComplete = { score, total ->
-                completedSessions += 1
-                preferences.edit().putInt("completed_sessions", completedSessions).apply()
-                if (score > bestScore) {
-                    bestScore = score
-                    preferences.edit().putInt("best_score", bestScore).apply()
-                }
-            }
+            onComplete = { score, _ -> recordScore(score) }
         )
         return
     }
 
     if (showLessonLibrary) {
         LessonLibraryScreen(
-            onBack = { showLessonLibrary = false },
+            onBack = { showLessonLibrary = false; showLearningHub = true },
             onSelectLesson = { lesson ->
                 selectedLesson = lesson
                 showLessonLibrary = false
@@ -446,20 +515,20 @@ private fun DeutschAIHome() {
                         letterSpacing = 1.2.sp
                     )
                     Text(
-                        text = "Každý den o kousek blíž k plynulé němčině.",
+                        text = "Nauč se němčinu větu po větě.",
                         color = Color.White,
                         fontSize = 25.sp,
                         lineHeight = 31.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = "Uč se vlastním tempem. Bez reklam a bez tlaku.",
+                        text = "Jasné situace, přirozené věty a český překlad. Bez reklam a bez tlaku.",
                         color = Color(0xFFE0EAE5),
                         fontSize = 14.sp,
                         lineHeight = 21.sp
                     )
                     Button(
-                        onClick = { showLessonLibrary = true },
+                        onClick = { showLearningHub = true },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Gold,
                             contentColor = Ink
@@ -510,7 +579,7 @@ private fun DeutschAIHome() {
                 ProgressCard(
                     modifier = Modifier.weight(1f),
                     title = "Nejlepší skóre",
-                    value = bestScore.toString() + "/5",
+                    value = bestScore.toString() + "/25",
                     detail = "Správných odpovědí"
                 )
                 ProgressCard(
@@ -530,14 +599,14 @@ private fun DeutschAIHome() {
 
             FeatureCard(
                 icon = { Icon(Icons.Default.MenuBook, contentDescription = null, tint = Forest) },
-                title = "Slovíčka a gramatika",
-                subtitle = "Tři první A1 lekce s vysvětlením v češtině",
-                onClick = { showLessonLibrary = true }
+                title = "Knihovna učení",
+                subtitle = "Kurzy, členy, slovíčka a důležitá slovesa",
+                onClick = { showLearningHub = true }
             )
             FeatureCard(
                 icon = { Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = Forest) },
-                title = "Konverzace s Beatrice",
-                subtitle = "Mluv vlastními slovy a uč se z oprav",
+                title = "Řízené dialogy s Beatrice",
+                subtitle = "Tři doporučené odpovědi, překlad a navazující rozhovor",
                 onClick = { showConversation = true }
             )
             FeatureCard(
