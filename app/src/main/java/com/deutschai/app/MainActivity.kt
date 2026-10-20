@@ -328,6 +328,16 @@ private fun exampleTranslation(example: String): String = when (example) {
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // One-time cleanup from the previous experimental free-form AI model.
+        // Guided lessons are bundled with the app and do not need this 329 MB file.
+        val migration = getSharedPreferences("deutschai_migration", Context.MODE_PRIVATE)
+        if (!migration.getBoolean("removed_experimental_ai_model", false)) {
+            runCatching { java.io.File(filesDir, "offline_ai").deleteRecursively() }
+            runCatching { java.io.File(cacheDir, "litertlm").deleteRecursively() }
+            migration.edit().putBoolean("removed_experimental_ai_model", true).apply()
+        }
+
         setContent {
             MaterialTheme {
                 DeutschAIHome()
