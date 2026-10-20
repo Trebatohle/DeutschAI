@@ -30,17 +30,17 @@ internal val starterGuidedDialogueTopics = listOf(
                 "Hallo! Wie heißt du?",
                 "Ahoj! Jak se jmenuješ?",
                 listOf(
-                    GuidedDialogueOption("Ich heiße Erik.", "Jmenuji se Erik.", "Freut mich, Erik!", "Těší mě, Eriku!"),
-                    GuidedDialogueOption("Mein Name ist Erik.", "Moje jméno je Erik.", "Schön, dich kennenzulernen.", "Rád/a tě poznávám."),
-                    GuidedDialogueOption("Ich bin Erik.", "Jsem Erik.", "Hallo, Erik! Willkommen.", "Ahoj, Eriku! Vítej.")
+                    GuidedDialogueOption("Ich heiße Erik, und ich freue mich, heute neue Leute kennenzulernen.", "Jmenuji se Erik a těším se, že dnes poznám nové lidi.", "Freut mich, Erik! Ich hoffe, dass du dich hier wohlfühlst und viele interessante Gespräche führst.", "Těší mě, Eriku! Doufám, že se tu budeš cítit dobře a povedeš mnoho zajímavých rozhovorů."),
+                    GuidedDialogueOption("Mein Name ist Erik, aber meine Freunde nennen mich manchmal Eri.", "Jmenuji se Erik, ale přátelé mi někdy říkají Eri.", "Schön, dich kennenzulernen, und ich merke mir gern den Namen, den du am liebsten benutzt.", "Rád/a tě poznávám a ráda si zapamatuji jméno, které používáš nejraději."),
+                    GuidedDialogueOption("Ich bin Erik und ich lerne Deutsch, weil ich mich auf Reisen besser verständigen möchte.", "Jsem Erik a učím se německy, protože se chci na cestách lépe domluvit.", "Hallo, Erik! Das ist ein schönes Ziel, und wir üben Schritt für Schritt, damit du sicherer sprechen kannst.", "Ahoj, Eriku! To je hezký cíl a budeme procvičovat krok za krokem, abys mohl mluvit jistěji.")
                 )
             ),
             GuidedDialogueTurn(
                 "Woher kommst du?",
                 "Odkud pocházíš?",
                 listOf(
-                    GuidedDialogueOption("Ich komme aus Tschechien.", "Pocházím z Česka.", "Oh, schön! Tschechien ist sehr interessant.", "To je hezké! Česko je velmi zajímavé."),
-                    GuidedDialogueOption("Ich komme aus Brünn.", "Pocházím z Brna.", "Brünn kenne ich! Eine schöne Stadt.", "Brno znám! Krásné město."),
+                    GuidedDialogueOption("Ich komme aus Tschechien, wo es viele schöne Städte und Landschaften gibt.", "Pocházím z Česka, kde je mnoho krásných měst a krajiny.", "Wie schön! Ich würde das Land gern einmal besuchen, weil ich seine Kultur besser kennenlernen möchte.", "To je hezké! Ráda bych zemi někdy navštívila, protože chci lépe poznat její kulturu."),
+                    GuidedDialogueOption("Ich komme aus Brünn, einer Stadt, in der es viele Cafés und interessante Veranstaltungen gibt.", "Pocházím z Brna, města, ve kterém je mnoho kaváren a zajímavých akcí.", "Brünn klingt spannend, und ich kann mir vorstellen, dass man dort auch am Wochenende viel unternehmen kann.", "Brno zní zajímavě a dokážu si představit, že se tam dá o víkendu podniknout mnoho věcí."),
                     GuidedDialogueOption("Ich komme aus Prag.", "Pocházím z Prahy.", "Prag ist eine wunderschöne Stadt.", "Praha je nádherné město.")
                 )
             ),
@@ -57,7 +57,7 @@ internal val starterGuidedDialogueTopics = listOf(
                 "Welche Sprachen sprichst du?",
                 "Jakými jazyky mluvíš?",
                 listOf(
-                    GuidedDialogueOption("Ich spreche Tschechisch und ein bisschen Deutsch.", "Mluvím česky a trochu německy.", "Sehr gut! Wir üben zusammen Deutsch.", "Výborně! Budeme spolu procvičovat němčinu."),
+                    GuidedDialogueOption("Ich spreche Tschechisch und ein bisschen Deutsch, aber ich möchte flüssiger sprechen, wenn ich mit Muttersprachlern rede.", "Mluvím česky a trochu německy, ale chci mluvit plynuleji, když mluvím s rodilými mluvčími.", "Sehr gut! Wenn wir regelmäßig üben, wirst du die häufigsten Sätze immer schneller und sicherer benutzen.", "Výborně! Když budeme pravidelně procvičovat, budeš nejběžnější věty používat stále rychleji a jistěji."),
                     GuidedDialogueOption("Ich spreche Tschechisch und Englisch.", "Mluvím česky a anglicky.", "Prima! Deutsch lernst du Schritt für Schritt.", "Skvělé! Němčinu se budeš učit krok za krokem."),
                     GuidedDialogueOption("Ich lerne Deutsch.", "Učím se německy.", "Das ist toll. Bleib dran!", "To je skvělé. Vydrž u toho!")
                 )
@@ -82,8 +82,8 @@ internal val starterGuidedDialogueTopics = listOf(
                 "Guten Tag! Was möchten Sie bestellen?",
                 "Dobrý den! Co si přejete objednat?",
                 listOf(
-                    GuidedDialogueOption("Ich hätte gern einen Kaffee.", "Dal/a bych si kávu.", "Gern, ich bereite Ihre Bestellung vor.", "Samozřejmě, připravím vaši objednávku."),
-                    GuidedDialogueOption("Einen Kaffee mit Milch, bitte.", "Kávu s mlékem, prosím.", "Sehr gern, einen Kaffee mit Milch.", "Samozřejmě, kávu s mlékem."),
+                    GuidedDialogueOption("Ich hätte gern einen Cappuccino, weil ich einen milden Kaffee mit etwas Milchschaum mag.", "Dal/a bych si cappuccino, protože mám rád/a jemnou kávu s trochou mléčné pěny.", "Sehr gern, ich bereite Ihren Cappuccino frisch zu und bringe ihn an den Tisch, sobald er fertig ist.", "Rád/a, připravím vám čerstvé cappuccino a přinesu ho ke stolu, jakmile bude hotové."),
+                    GuidedDialogueOption("Einen Kaffee mit Milch, bitte, aber ohne Zucker, weil ich den natürlichen Geschmack besser finde.", "Kávu s mlékem, prosím, ale bez cukru, protože mi více vyhovuje přirozená chuť.", "Natürlich, ich bereite ihn genau so zu, damit er Ihren Wünschen entspricht.", "Samozřejmě, připravím ji přesně tak, aby odpovídala vašim přáním."),
                     GuidedDialogueOption("Einen Cappuccino, bitte.", "Cappuccino, prosím.", "Natürlich, Ihr Cappuccino kommt gleich.", "Samozřejmě, cappuccino bude hned.")
                 )
             ),
@@ -109,8 +109,8 @@ internal val starterGuidedDialogueTopics = listOf(
                 "Möchten Sie hier trinken oder zum Mitnehmen?",
                 "Budete pít tady, nebo s sebou?",
                 listOf(
-                    GuidedDialogueOption("Hier, bitte.", "Tady, prosím.", "Sehr gern. Suchen Sie sich einen Platz aus.", "Samozřejmě. Vyberte si místo."),
-                    GuidedDialogueOption("Zum Mitnehmen, bitte.", "S sebou, prosím.", "In Ordnung. Ich mache es fertig.", "Dobře. Připravím vám to."),
+                    GuidedDialogueOption("Ich bleibe hier, weil ich noch etwas lesen möchte, bevor ich wieder an die Arbeit gehe.", "Zůstanu tady, protože si chci ještě něco přečíst, než se vrátím do práce.", "Dann suchen Sie sich gern einen ruhigen Platz am Fenster aus, wo Sie sich gut konzentrieren können.", "Vyberte si tedy klidné místo u okna, kde se můžete dobře soustředit."),
+                    GuidedDialogueOption("Zum Mitnehmen, bitte, weil ich in zehn Minuten einen Termin habe und pünktlich sein muss.", "S sebou, prosím, protože mám za deset minut schůzku a musím přijít včas.", "Natürlich, ich verpacke alles sorgfältig, damit Sie es unterwegs bequem mitnehmen können.", "Samozřejmě, všechno pečlivě zabalím, abyste si to mohl/a pohodlně vzít s sebou."),
                     GuidedDialogueOption("Ich weiß noch nicht.", "Ještě nevím.", "Kein Problem. Sie können kurz überlegen.", "Žádný problém. Můžete si to v klidu rozmyslet.")
                 )
             ),
@@ -134,7 +134,7 @@ internal val starterGuidedDialogueTopics = listOf(
                 "Guten Tag! Kann ich Ihnen helfen?",
                 "Dobrý den! Mohu vám pomoci?",
                 listOf(
-                    GuidedDialogueOption("Ja, ich suche eine Jacke.", "Ano, hledám bundu.", "Natürlich, ich zeige Ihnen die Jacken.", "Samozřejmě, ukážu vám bundy."),
+                    GuidedDialogueOption("Ja, ich suche eine warme Jacke, weil ich im Winter oft zu Fuß unterwegs bin.", "Ano, hledám teplou bundu, protože v zimě často chodím pěšky.", "Dann zeige ich Ihnen dieses Modell, das winddicht ist und sich auch bei Regen gut eignet.", "Ukážu vám tedy tento model, který neprofoukne a hodí se i do deště."),
                     GuidedDialogueOption("Haben Sie eine blaue Jacke?", "Máte modrou bundu?", "Ja, blaue Jacken haben wir auch.", "Ano, máme i modré bundy."),
                     GuidedDialogueOption("Ich brauche eine warme Jacke.", "Potřebuji teplou bundu.", "Gern, ich helfe Ihnen, eine warme Jacke zu finden.", "Rád/a vám pomohu najít teplou bundu.")
                 )
@@ -145,7 +145,7 @@ internal val starterGuidedDialogueTopics = listOf(
                 listOf(
                     GuidedDialogueOption("Ich brauche Größe M.", "Potřebuji velikost M.", "Ich schaue nach, ob wir sie haben.", "Podívám se, jestli ji máme."),
                     GuidedDialogueOption("Haben Sie Größe L?", "Máte velikost L?", "Ja, ich bringe Ihnen Größe L.", "Ano, přinesu vám velikost L."),
-                    GuidedDialogueOption("Ich bin nicht sicher.", "Nejsem si jistý/á.", "Sie können die Jacke gern anprobieren.", "Bundě si můžete vyzkoušet.")
+                    GuidedDialogueOption("Ich bin mir nicht sicher, deshalb würde ich gern zwei Größen anprobieren, bevor ich mich entscheide.", "Nejsem si jistý/á, proto bych si rád/a vyzkoušel/a dvě velikosti, než se rozhodnu.", "Das ist sinnvoll, denn je nach Schnitt kann die gleiche Größe unterschiedlich ausfallen.", "To je rozumné, protože podle střihu může stejná velikost sedět jinak.")
                 )
             ),
             GuidedDialogueTurn(
