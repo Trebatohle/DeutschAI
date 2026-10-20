@@ -13,8 +13,7 @@ internal data class ReadingArticle(
 }
 
 internal val readingArticles: List<ReadingArticle>
-    get() = readingArticlesA1 + readingArticlesA2 + readingArticlesB1 +
-        readingArticlesB2 + readingArticlesC1 + readingArticlesC2
+    get() = readingArticlesA1 + readingArticlesA2 + readingArticlesB1 + readingArticlesB2
 
 private val coreGermanGlossary = mapOf(
     "ich" to "já", "du" to "ty", "er" to "on", "sie" to "ona / oni / ony", "es" to "to / ono",
