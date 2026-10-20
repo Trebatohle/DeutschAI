@@ -1,49 +1,26 @@
 package com.deutschai.app
 
+private val b1Extensions = listOf(
+    "Im Rückblick verstand die Hauptfigur, dass kleine Entscheidungen oft länger wirken als große Versprechen. Gerade deshalb begann sie genauer zuzuhören, bevor sie handelte.",
+    "Die Erfahrung zeigte, dass unterschiedliche Interessen gleichzeitig berechtigt sein können. Eine gute Lösung musste deshalb nicht alle Menschen überzeugen, sondern musste ihre wichtigsten Bedürfnisse berücksichtigen.",
+    "Einige Tage später dachte die Hauptfigur erneut über das Ereignis nach und bemerkte, dass sie in ähnlichen Situationen ruhiger reagierte und schneller zwischen Fakten und Vermutungen unterscheiden konnte.",
+    "Sie begann wichtige Gedanken aufzuschreiben, weil sie beim Schreiben klarer erkannte, welche Ziele wirklich wichtig waren und welche Erwartungen nur von anderen Menschen übernommen worden waren.",
+    "Auch kleine Begegnungen bekamen dadurch eine neue Bedeutung. Niemand kann vorher wissen, welche Unterhaltung später im Gedächtnis bleibt oder eine unerwartete Entscheidung auslöst.",
+    "Für die Zukunft nahm sich die Hauptfigur vor, neugieriger zu bleiben und auch dann weiterzufragen, wenn die erste Antwort noch nicht vollständig war.",
+    "So wurde aus einem gewöhnlichen Ereignis eine Erfahrung, die langsam den Blick auf Arbeit, Beziehungen und persönliche Entscheidungen veränderte.",
+    "Die wichtigste Lektion bestand nicht darin, immer sofort die richtige Antwort zu kennen, sondern bereit zu sein, die eigene Antwort nach neuen Informationen zu verbessern.",
+    "Diese Haltung machte den Alltag nicht automatisch einfacher, aber sie verringerte die Angst davor, einen Plan später noch einmal ändern zu müssen.",
+    "Am Ende blieb die Erkenntnis, dass Lernen vor allem bedeutet, Erfahrungen ernst zu nehmen und aus ihnen konkrete nächste Schritte abzuleiten."
+)
+
 internal val readingArticlesB1 = listOf(
-    ReadingArticle(
-        id = "b1-story-1",
-        level = "B1",
-        title = "Die kleine Buchhandlung",
-        subtitle = "Mara entdeckt, dass ein Laden nicht nur Bücher verkauft, sondern Erinnerungen verbindet.",
-        body = decodeReadingBody("""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""".replace("\n", "")),
-        glossary = emptyMap()
-    )
+    ReadingArticle("b1-story-1", "B1", "Die kleine Buchhandlung", "Eine Geschichte über Bücher, Erinnerungen und eine unerwartete Freundschaft.", buildAdvancedReadingBody("""
+        Mara arbeitete seit einem Jahr in einer kleinen Buchhandlung am Rand des Stadtzentrums. Jeden Morgen öffnete sie die schwere Holztür, stellte neue Bücher ins Schaufenster und schrieb eine Empfehlung auf eine Tafel. Eines Montags bemerkte sie einen älteren Mann, der lange vor dem Regal mit Reisebüchern stand, ohne ein Buch herauszunehmen. Als Mara ihn freundlich fragte, ob sie helfen könne, erklärte er, dass er nach einem Roman suche, den er vor vielen Jahren gelesen hatte. Er erinnerte sich nur an einen roten Einband, einen kleinen Bahnhof und zwei Menschen, die sich zufällig begegneten. Gemeinsam durchsuchten sie Kataloge und alte Listen. Nach fast einer Stunde fanden sie einen möglichen Titel, aber das letzte Exemplar war bereits verkauft worden. Der Mann war enttäuscht. Mara versprach trotzdem, bei anderen Buchhandlungen nachzufragen. Am nächsten Tag rief sie mehrere Geschäfte an und fand schließlich ein gebrauchtes Exemplar in einer anderen Stadt. Als das Paket ankam, lag zwischen den Seiten eine alte Fahrkarte. Der Mann erzählte, dass sie ihn an eine Reise erinnerte, auf der er seine spätere Freundin kennengelernt hatte. Mara erkannte, dass das Buch für ihn nicht nur eine Geschichte enthielt, sondern einen Teil seines eigenen Lebens. Danach richtete sie in der Buchhandlung eine kleine Wand für persönliche Buchempfehlungen ein. Kunden konnten dort schreiben, wann ein bestimmtes Buch ihnen geholfen, Mut gemacht oder eine wichtige Entscheidung erleichtert hatte. Bald hing die Wand voller Erinnerungen. Mara begann selbst, jeden Monat ein Buch außerhalb ihres gewohnten Geschmacks zu lesen. Einige Wochen später erzählte der Mann, dass er seine frühere Freundin wiedergetroffen hatte. Mara freute sich für ihn und dachte gleichzeitig über eigene Entscheidungen nach, die sie aus Angst vor Fehlern zu lange aufgeschoben hatte. Seitdem sah sie die Buchhandlung weniger als Geschäft und mehr als Ort, an dem Menschen ihre Erfahrungen miteinander verbinden konnten.
+    """.trimIndent(), b1Extensions, 0), emptyMap()),
+    ReadingArticle("b1-story-2", "B1", "Der Weg zum Meer", "Jonas nimmt sich eine Auszeit und entdeckt, dass Veränderung mit kleinen Entscheidungen beginnen kann.", buildAdvancedReadingBody("""
+        Jonas hatte seit Jahren davon gesprochen, irgendwann allein ans Meer zu fahren, doch immer war etwas dazwischengekommen. An einem Frühjahrsmorgen stand er schließlich mit einem kleinen Koffer am Bahnhof und kaufte ein Ticket, ohne die ganze Reise zu planen. Im Zug saß ihm eine Frau gegenüber, die ebenfalls mit einem Notizbuch unterwegs war. Nach einer Weile kamen sie ins Gespräch und stellten fest, dass beide eine Pause vom gewohnten Alltag brauchten. Jonas erzählte von seinem sicheren Arbeitsplatz, den vielen Überstunden und dem Gefühl, dass seine Wochen immer schneller vergingen. Die Frau sagte, dass Sicherheit wichtig sei, aber nicht bedeuten dürfe, dass man jede Veränderung auf später verschiebt. Als der Zug wegen einer technischen Störung stehen blieb, ärgerte sich zunächst das ganze Abteil. Später begann jemand Kaffee zu verteilen, ein Kind erzählte einen Witz, und plötzlich wurde aus der Wartezeit ein gemeinsames Erlebnis. Am Abend erreichte Jonas eine kleine Küstenstadt und fand ein einfaches Zimmer über einer Bäckerei. Am nächsten Morgen ging er ohne Karte durch die Straßen und sprach mit Menschen, die nichts über seinen Beruf wussten. Am Meer dachte er darüber nach, wie oft er auf einen perfekten Zeitpunkt gewartet hatte. Ein alter Mann am Leuchtturm sagte ihm, dass ein ruhiges Leben nicht automatisch ein kleines Leben sei. Auf dem Rückweg schrieb Jonas auf, welche Dinge er in seinem Alltag tatsächlich ändern wollte. Er wollte weniger Überstunden machen, seine Familie häufiger besuchen und wieder Zeit für Dinge finden, die keinen direkten Nutzen für seinen Beruf hatten. Zu Hause stellte er den Koffer nicht sofort weg, sondern legte das Notizbuch auf den Küchentisch. Noch in derselben Woche begann er mit einer kleinen Veränderung. Einige Monate später fuhr er wieder ans Meer, diesmal nicht um vor seinem Alltag zu fliehen, sondern um bewusst eine Pause zu machen.
+    """.trimIndent(), b1Extensions, 1), emptyMap()),
+    ReadingArticle("b1-story-3", "B1", "Die verschwundene Uhr", "Lea sucht eine alte Uhr und entdeckt dabei eine vergessene Familiengeschichte.", buildAdvancedReadingBody("""
+        Lea bemerkte sofort, dass die alte Uhr im Haus ihrer Großmutter fehlte. Seit ihrer Kindheit hatte die runde Uhr über der Tür gehangen und jeden Abend hörbar getickt. Die Großmutter wusste zunächst selbst nicht, wo sie geblieben war. Bei der Suche fanden die beiden alte Fotos, Briefe und einen kleinen Schlüssel mit einer unbekannten Adresse. Die Adresse führte zu einem Haus, in dem die Familie viele Jahre zuvor gewohnt hatte. Ein Nachbar erinnerte sich an Leas Großvater und erzählte, dass dieser die Uhr vor einer wichtigen Reise verkauft hatte. In einem alten Brief fand Lea schließlich die Erklärung. Die Familie hatte damals wenig Geld, und der Verkauf der Uhr hatte eine notwendige Reise ermöglicht. Lea verstand, warum ihre Großmutter nur ungern über diese Zeit sprach. Die Uhr war nicht einfach ein Gegenstand, sondern erinnerte an eine schwierige Entscheidung. Durch weitere Nachforschungen fand Lea die Familie, die die Uhr inzwischen besaß. Die Besitzer wollten sie nicht verkaufen, weil auch ihre Familie eine Geschichte mit ihr verband. Stattdessen schlugen sie vor, gemeinsam die Geschichte der Uhr aufzuschreiben. Lea brachte Fotos und Briefe mit, während die andere Familie ihre Erinnerungen beisteuerte. Dabei stellte sich heraus, dass die Uhr in mehreren Familien gewesen war und jedes Mal aus einem anderen Grund den Besitzer gewechselt hatte. Lea erkannte, dass die Geschichte wichtiger sein konnte als der Besitz des Gegenstands. Zu Hause zeigte sie ihrer Großmutter die Fotos. Die alte Frau lächelte und sagte, dass sie nun zum ersten Mal seit Jahrzehnten wieder daran denken könne, ohne traurig zu werden. Beide Familien beschlossen, sich weiter zu treffen und ihre Erinnerungen zu sammeln. Lea begann danach selbst, wichtige Familiengeschichten aufzuschreiben, bevor einzelne Details vergessen wurden.
+    """.trimIndent(), b1Extensions, 2), emptyMap())
 )
