@@ -19,10 +19,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.pointerinput.pointerInput
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.BookOpen
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.Button
@@ -191,7 +189,7 @@ internal fun ReadingArticleScreen(
             Text(article.title, color = Ink, fontSize = 27.sp, lineHeight = 33.sp, fontWeight = FontWeight.Bold)
             Text(article.subtitle, color = Muted, fontSize = 14.sp, lineHeight = 20.sp)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Icon(Icons.Default.BookOpen, contentDescription = null, tint = Forest, modifier = Modifier.size(19.dp))
+                Icon(Icons.Default.MenuBook, contentDescription = null, tint = Forest, modifier = Modifier.size(19.dp))
                 Text(
                     article.wordCount.toString() + " slov · " + article.level,
                     color = Forest,
