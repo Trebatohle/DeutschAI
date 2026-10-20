@@ -226,6 +226,14 @@ internal class OfflineAiTutor(context: Context) {
 
         executor.execute {
             try {
+                // Deterministic A1 rules answer common beginner patterns immediately.
+                // This avoids relying on the small model for facts that must be correct.
+                val quickReview = GermanA1QuickReview.evaluate(question, answer)
+                if (quickReview != null) {
+                    postToMain { onComplete(Result.success(quickReview)) }
+                    return@execute
+                }
+
                 val activeConversation = conversation
                     ?: throw IllegalStateException("Beatrice se ještě připravuje. Zkus to za chvíli.")
                 val prompt = """
@@ -250,6 +258,20 @@ internal class OfflineAiTutor(context: Context) {
                     val channels = modelMessage.channels.keys.joinToString().ifBlank { "žádné" }
                     throw IOException("Model nevrátil text odpovědi (kanály: $channels). Zkus to prosím znovu.")
                 }
+
+                if (GermanA1QuickReview.looksLikeRepeatedWrongAnswer(answer, response)) {
+                    postToMain {
+                        onComplete(
+                            Result.success(
+                                "Nechci tě učit špatnou větu: model zopakoval tvoji odpověď místo opravy. " +
+                                    "U zcela nových vět zatím nemusím umět spolehlivě určit správný tvar. " +
+                                    "Zkus kratší větu nebo si vyber vzorovou odpověď v lekci."
+                            )
+                        )
+                    }
+                    return@execute
+                }
+
                 postToMain { onComplete(Result.success(response)) }
             } catch (error: Exception) {
                 postToMain { onComplete(Result.failure(error)) }
