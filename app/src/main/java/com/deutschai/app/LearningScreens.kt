@@ -51,7 +51,8 @@ internal fun LearningHubScreen(
     onCourses: () -> Unit,
     onArticles: () -> Unit,
     onVerbs: () -> Unit,
-    onDialogues: () -> Unit
+    onDialogues: () -> Unit,
+    onReading: () -> Unit
 ) {
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
@@ -97,6 +98,13 @@ internal fun LearningHubScreen(
                 subtitle = "Tři doporučené odpovědi, vždy s českým překladem a navazující replikou.",
                 detail = guidedDialogueTopics.size.toString() + " dialogy v první sadě",
                 onClick = onDialogues
+            )
+            LearningCard(
+                icon = { Icon(Icons.Default.Book, contentDescription = null, tint = Forest) },
+                title = "Čtení v němčině",
+                subtitle = "Dlouhé příběhy podle úrovně A1–C2; podrž slovo a zobrazíš český význam.",
+                detail = readingArticles.size.toString() + " příběhů · A1 až C2",
+                onClick = onReading
             )
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -175,7 +183,7 @@ internal fun ArticleCategoryLibraryScreen(
 @Composable
 internal fun VerbCategoryLibraryScreen(
     onBack: () -> Unit,
-    onSelectTopic: (VerbPracticeTopic) -> Unit
+    onSelectTopic: (VerbPracticeLesson) -> Unit
 ) {
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
@@ -213,9 +221,11 @@ internal fun VerbCategoryLibraryScreen(
                             Icon(Icons.Default.Verified, contentDescription = null, tint = Forest)
                         }
                         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(topic.infinitive + " — " + topic.czech, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
-                            Text(topic.description, color = Muted, fontSize = 13.sp, lineHeight = 18.sp)
-                            Text("25 otázek", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text(topic.title, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                            Text(topic.subtitle, color = Muted, fontSize = 13.sp, lineHeight = 18.sp)
+                            val verbNames = topic.verbIds.mapNotNull { id -> verbDefinitions.find { it.id == id }?.infinitive }
+                            Text(verbNames.joinToString(" · "), color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text("25 otázek · 5 sloves v jedné sadě", color = Forest, fontSize = 12.sp)
                         }
                     }
                 }
@@ -230,14 +240,16 @@ internal fun ArticleQuizScreen(
     onBack: () -> Unit,
     onComplete: (Int) -> Unit
 ) {
+    var words by remember(category.id) { mutableStateOf(category.words.shuffled()) }
     var questionIndex by remember(category.id) { mutableStateOf(0) }
     var selectedArticle by remember(category.id) { mutableStateOf<String?>(null) }
     var score by remember(category.id) { mutableStateOf(0) }
     var finished by remember(category.id) { mutableStateOf(false) }
     val choices = listOf("der", "die", "das")
-    val total = category.words.size.coerceAtMost(25)
+    val total = words.size.coerceAtMost(25)
 
     fun restart() {
+        words = category.words.shuffled()
         questionIndex = 0
         selectedArticle = null
         score = 0
@@ -289,7 +301,7 @@ internal fun ArticleQuizScreen(
                     shape = RoundedCornerShape(14.dp)
                 ) { Text("Vybrat jiné téma", fontWeight = FontWeight.Bold) }
             } else {
-                val word = category.words[questionIndex]
+                val word = words[questionIndex]
                 Text("OTÁZKA ${questionIndex + 1} Z $total", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                 LinearProgressIndicator(
                     progress = { (questionIndex + 1).toFloat() / total.toFloat() },
@@ -378,17 +390,18 @@ internal fun ArticleQuizScreen(
 
 @Composable
 internal fun VerbQuizScreen(
-    topic: VerbPracticeTopic,
+    topic: VerbPracticeLesson,
     onBack: () -> Unit,
     onComplete: (Int) -> Unit
 ) {
-    val questions = remember(topic.id) { createVerbQuestions(topic) }
+    var questions by remember(topic.id) { mutableStateOf(createVerbQuestions(topic).shuffled()) }
     var questionIndex by remember(topic.id) { mutableStateOf(0) }
     var selectedAnswer by remember(topic.id) { mutableStateOf<Int?>(null) }
     var score by remember(topic.id) { mutableStateOf(0) }
     var finished by remember(topic.id) { mutableStateOf(false) }
 
     fun restart() {
+        questions = createVerbQuestions(topic).shuffled()
         questionIndex = 0
         selectedAnswer = null
         score = 0
@@ -404,7 +417,14 @@ internal fun VerbQuizScreen(
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            ScreenHeader(topic.infinitive + " · " + topic.czech, onBack)
+            ScreenHeader(topic.title, onBack)
+            Text(topic.subtitle, color = Muted, fontSize = 14.sp, lineHeight = 20.sp)
+            Text(
+                "Slovesa: " + topic.verbIds.mapNotNull { id -> verbDefinitions.find { it.id == id }?.infinitive }.joinToString(" · "),
+                color = Forest,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold
+            )
             if (finished) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -416,10 +436,10 @@ internal fun VerbQuizScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("Sloveso procvičeno", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Bold)
+                        Text("Slovesná sada dokončena", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Bold)
                         Text("$score z ${questions.size} správně", color = Gold, fontSize = 28.sp, fontWeight = FontWeight.Bold)
                         Text(
-                            "V němčině se tvar slovesa mění podle osoby. Opakuj celé spojení nahlas.",
+                            "Procvičil/a jsi pět důležitých sloves v různých větách. Říkej si nahlas celé německé věty i jejich český význam.",
                             color = Color(0xFFE0EAE5),
                             fontSize = 14.sp,
                             lineHeight = 21.sp
@@ -431,13 +451,13 @@ internal fun VerbQuizScreen(
                     modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Ink),
                     shape = RoundedCornerShape(14.dp)
-                ) { Text("Zopakovat cvičení", fontWeight = FontWeight.Bold) }
+                ) { Text("Zopakovat sadu (otázky se zamíchají)", fontWeight = FontWeight.Bold) }
                 Button(
                     onClick = onBack,
                     modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
                     shape = RoundedCornerShape(14.dp)
-                ) { Text("Vybrat jiné sloveso", fontWeight = FontWeight.Bold) }
+                ) { Text("Vybrat jinou sadu", fontWeight = FontWeight.Bold) }
             } else {
                 val question = questions[questionIndex]
                 Text("OTÁZKA ${questionIndex + 1} Z ${questions.size}", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
@@ -450,14 +470,15 @@ internal fun VerbQuizScreen(
                     shape = RoundedCornerShape(22.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White)
                 ) {
-                    Text(
-                        question.prompt,
-                        modifier = Modifier.padding(22.dp),
-                        color = Ink,
-                        fontSize = 22.sp,
-                        lineHeight = 30.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    Column(modifier = Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            question.prompt,
+                            color = Ink,
+                            fontSize = 20.sp,
+                            lineHeight = 29.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
                 question.choices.forEachIndexed { index, choice ->
                     val bg = when {
@@ -489,16 +510,24 @@ internal fun VerbQuizScreen(
                 if (selectedAnswer != null) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(18.dp),
                         colors = CardDefaults.cardColors(containerColor = if (selectedAnswer == question.correctIndex) Correct else Incorrect)
                     ) {
-                        Column(modifier = Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                             Text(
-                                if (selectedAnswer == question.correctIndex) "Správně!" else "Správná odpověď: ${question.choices[question.correctIndex]}",
+                                if (selectedAnswer == question.correctIndex) "Správně! Gut gemacht!" else "Správná odpověď: ${question.choices[question.correctIndex]}",
                                 color = Forest,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp
                             )
+                            if (question.germanSentence.isNotBlank()) {
+                                Text("Celá věta:", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text(question.germanSentence, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, lineHeight = 23.sp)
+                            }
+                            if (question.translation.isNotBlank()) {
+                                Text("Česky:", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text(question.translation, color = Ink, fontSize = 15.sp, lineHeight = 22.sp)
+                            }
                             Text(question.explanation, color = Ink, fontSize = 14.sp, lineHeight = 21.sp)
                         }
                     }
@@ -524,33 +553,32 @@ internal fun VerbQuizScreen(
     }
 }
 
-private fun createVerbQuestions(topic: VerbPracticeTopic): List<LessonQuestion> {
-    val czechForms = listOf("já", "ty", "on/ona", "my", "vy", "oni")
-    val subjectIndexes = listOf(0, 1, 2, 3, 5)
-    val results = mutableListOf<LessonQuestion>()
-
-    subjectIndexes.forEachIndexed { groupIndex, subjectIndex ->
-        topic.phrases.forEachIndexed { phraseIndex, phrase ->
-            val correct = topic.forms[subjectIndex]
-            val distractors = topic.forms.filterIndexed { formIndex, _ -> formIndex != subjectIndex }.distinct()
-            val candidates = listOf(correct, distractors[(phraseIndex + groupIndex) % distractors.size], distractors[(phraseIndex + groupIndex + 2) % distractors.size])
-                .distinct()
-                .take(3)
-            val choices = candidates.toMutableList()
-            val rotate = (phraseIndex + groupIndex) % choices.size
-            repeat(rotate) { choices.add(choices.removeAt(0)) }
-            val answerIndex = choices.indexOf(correct)
-            results.add(
+private fun createVerbQuestions(lesson: VerbPracticeLesson): List<LessonQuestion> {
+    val definitions = lesson.verbIds.mapNotNull { id -> verbDefinitions.find { it.id == id } }
+    val result = mutableListOf<LessonQuestion>()
+    definitions.forEach { verb ->
+        verb.phrases.take(5).forEachIndexed { index, phrase ->
+            val subjectIndex = index.coerceAtMost(verb.subjects.lastIndex)
+            val subject = verb.subjects[subjectIndex]
+            val czechSubject = verb.czechSubjects[subjectIndex]
+            val correctForm = verb.forms[subjectIndex]
+            val choices = (listOf(correctForm) + verb.forms.filter { it != correctForm }.distinct().take(2)).shuffled()
+            val correctIndex = choices.indexOf(correctForm)
+            val germanSentence = "$subject $correctForm ${phrase.german.replaceFirstChar { it.lowercase() }}."
+            val czechSentence = "$czechSubject ${verb.czechForms[subjectIndex]} ${phrase.czech.trimEnd('.')}."
+            result.add(
                 LessonQuestion(
-                    "Doplň tvar slovesa „${topic.infinitive}“ (${topic.czech}): ${topic.subjects[subjectIndex]} ___ $phrase",
-                    choices,
-                    answerIndex,
-                    "Po „${topic.subjects[subjectIndex]}“ je správný tvar „$correct“. Infinitiv „${topic.infinitive}“ znamená „${topic.czech}“. Osobu a slovesný tvar si říkej společně nahlas."
+                    prompt = "Doplň správný tvar slovesa „${verb.infinitive}“ (${verb.czech}): $subject ___ ${phrase.german}.",
+                    choices = choices,
+                    correctIndex = correctIndex,
+                    explanation = "Sloveso „${verb.infinitive}“ znamená „${verb.czech}“. Po osobě „$subject“ použijeme tvar „$correctForm“.",
+                    germanSentence = germanSentence,
+                    translation = czechSentence
                 )
             )
         }
     }
-    return results.take(25)
+    return result.shuffled().take(25)
 }
 
 @Composable
