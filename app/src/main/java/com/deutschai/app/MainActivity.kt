@@ -61,7 +61,9 @@ internal data class LessonQuestion(
     val prompt: String,
     val choices: List<String>,
     val correctIndex: Int,
-    val explanation: String
+    val explanation: String,
+    val germanSentence: String = "",
+    val translation: String = ""
 )
 
 private data class Lesson(
@@ -229,7 +231,9 @@ private fun DeutschAIHome() {
     var showArticleCategories by remember { mutableStateOf(false) }
     var selectedArticleCategory by remember { mutableStateOf<ArticleCategory?>(null) }
     var showVerbCategories by remember { mutableStateOf(false) }
-    var selectedVerbTopic by remember { mutableStateOf<VerbPracticeTopic?>(null) }
+    var selectedVerbTopic by remember { mutableStateOf<VerbPracticeLesson?>(null) }
+    var showReadingLibrary by remember { mutableStateOf(false) }
+    var selectedReadingArticle by remember { mutableStateOf<ReadingArticle?>(null) }
     var selectedLesson by remember { mutableStateOf<Lesson?>(null) }
     var selectedTab by remember { mutableStateOf("Učení") }
 
@@ -250,6 +254,25 @@ private fun DeutschAIHome() {
         GuidedDialogueScreen(
             onBack = { showConversation = false },
             onComplete = { recordSession() }
+        )
+        return
+    }
+
+    if (selectedReadingArticle != null) {
+        ReadingArticleScreen(
+            article = selectedReadingArticle!!,
+            onBack = { selectedReadingArticle = null; showReadingLibrary = true }
+        )
+        return
+    }
+
+    if (showReadingLibrary) {
+        ReadingLibraryScreen(
+            onBack = { showReadingLibrary = false; showLearningHub = true },
+            onSelectArticle = { article ->
+                selectedReadingArticle = article
+                showReadingLibrary = false
+            }
         )
         return
     }
@@ -300,7 +323,8 @@ private fun DeutschAIHome() {
             onCourses = { showLearningHub = false; showLessonLibrary = true },
             onArticles = { showLearningHub = false; showArticleCategories = true },
             onVerbs = { showLearningHub = false; showVerbCategories = true },
-            onDialogues = { showLearningHub = false; showConversation = true }
+            onDialogues = { showLearningHub = false; showConversation = true },
+            onReading = { showLearningHub = false; showReadingLibrary = true }
         )
         return
     }
@@ -624,12 +648,14 @@ private fun LessonScreen(
     onBack: () -> Unit,
     onComplete: (score: Int, total: Int) -> Unit
 ) {
+    var questions by remember(lesson.id) { mutableStateOf(questions.shuffled()) }
     var questionIndex by remember(lesson.id) { mutableStateOf(0) }
     var selectedAnswer by remember(lesson.id) { mutableStateOf<Int?>(null) }
     var score by remember(lesson.id) { mutableStateOf(0) }
     var finished by remember(lesson.id) { mutableStateOf(false) }
 
     fun restartLesson() {
+        questions = lesson.questions.shuffled()
         questionIndex = 0
         selectedAnswer = null
         score = 0
@@ -677,14 +703,14 @@ private fun LessonScreen(
                         Icon(Icons.Default.School, contentDescription = null, tint = Gold, modifier = Modifier.size(48.dp))
                         Text("Lekce dokončena!", color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Bold)
                         Text(
-                            score.toString() + " z " + lesson.questions.size + " správně",
+                            score.toString() + " z " + questions.size + " správně",
                             color = Gold,
                             fontSize = 30.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = when {
-                                score == lesson.questions.size -> "Výborně! Všechny odpovědi jsou správně."
+                                score == questions.size -> "Výborně! Všechny odpovědi jsou správně."
                                 score >= 3 -> "Dobrá práce. Krátké opakování ti pomůže zapamatovat si zbytek."
                                 else -> "Každý začátek se počítá. Zkus si lekci zopakovat."
                             },
@@ -711,7 +737,7 @@ private fun LessonScreen(
                     Text("Vybrat jinou lekci", fontWeight = FontWeight.Bold)
                 }
             } else {
-                val question = lesson.questions[questionIndex]
+                val question = questions[questionIndex]
 
                 Text(
                     text = "PRVNÍ KROKY V NĚMČINĚ",
@@ -721,14 +747,14 @@ private fun LessonScreen(
                     letterSpacing = 1.3.sp
                 )
                 Text(
-                    text = "Otázka " + (questionIndex + 1) + " z " + lesson.questions.size,
+                    text = "Otázka " + (questionIndex + 1) + " z " + questions.size,
                     color = Forest,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
                 )
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    repeat(lesson.questions.size) { index ->
+                    repeat(questions.size) { index ->
                         Box(
                             modifier = Modifier
                                 .weight(1f)
@@ -808,11 +834,11 @@ private fun LessonScreen(
                     }
                     Button(
                         onClick = {
-                            if (questionIndex < lesson.questions.lastIndex) {
+                            if (questionIndex < questions.lastIndex) {
                                 questionIndex += 1
                                 selectedAnswer = null
                             } else {
-                                onComplete(score, lesson.questions.size)
+                                onComplete(score, questions.size)
                                 finished = true
                             }
                         },
@@ -821,7 +847,7 @@ private fun LessonScreen(
                         shape = RoundedCornerShape(14.dp)
                     ) {
                         Text(
-                            text = if (questionIndex == lesson.questions.lastIndex) "Zobrazit výsledek" else "Další otázka",
+                            text = if (questionIndex == questions.lastIndex) "Zobrazit výsledek" else "Další otázka",
                             fontWeight = FontWeight.Bold
                         )
                     }
