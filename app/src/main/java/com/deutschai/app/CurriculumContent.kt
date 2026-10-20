@@ -48,9 +48,9 @@ internal val guidedDialogueTopics = listOf(
                 "Wo wohnst du jetzt?",
                 "Kde teď bydlíš?",
                 listOf(
-                    GuidedDialogueOption("Ich wohne in Brünn.", "Bydlím v Brně.", "Wie gefällt dir Brünn?", "Jak se ti Brno líbí?"),
+                    GuidedDialogueOption("Ich wohne in Brünn.", "Bydlím v Brně.", "Brünn ist eine lebendige Stadt.", "Brno je živé město."),
                     GuidedDialogueOption("Ich wohne in Prag.", "Bydlím v Praze.", "Prag hat viel zu bieten.", "Praha toho nabízí opravdu hodně."),
-                    GuidedDialogueOption("Ich wohne in Tschechien.", "Bydlím v Česku.", "Das klingt gut. Wohnst du in einer Stadt?", "To zní dobře. Bydlíš ve městě?")
+                    GuidedDialogueOption("Ich wohne in Tschechien.", "Bydlím v Česku.", "Tschechien hat viele schöne Orte.", "Česko má mnoho krásných míst.")
                 )
             ),
             GuidedDialogueTurn(
@@ -66,7 +66,7 @@ internal val guidedDialogueTopics = listOf(
                 "Freut mich! Möchtest du noch etwas erzählen?",
                 "Těší mě! Chceš ještě něco říct?",
                 listOf(
-                    GuidedDialogueOption("Ich arbeite in einer Firma.", "Pracuji ve firmě.", "Interessant! Was machst du dort?", "Zajímavé! Co tam děláš?"),
+                    GuidedDialogueOption("Ich arbeite in einer Firma.", "Pracuji ve firmě.", "Das klingt interessant. Viel Erfolg bei der Arbeit!", "To zní zajímavě. Ať se ti v práci daří!"),
                     GuidedDialogueOption("Ich lerne gern Sprachen.", "Rád/a se učím jazyky.", "Das ist eine gute Gewohnheit.", "To je dobrý zvyk."),
                     GuidedDialogueOption("Danke, das war alles.", "Děkuji, to je vše.", "Gern geschehen. Bis bald!", "Rádo se stalo. Brzy na shledanou!")
                 )
@@ -82,17 +82,17 @@ internal val guidedDialogueTopics = listOf(
                 "Guten Tag! Was möchten Sie bestellen?",
                 "Dobrý den! Co si přejete objednat?",
                 listOf(
-                    GuidedDialogueOption("Ich hätte gern einen Kaffee.", "Dal/a bych si kávu.", "Gern. Möchten Sie Milch oder Zucker?", "Samozřejmě. Přejete si mléko nebo cukr?"),
-                    GuidedDialogueOption("Ich möchte einen Tee, bitte.", "Chtěl/a bych čaj, prosím.", "Sehr gern. Möchten Sie Zitrone dazu?", "Samozřejmě. Přejete si k němu citron?"),
-                    GuidedDialogueOption("Ein Wasser, bitte.", "Jednu vodu, prosím.", "Still oder mit Kohlensäure?", "Neperlivou, nebo perlivou?")
+                    GuidedDialogueOption("Ich hätte gern einen Kaffee.", "Dal/a bych si kávu.", "Gern, ich bereite Ihre Bestellung vor.", "Samozřejmě, připravím vaši objednávku."),
+                    GuidedDialogueOption("Einen Kaffee mit Milch, bitte.", "Kávu s mlékem, prosím.", "Sehr gern, einen Kaffee mit Milch.", "Samozřejmě, kávu s mlékem."),
+                    GuidedDialogueOption("Einen Cappuccino, bitte.", "Cappuccino, prosím.", "Natürlich, Ihr Cappuccino kommt gleich.", "Samozřejmě, cappuccino bude hned.")
                 )
             ),
             GuidedDialogueTurn(
                 "Möchten Sie Milch oder Zucker?",
                 "Přejete si mléko nebo cukr?",
                 listOf(
-                    GuidedDialogueOption("Mit Milch, bitte.", "S mlékem, prosím.", "Natürlich. Sonst noch etwas?", "Samozřejmě. Ještě něco?"),
-                    GuidedDialogueOption("Ohne Zucker, bitte.", "Bez cukru, prosím.", "In Ordnung. Sonst noch etwas?", "Dobře. Ještě něco?"),
+                    GuidedDialogueOption("Mit Milch, bitte.", "S mlékem, prosím.", "Natürlich. Ich notiere das.", "Samozřejmě. Poznamenám si to."),
+                    GuidedDialogueOption("Ohne Zucker, bitte.", "Bez cukru, prosím.", "In Ordnung, ohne Zucker.", "Dobře, bez cukru."),
                     GuidedDialogueOption("Nein, danke.", "Ne, děkuji.", "Alles klar. Ich bringe Ihre Bestellung.", "Dobře. Přinesu vám objednávku.")
                 )
             ),
@@ -100,7 +100,7 @@ internal val guidedDialogueTopics = listOf(
                 "Möchten Sie auch etwas essen?",
                 "Dáte si také něco k jídlu?",
                 listOf(
-                    GuidedDialogueOption("Ein Stück Kuchen, bitte.", "Kousek dortu, prosím.", "Gern. Welchen Kuchen möchten Sie?", "Samozřejmě. Který dort si přejete?"),
+                    GuidedDialogueOption("Ein Stück Kuchen, bitte.", "Kousek dortu, prosím.", "Sehr gern. Ich bringe Ihnen ein Stück Kuchen.", "Rád/a. Přinesu vám kousek dortu."),
                     GuidedDialogueOption("Ein Käsebrötchen, bitte.", "Sýrovou housku, prosím.", "Gute Wahl! Kommt sofort.", "Dobrá volba! Hned to bude."),
                     GuidedDialogueOption("Nein, nur das Getränk.", "Ne, jen nápoj.", "Natürlich. Ich bringe es gleich.", "Samozřejmě. Hned vám to přinesu.")
                 )
@@ -134,9 +134,9 @@ internal val guidedDialogueTopics = listOf(
                 "Guten Tag! Kann ich Ihnen helfen?",
                 "Dobrý den! Mohu vám pomoci?",
                 listOf(
-                    GuidedDialogueOption("Ja, ich suche eine Jacke.", "Ano, hledám bundu.", "Natürlich. Welche Größe haben Sie?", "Samozřejmě. Jakou máte velikost?"),
-                    GuidedDialogueOption("Ich sehe mich nur um, danke.", "Jen se rozhlížím, děkuji.", "Kein Problem. Sagen Sie Bescheid, wenn Sie Hilfe brauchen.", "Žádný problém. Řekněte, až budete potřebovat pomoct."),
-                    GuidedDialogueOption("Ich suche schwarze Schuhe.", "Hledám černé boty.", "Die Schuhe finden Sie dort drüben.", "Boty najdete támhle.")
+                    GuidedDialogueOption("Ja, ich suche eine Jacke.", "Ano, hledám bundu.", "Natürlich, ich zeige Ihnen die Jacken.", "Samozřejmě, ukážu vám bundy."),
+                    GuidedDialogueOption("Haben Sie eine blaue Jacke?", "Máte modrou bundu?", "Ja, blaue Jacken haben wir auch.", "Ano, máme i modré bundy."),
+                    GuidedDialogueOption("Ich brauche eine warme Jacke.", "Potřebuji teplou bundu.", "Gern, ich helfe Ihnen, eine warme Jacke zu finden.", "Rád/a vám pomohu najít teplou bundu.")
                 )
             ),
             GuidedDialogueTurn(
@@ -153,7 +153,7 @@ internal val guidedDialogueTopics = listOf(
                 "Chcete si bundu vyzkoušet?",
                 listOf(
                     GuidedDialogueOption("Ja, wo ist die Umkleidekabine?", "Ano, kde je kabinka?", "Die Umkleidekabine ist rechts.", "Kabinka je vpravo."),
-                    GuidedDialogueOption("Nein, die Größe passt.", "Ne, velikost sedí.", "Sehr gut. Möchten Sie sie kaufen?", "Výborně. Chcete ji koupit?"),
+                    GuidedDialogueOption("Nein, die Größe passt.", "Ne, velikost sedí.", "Sehr gut, dann passt die Jacke.", "Výborně, bunda tedy sedí."),
                     GuidedDialogueOption("Ja, bitte.", "Ano, prosím.", "Natürlich. Bitte folgen Sie mir.", "Samozřejmě. Pojďte prosím za mnou.")
                 )
             ),
@@ -162,8 +162,8 @@ internal val guidedDialogueTopics = listOf(
                 "Bunda stojí padesát eur. Je to v pořádku?",
                 listOf(
                     GuidedDialogueOption("Ja, ich nehme sie.", "Ano, vezmu si ji.", "Prima. Sie können an der Kasse bezahlen.", "Skvělé. Zaplatit můžete u pokladny."),
-                    GuidedDialogueOption("Das ist mir zu teuer.", "To je na mě příliš drahé.", "Ich kann Ihnen ein günstigeres Modell zeigen.", "Mohu vám ukázat levnější model."),
-                    GuidedDialogueOption("Gibt es einen Rabatt?", "Je na ni sleva?", "Heute gibt es zehn Prozent Rabatt.", "Dnes je sleva deset procent.")
+                    GuidedDialogueOption("Der Preis ist in Ordnung. Ich kaufe sie.", "Cena je v pořádku. Koupím si ji.", "Sehr gut, ich packe die Jacke für Sie ein.", "Výborně, bundu vám zabalím."),
+                    GuidedDialogueOption("Sie gefällt mir. Ich nehme die Jacke.", "Líbí se mi. Vezmu si tu bundu.", "Gute Wahl. Die Kasse ist dort drüben.", "Dobrá volba. Pokladna je támhle.")
                 )
             ),
             GuidedDialogueTurn(
@@ -172,7 +172,7 @@ internal val guidedDialogueTopics = listOf(
                 listOf(
                     GuidedDialogueOption("Mit Karte, bitte.", "Kartou, prosím.", "Danke. Hier ist Ihr Beleg.", "Děkuji. Tady je váš doklad."),
                     GuidedDialogueOption("Bar, bitte.", "Hotově, prosím.", "Vielen Dank. Einen schönen Tag!", "Moc děkuji. Hezký den!"),
-                    GuidedDialogueOption("Kann ich kontaktlos bezahlen?", "Mohu zaplatit bezkontaktně?", "Ja, das ist möglich.", "Ano, to je možné.")
+                    GuidedDialogueOption("Kann ich kontaktlos bezahlen?", "Mohu zaplatit bezkontaktně?", "Ja, das ist möglich. Vielen Dank für Ihren Einkauf!", "Ano, to je možné. Děkujeme za nákup!")
                 )
             )
         )
