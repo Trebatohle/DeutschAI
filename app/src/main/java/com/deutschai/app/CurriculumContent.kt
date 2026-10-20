@@ -20,7 +20,7 @@ internal data class GuidedDialogueTopic(
     val turns: List<GuidedDialogueTurn>
 )
 
-internal val guidedDialogueTopics = listOf(
+internal val starterGuidedDialogueTopics = listOf(
     GuidedDialogueTopic(
         id = "kennenlernen",
         title = "Seznámení",
