@@ -648,7 +648,7 @@ private fun LessonScreen(
     onBack: () -> Unit,
     onComplete: (score: Int, total: Int) -> Unit
 ) {
-    var questions by remember(lesson.id) { mutableStateOf(questions.shuffled()) }
+    var questions by remember(lesson.id) { mutableStateOf(lesson.questions.shuffled()) }
     var questionIndex by remember(lesson.id) { mutableStateOf(0) }
     var selectedAnswer by remember(lesson.id) { mutableStateOf<Int?>(null) }
     var score by remember(lesson.id) { mutableStateOf(0) }
@@ -711,7 +711,7 @@ private fun LessonScreen(
                         Text(
                             text = when {
                                 score == questions.size -> "Výborně! Všechny odpovědi jsou správně."
-                                score >= 3 -> "Dobrá práce. Krátké opakování ti pomůže zapamatovat si zbytek."
+                                score >= (questions.size * 0.6).toInt() -> "Dobrá práce. Krátké opakování ti pomůže zapamatovat si zbytek."
                                 else -> "Každý začátek se počítá. Zkus si lekci zopakovat."
                             },
                             color = Color(0xFFE0EAE5),
