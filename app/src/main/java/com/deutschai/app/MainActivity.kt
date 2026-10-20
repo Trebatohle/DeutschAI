@@ -964,174 +964,56 @@ private fun LessonScreen(
     }
 }
 
+private data class GuidedDialogueLine(
+    val german: String,
+    val czech: String,
+    val learner: Boolean
+)
+
 @Composable
-private fun ConversationScreen(onBack: () -> Unit) {
-    val context = LocalContext.current
-    val tutor = remember(context) { OfflineAiTutor(context.applicationContext) }
-    DisposableEffect(tutor) {
-        onDispose { tutor.close() }
+private fun GuidedDialogueScreen(
+    onBack: () -> Unit,
+    onComplete: () -> Unit
+) {
+    var selectedTopic by remember { mutableStateOf<GuidedDialogueTopic?>(null) }
+    var turnIndex by remember { mutableStateOf(0) }
+    var completed by remember { mutableStateOf(false) }
+    var completionRecorded by remember { mutableStateOf(false) }
+    var lines by remember { mutableStateOf(emptyList<GuidedDialogueLine>()) }
+
+    fun startTopic(topic: GuidedDialogueTopic) {
+        selectedTopic = topic
+        turnIndex = 0
+        completed = false
+        completionRecorded = false
+        lines = emptyList()
     }
 
-    var modelInstalled by remember(context) {
-        mutableStateOf(OfflineAiTutor.isModelInstalled(context))
+    fun resetToTopics() {
+        selectedTopic = null
+        turnIndex = 0
+        completed = false
+        completionRecorded = false
+        lines = emptyList()
     }
-    var isDownloading by remember { mutableStateOf(false) }
-    var downloadProgress by remember { mutableStateOf(0f) }
-    var isInitializing by remember { mutableStateOf(false) }
-    var aiReady by remember { mutableStateOf(false) }
-    var aiWorking by remember { mutableStateOf(false) }
-    var aiError by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(modelInstalled) {
-        if (modelInstalled && !aiReady && !isInitializing) {
-            isInitializing = true
-            tutor.initialize { result ->
-                isInitializing = false
-                result.fold(
-                    onSuccess = {
-                        aiReady = true
-                        aiError = null
-                    },
-                    onFailure = { error ->
-                        aiError = error.message ?: "Offline AI se nepodařilo spustit."
-                    }
-                )
+    fun chooseOption(option: GuidedDialogueOption) {
+        val topic = selectedTopic ?: return
+        if (completed) return
+
+        lines = lines +
+            GuidedDialogueLine(option.german, option.czech, learner = true) +
+            GuidedDialogueLine(option.replyGerman, option.replyCzech, learner = false)
+
+        if (turnIndex >= topic.turns.lastIndex) {
+            completed = true
+            if (!completionRecorded) {
+                completionRecorded = true
+                onComplete()
             }
-        }
-    }
-
-    var input by remember { mutableStateOf("") }
-    var promptIndex by remember { mutableStateOf(0) }
-    var recognizedCount by remember { mutableStateOf(0) }
-    var finished by remember { mutableStateOf(false) }
-    var messages by remember {
-        mutableStateOf(
-            listOf(
-                ConversationMessage(
-                    "Hallo! Ich bin Beatrice. Wir üben heute ein paar einfache Gespräche auf Deutsch.",
-                    true,
-                    translation = "Ahoj! Jsem Beatrice. Dnes si procvičíme několik jednoduchých rozhovorů v němčině."
-                ),
-                ConversationMessage(
-                    conversationPrompts[0].prompt,
-                    true,
-                    translation = promptTranslation(conversationPrompts[0])
-                )
-            )
-        )
-    }
-    val listState = rememberLazyListState()
-
-    LaunchedEffect(messages.size) {
-        if (messages.isNotEmpty()) {
-            listState.animateScrollToItem(messages.lastIndex)
-        }
-    }
-
-    fun advanceConversation() {
-        if (promptIndex < conversationPrompts.lastIndex) {
-            promptIndex += 1
-            val nextPrompt = conversationPrompts[promptIndex]
-            messages = messages + ConversationMessage(
-                nextPrompt.prompt,
-                true,
-                translation = promptTranslation(nextPrompt)
-            )
         } else {
-            finished = true
-            messages = messages + ConversationMessage(
-                "Danke für das Gespräch! Du kannst es jederzeit noch einmal versuchen.",
-                true,
-                translation = "Děkuji za rozhovor! Můžeš si ho kdykoliv zkusit znovu."
-            )
+            turnIndex += 1
         }
-    }
-
-    fun sendAnswer() {
-        val answer = input.trim()
-        if (answer.isEmpty() || finished || aiWorking || isInitializing || isDownloading) return
-        val currentPrompt = conversationPrompts[promptIndex]
-        input = ""
-
-        if (aiReady) {
-            messages = messages + ConversationMessage(answer, false)
-            aiWorking = true
-            tutor.reviewAnswer(currentPrompt.prompt, answer) { result ->
-                aiWorking = false
-                result.fold(
-                    onSuccess = { response ->
-                        messages = messages + ConversationMessage(
-                            response,
-                            true,
-                            feedback = true
-                        )
-                        advanceConversation()
-                    },
-                    onFailure = { error ->
-                        val details = error.message ?: "Neznámá chyba"
-                        messages = messages + ConversationMessage(
-                            "Teď se mi odpověď nepodařilo vyhodnotit ($details). Můžeš to zkusit znovu.",
-                            true,
-                            feedback = true,
-                            translation = "Při vyhodnocení došlo k chybě. Zkus prosím odpovědět ještě jednou."
-                        )
-                    }
-                )
-            }
-            return
-        }
-
-        // Compatibility mode keeps the original scripted lesson available before the
-        // larger language model has been downloaded and initialized.
-        val evaluation = evaluateConversationAnswer(answer, currentPrompt)
-        val shortFeedback = if (evaluation.first) {
-            ConversationMessage(
-                "Sehr gut! Danke für deine Antwort.",
-                true,
-                feedback = true,
-                recognized = true,
-                translation = "Výborně! Děkuji za odpověď."
-            )
-        } else {
-            ConversationMessage(
-                "Danke für deine Antwort!",
-                true,
-                feedback = true,
-                recognized = false,
-                translation = "Děkuji za odpověď."
-            )
-        }
-
-        messages = messages +
-            ConversationMessage(answer, false) +
-            shortFeedback +
-            ConversationMessage(
-                "Beispiel: " + currentPrompt.example,
-                true,
-                translation = "Česky: " + exampleTranslation(currentPrompt.example)
-            ) +
-            ConversationMessage(evaluation.second, true, feedback = true, recognized = evaluation.first)
-        if (evaluation.first) recognizedCount += 1
-        advanceConversation()
-    }
-
-    fun restartConversation() {
-        input = ""
-        promptIndex = 0
-        recognizedCount = 0
-        finished = false
-        messages = listOf(
-            ConversationMessage(
-                "Hallo! Ich bin Beatrice. Wir üben heute ein paar einfache Gespräche auf Deutsch.",
-                true,
-                translation = "Ahoj! Jsem Beatrice. Dnes si procvičíme několik jednoduchých rozhovorů v němčině."
-            ),
-            ConversationMessage(
-                conversationPrompts[0].prompt,
-                true,
-                translation = promptTranslation(conversationPrompts[0])
-            )
-        )
     }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
@@ -1139,13 +1021,14 @@ private fun ConversationScreen(onBack: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .navigationBarsPadding()
-                .padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(start = 18.dp, top = 14.dp, end = 18.dp, bottom = 30.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Button(
                     onClick = onBack,
@@ -1157,251 +1040,238 @@ private fun ConversationScreen(onBack: () -> Unit) {
                     Text("Zpět")
                 }
                 Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .background(Forest, CircleShape),
+                    modifier = Modifier.size(46.dp).background(Forest, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("B", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                    Text("B", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Bold)
                 }
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text("Beatrice", color = Forest, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Text("Řízené dialogy · A1 · offline", color = Muted, fontSize = 12.sp)
+                }
+            }
+
+            if (selectedTopic == null) {
+                Text("Vyber si situaci", color = Ink, fontSize = 27.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    "V každém kroku uvidíš tři přirozené odpovědi. Německá věta i český překlad jsou vidět současně. Vybranou větu si přečti nahlas.",
+                    color = Muted,
+                    fontSize = 14.sp,
+                    lineHeight = 21.sp
+                )
+                guidedDialogueTopics.forEach { topic ->
+                    Card(
+                        onClick = { startTopic(topic) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(18.dp),
+                            horizontalArrangement = Arrangement.spacedBy(14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier.size(46.dp).background(Mint, RoundedCornerShape(14.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = Forest)
+                            }
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(5.dp)
+                            ) {
+                                Text(topic.title, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                                Text(topic.subtitle, color = Muted, fontSize = 13.sp, lineHeight = 18.sp)
+                                Text(
+                                    topic.turns.size.toString() + " kroků · 3 odpovědi v každém kroku",
+                                    color = Forest,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Mint)
+                ) {
                     Text(
-                        if (aiReady) "Němčina A1 · skutečná offline AI"
-                        else "Němčina A1 · offline režim",
-                        color = Muted,
-                        fontSize = 12.sp
+                        "Tohle je začátek knihovny dialogů. Obsah je připravený předem, proto funguje bez modelu, bez internetu a bez náhodných odpovědí. Další témata budeme přidávat postupně.",
+                        modifier = Modifier.padding(14.dp),
+                        color = Forest,
+                        fontSize = 13.sp,
+                        lineHeight = 20.sp
                     )
                 }
-            }
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Mint)
-            ) {
-                Text(
-                    text = if (aiReady) {
-                        "Odpovídej německy vlastními slovy. Beatrice teď kontroluje věty pomocí jazykového modelu přímo v telefonu."
-                    } else {
-                        "Odpovídej německy vlastními slovy. Stále můžeš procvičovat i bez staženého AI modelu."
-                    },
-                    modifier = Modifier.padding(12.dp),
-                    color = Forest,
-                    fontSize = 13.sp,
-                    lineHeight = 19.sp
-                )
-            }
-
-            if (!modelInstalled) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(14.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            "Zapnout skutečnou offline AI",
-                            color = Forest,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            "Stáhne se model o velikosti přibližně ${OfflineAiTutor.MODEL_DOWNLOAD_LABEL}. To proveď přes Wi-Fi. Po stažení bude vyhodnocování vět fungovat bez internetu.",
-                            color = Muted,
-                            fontSize = 13.sp,
-                            lineHeight = 19.sp
-                        )
-                        if (isDownloading) {
-                            if (downloadProgress > 0f) {
-                                LinearProgressIndicator(
-                                    progress = { downloadProgress },
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                                Text(
-                                    "${(downloadProgress * 100).toInt()} % staženo",
-                                    color = Forest,
-                                    fontSize = 12.sp
-                                )
-                            } else {
-                                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                                Text("Připojuji se a zahajuji stahování…", color = Muted, fontSize = 12.sp)
-                            }
-                        } else {
-                            Button(
-                                onClick = {
-                                    aiError = null
-                                    isDownloading = true
-                                    downloadProgress = 0f
-                                    tutor.downloadModel(
-                                        onProgress = { progress -> downloadProgress = progress },
-                                        onComplete = { result ->
-                                            isDownloading = false
-                                            result.fold(
-                                                onSuccess = {
-                                                    modelInstalled = true
-                                                    aiError = null
-                                                },
-                                                onFailure = { error ->
-                                                    aiError = error.message ?: "Stažení modelu se nezdařilo."
-                                                }
-                                            )
-                                        }
-                                    )
-                                },
-                                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Forest, contentColor = Color.White),
-                                shape = RoundedCornerShape(14.dp)
-                            ) {
-                                Text("Stáhnout offline AI", fontWeight = FontWeight.Bold)
-                            }
-                        }
-                        if (aiError != null) {
-                            Text(aiError!!, color = Color(0xFF9D3429), fontSize = 12.sp, lineHeight = 18.sp)
-                        }
-                    }
-                }
             } else {
-                Card(
+                val topic = selectedTopic!!
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = if (aiReady) Mint else Color.White)
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(
-                        modifier = Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Text(topic.title, color = Ink, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                         Text(
-                            when {
-                                aiReady -> "Offline AI je připravena"
-                                isInitializing -> "Načítám AI model do paměti…"
-                                else -> "Model je stažený, ale ještě není připraven"
-                            },
-                            color = Forest,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
+                            if (completed) "Dialog dokončen" else "Krok " + (turnIndex + 1) + " z " + topic.turns.size,
+                            color = Muted,
+                            fontSize = 13.sp
                         )
-                        if (isInitializing) {
-                            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                        }
-                        if (aiError != null) {
-                            Text(aiError!!, color = Color(0xFF9D3429), fontSize = 12.sp, lineHeight = 18.sp)
-                            if (!isInitializing && !aiReady) {
-                                Button(
-                                    onClick = {
-                                        aiError = null
-                                        isInitializing = true
-                                        tutor.initialize { result ->
-                                            isInitializing = false
-                                            result.fold(
-                                                onSuccess = {
-                                                    aiReady = true
-                                                    aiError = null
-                                                },
-                                                onFailure = { error ->
-                                                    aiError = error.message ?: "Offline AI se nepodařilo spustit."
-                                                }
-                                            )
-                                        }
-                                    },
-                                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Forest, contentColor = Color.White),
-                                    shape = RoundedCornerShape(12.dp)
-                                ) {
-                                    Text("Zkusit načíst znovu")
-                                }
-                            }
+                    }
+                    Button(
+                        onClick = { resetToTopics() },
+                        colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.heightIn(min = 48.dp)
+                    ) {
+                        Text("Témata")
+                    }
+                }
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                    repeat(topic.turns.size) { index ->
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(6.dp)
+                                .background(
+                                    if (index < turnIndex || completed) Forest else Color(0xFFE1E5DF),
+                                    CircleShape
+                                )
+                        )
+                    }
+                }
+
+                if (lines.isEmpty()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(containerColor = Forest)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text("BEATRICE", color = Gold, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                            Text("Hallo! Schön, dass du da bist.", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                            Text("Ahoj! Jsem ráda, že jsi tady.", color = Color(0xFFE0EAE5), fontSize = 14.sp)
                         }
                     }
                 }
-            }
 
-            LazyColumn(
-                state = listState,
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                items(messages) { message ->
-                    ChatBubble(message)
-                }
-            }
-
-            if (finished) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Forest)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                lines.forEach { line ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(containerColor = if (line.learner) Forest else Color.White)
                     ) {
-                        Text("Rozhovor dokončen", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        if (aiReady) {
+                        Column(
+                            modifier = Modifier.padding(14.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
                             Text(
-                                "Odpovědi vyhodnocoval jazykový model v telefonu.",
-                                color = Gold,
-                                fontSize = 14.sp,
-                                lineHeight = 20.sp
+                                if (line.learner) "TY · TVOJE ODPOVĚĎ" else "BEATRICE",
+                                color = if (line.learner) Gold else Forest,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
                             )
-                        } else {
                             Text(
-                                "Rozpoznané fráze: " + recognizedCount + " z " + conversationPrompts.size,
-                                color = Gold,
+                                line.german,
+                                color = if (line.learner) Color.White else Ink,
                                 fontSize = 16.sp,
+                                lineHeight = 22.sp,
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                "Jde o jednoduchou offline kontrolu vybraných frází, ne o plnou AI ani úplnou kontrolu gramatiky.",
-                                color = Color(0xFFE0EAE5),
-                                fontSize = 12.sp,
-                                lineHeight = 18.sp
+                                line.czech,
+                                color = if (line.learner) Color(0xFFE0EAE5) else Muted,
+                                fontSize = 14.sp,
+                                lineHeight = 20.sp
                             )
                         }
                     }
                 }
-                Button(
-                    onClick = { restartConversation() },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Ink),
-                    shape = RoundedCornerShape(14.dp)
-                ) {
-                    Text("Začít znovu", fontWeight = FontWeight.Bold)
-                }
-                Button(
-                    onClick = onBack,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
-                    shape = RoundedCornerShape(14.dp)
-                ) {
-                    Text("Zpět na hlavní obrazovku", fontWeight = FontWeight.Bold)
-                }
-            } else {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.Bottom
-                ) {
-                    OutlinedTextField(
-                        value = input,
-                        onValueChange = { input = it },
-                        modifier = Modifier.weight(1f),
-                        placeholder = { Text("Napiš odpověď německy…") },
-                        maxLines = 3,
-                        shape = RoundedCornerShape(16.dp),
-                        enabled = !aiWorking && !isInitializing && !isDownloading
-                    )
+
+                if (completed) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(containerColor = Forest)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(18.dp),
+                            verticalArrangement = Arrangement.spacedBy(7.dp)
+                        ) {
+                            Text("Gut gemacht!", color = Gold, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                            Text("Výborně! Dokončil/a jsi celý dialog.", color = Color.White, fontSize = 15.sp)
+                            Text("Můžeš ho zopakovat a tentokrát zvolit jiné odpovědi.", color = Color(0xFFE0EAE5), fontSize = 13.sp, lineHeight = 19.sp)
+                        }
+                    }
                     Button(
-                        onClick = { sendAnswer() },
-                        enabled = input.isNotBlank() && !aiWorking && !isInitializing && !isDownloading,
-                        modifier = Modifier.heightIn(min = 56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Forest, contentColor = Color.White),
+                        onClick = { startTopic(topic) },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Ink),
                         shape = RoundedCornerShape(14.dp)
                     ) {
-                        Text(if (aiWorking) "Myslím…" else "Odeslat")
+                        Text("Zopakovat dialog", fontWeight = FontWeight.Bold)
+                    }
+                    Button(
+                        onClick = { resetToTopics() },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Text("Vybrat jiné téma", fontWeight = FontWeight.Bold)
+                    }
+                } else {
+                    val turn = topic.turns[turnIndex]
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = Mint)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(7.dp)
+                        ) {
+                            Text("BEATRICE SE PTÁ", color = Forest, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                            Text(turn.promptGerman, color = Ink, fontSize = 19.sp, fontWeight = FontWeight.Bold, lineHeight = 25.sp)
+                            Text(turn.promptCzech, color = Forest, fontSize = 15.sp, lineHeight = 21.sp)
+                        }
+                    }
+                    Text("Vyber odpověď a přečti ji nahlas", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                    turn.options.forEachIndexed { index, option ->
+                        Card(
+                            onClick = { chooseOption(option) },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.White)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(14.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                Box(
+                                    modifier = Modifier.size(30.dp).background(Mint, CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text((index + 1).toString(), color = Forest, fontWeight = FontWeight.Bold)
+                                }
+                                Column(
+                                    modifier = Modifier.weight(1f),
+                                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                                ) {
+                                    Text(option.german, color = Ink, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, lineHeight = 22.sp)
+                                    Text(option.czech, color = Muted, fontSize = 14.sp, lineHeight = 19.sp)
+                                    Text("Použít tuto odpověď →", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
                     }
                 }
             }
