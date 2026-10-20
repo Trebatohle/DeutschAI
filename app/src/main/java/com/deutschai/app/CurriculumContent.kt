@@ -332,47 +332,250 @@ internal val articleCategories = listOf(
     ))
 )
 
-internal data class VerbPracticeTopic(
+internal data class VerbPhrase(
+    val german: String,
+    val czech: String
+)
+
+internal data class VerbDefinition(
     val id: String,
     val infinitive: String,
     val czech: String,
     val description: String,
-    val forms: List<String>,
     val subjects: List<String>,
-    val phrases: List<String>
+    val czechSubjects: List<String>,
+    val forms: List<String>,
+    val czechForms: List<String>,
+    val phrases: List<VerbPhrase>
+)
+
+internal data class VerbPracticeLesson(
+    val id: String,
+    val title: String,
+    val subtitle: String,
+    val verbIds: List<String>
+)
+
+private fun vp(german: String, czech: String) = VerbPhrase(german, czech)
+
+internal val verbDefinitions = listOf(
+    VerbDefinition(
+        "sein", "sein", "být", "Stav a vlastnosti",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("bin","bist","ist","sind","sind"), listOf("jsem","jsi","je","jsme","jsou"),
+        listOf(vp("heute zu Hause","dnes doma"),vp("sehr müde","velmi unavený/á"),vp("im Büro","v kanceláři"),vp("pünktlich","včas"),vp("für die Prüfung bereit","připravený/á na zkoušku"))
+    ),
+    VerbDefinition(
+        "haben", "haben", "mít", "Vlastnictví, čas a potřeby",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("habe","hast","hat","haben","haben"), listOf("mám","máš","má","máme","mají"),
+        listOf(vp("heute viel Zeit","dnes hodně času"),vp("eine wichtige Frage","důležitou otázku"),vp("einen kleinen Hund","malého psa"),vp("am Wochenende frei","o víkendu volno"),vp("große Pläne","velké plány"))
+    ),
+    VerbDefinition(
+        "wissen", "wissen", "vědět", "Informace a znalosti",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("weiß","weißt","weiß","wissen","wissen"), listOf("vím","víš","ví","víme","vědí"),
+        listOf(vp("die richtige Antwort","správnou odpověď"),vp("wo der Bahnhof ist","kde je nádraží"),vp("wann der Zug fährt","kdy odjíždí vlak"),vp("das leider nicht","to bohužel ne"),vp("wie man dorthin kommt","jak se tam dostat"))
+    ),
+    VerbDefinition(
+        "sprechen", "sprechen", "mluvit", "Jazyky a komunikace",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("spreche","sprichst","spricht","sprechen","sprechen"), listOf("mluvím","mluvíš","mluví","mluvíme","mluví"),
+        listOf(vp("sehr gut Deutsch","velmi dobře německy"),vp("langsam und deutlich","pomalu a zřetelně"),vp("mit der Kollegin","s kolegyní"),vp("mehrere Fremdsprachen","několika cizími jazyky"),vp("am liebsten persönlich","nejraději osobně"))
+    ),
+    VerbDefinition(
+        "laufen", "laufen", "běžet / chodit", "Pohyb a běh",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("laufe","läufst","läuft","laufen","laufen"), listOf("běžím","běžíš","běží","běžíme","běží"),
+        listOf(vp("jeden Morgen im Park","každé ráno v parku"),vp("sehr schnell","velmi rychle"),vp("zur nächsten Haltestelle","k další zastávce"),vp("zusammen fünf Kilometer","společně pět kilometrů"),vp("nicht gern bei Regen","neradi v dešti"))
+    ),
+    VerbDefinition(
+        "essen", "essen", "jíst", "Jídlo a každodenní návyky",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("esse","isst","isst","essen","essen"), listOf("jím","jíš","jí","jíme","jedí"),
+        listOf(vp("morgens gern Haferflocken","ráno rád/a ovesné vločky"),vp("mittags in der Kantine","v poledne v kantýně"),vp("heute einen Salat","dnes salát"),vp("am Sonntag mit der Familie","v neděli s rodinou"),vp("kein Fleisch","žádné maso"))
+    ),
+    VerbDefinition(
+        "trinken", "trinken", "pít", "Nápoje a zdravé návyky",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("trinke","trinkst","trinkt","trinken","trinken"), listOf("piji","piješ","pije","pijeme","pijí"),
+        listOf(vp("jeden Tag genug Wasser","každý den dost vody"),vp("morgens schwarzen Kaffee","ráno černou kávu"),vp("nach dem Sport einen Tee","po sportu čaj"),vp("lieber Wasser als Limonade","raději vodu než limonádu"),vp("zum Essen ein Glas Saft","k jídlu sklenici džusu"))
+    ),
+    VerbDefinition(
+        "gehen", "gehen", "jít", "Cesta, volný čas a plány",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("gehe","gehst","geht","gehen","gehen"), listOf("jdu","jdeš","jde","jdeme","jdou"),
+        listOf(vp("nach der Arbeit nach Hause","po práci domů"),vp("am Freitag ins Kino","v pátek do kina"),vp("zu Fuß zur Schule","pěšky do školy"),vp("am Abend spazieren","večer na procházku"),vp("am Wochenende oft wandern","o víkendu často na túru"))
+    ),
+    VerbDefinition(
+        "machen", "machen", "dělat", "Úkoly a každodenní činnosti",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("mache","machst","macht","machen","machen"), listOf("dělám","děláš","dělá","děláme","dělají"),
+        listOf(vp("heute meine Hausaufgaben","dnes své domácí úkoly"),vp("am Wochenende Sport","o víkendu sport"),vp("eine kurze Pause","krátkou přestávku"),vp("jeden Abend das Abendessen","každý večer večeři"),vp("gemeinsam einen Plan","společně plán"))
+    ),
+    VerbDefinition(
+        "können", "können", "moci / umět", "Schopnosti a možnosti",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("kann","kannst","kann","können","können"), listOf("mohu","můžeš","může","můžeme","mohou"),
+        listOf(vp("heute länger bleiben","dnes zůstat déle"),vp("gut schwimmen","dobře plavat"),vp("dir morgen helfen","ti zítra pomoci"),vp("das Problem gemeinsam lösen","problém vyřešit společně"),vp("leider nicht kommen","bohužel přijít"))
+    ),
+    VerbDefinition(
+        "wollen", "wollen", "chtít", "Přání a plány",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("will","willst","will","wollen","wollen"), listOf("chci","chceš","chce","chceme","chtějí"),
+        listOf(vp("Deutsch besser lernen","lépe se učit německy"),vp("am Samstag verreisen","v sobotu odcestovat"),vp("ein neues Buch kaufen","koupit novou knihu"),vp("heute zu Hause bleiben","dnes zůstat doma"),vp("am Abend zusammen kochen","večer společně vařit"))
+    ),
+    VerbDefinition(
+        "müssen", "müssen", "muset", "Povinnosti a nutnost",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("muss","musst","muss","müssen","müssen"), listOf("musím","musíš","musí","musíme","musí"),
+        listOf(vp("morgen früh aufstehen","zítra brzy vstávat"),vp("heute länger arbeiten","dnes pracovat déle"),vp("noch einkaufen","ještě nakoupit"),vp("den Termin verschieben","termín přesunout"),vp("rechtzeitig am Bahnhof sein","být včas na nádraží"))
+    ),
+    VerbDefinition(
+        "kommen", "kommen", "přijít / pocházet", "Původ, návštěvy a pohyb",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("komme","kommst","kommt","kommen","kommen"), listOf("přicházím","přicházíš","přichází","přicházíme","přicházejí"),
+        listOf(vp("aus Tschechien","z Česka"),vp("heute etwas später","dnes o něco později"),vp("morgen zu Besuch","zítra na návštěvu"),vp("gerade vom Bahnhof","právě z nádraží"),vp("aus einer großen Familie","z velké rodiny"))
+    ),
+    VerbDefinition(
+        "sehen", "sehen", "vidět", "Vnímání a pozorování",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("sehe","siehst","sieht","sehen","sehen"), listOf("vidím","vidíš","vidí","vidíme","vidí"),
+        listOf(vp("den Bus schon","už autobus"),vp("gern deutsche Filme","rád/a německé filmy"),vp("einen Vogel im Garten","ptáka na zahradě"),vp("uns am Freitag","se v pátek"),vp("die Berge aus dem Fenster","hory z okna"))
+    ),
+    VerbDefinition(
+        "nehmen", "nehmen", "vzít / brát", "Volba a každodenní situace",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("nehme","nimmst","nimmt","nehmen","nehmen"), listOf("beru","bereš","bere","bereme","berou"),
+        listOf(vp("den nächsten Zug","další vlak"),vp("einen Kaffee ohne Zucker","kávu bez cukru"),vp("meinen Regenschirm mit","si s sebou deštník"),vp("heute ein Taxi","dnes taxi"),vp("die Schlüssel vom Tisch","klíče ze stolu"))
+    ),
+    VerbDefinition(
+        "geben", "geben", "dát / dávat", "Předávání a zdvořilé prosby",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("gebe","gibst","gibt","geben","geben"), listOf("dávám","dáváš","dává","dáváme","dávají"),
+        listOf(vp("dir meine Telefonnummer","ti své telefonní číslo"),vp("dem Kind ein Buch","dítěti knihu"),vp("heute eine Antwort","dnes odpověď"),vp("unserem Gast einen Kaffee","našemu hostu kávu"),vp("den Kindern etwas Zeit","dětem trochu času"))
+    ),
+    VerbDefinition(
+        "fahren", "fahren", "jet / řídit", "Doprava a cestování",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("fahre","fährst","fährt","fahren","fahren"), listOf("jedu","jedeš","jede","jedeme","jedou"),
+        listOf(vp("jeden Morgen mit dem Bus","každé ráno autobusem"),vp("morgen nach Berlin","zítra do Berlína"),vp("sehr vorsichtig","velmi opatrně"),vp("im Sommer ans Meer","v létě k moři"),vp("am liebsten mit dem Zug","nejraději vlakem"))
+    ),
+    VerbDefinition(
+        "lesen", "lesen", "číst", "Čtení a studium",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("lese","liest","liest","lesen","lesen"), listOf("čtu","čteš","čte","čteme","čtou"),
+        listOf(vp("jeden Abend ein paar Seiten","každý večer několik stran"),vp("gerne spannende Geschichten","rád/a napínavé příběhy"),vp("die Nachrichten am Morgen","ráno zprávy"),vp("zusammen deutsche Texte","společně německé texty"),vp("vor dem Schlafen ein Buch","před spaním knihu"))
+    ),
+    VerbDefinition(
+        "schreiben", "schreiben", "psát", "Zprávy a psaní",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("schreibe","schreibst","schreibt","schreiben","schreiben"), listOf("píšu","píšeš","píše","píšeme","píšou"),
+        listOf(vp("meiner Familie eine Nachricht","své rodině zprávu"),vp("heute eine E-Mail","dnes e-mail"),vp("seinen Namen auf das Formular","své jméno na formulář"),vp("eine Liste für den Einkauf","seznam na nákup"),vp("jeden Tag ein paar Sätze","každý den několik vět"))
+    ),
+    VerbDefinition(
+        "arbeiten", "arbeiten", "pracovat", "Práce a pracovní návyky",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("arbeite","arbeitest","arbeitet","arbeiten","arbeiten"), listOf("pracuji","pracuješ","pracuje","pracujeme","pracují"),
+        listOf(vp("heute bis fünf Uhr","dnes do pěti hodin"),vp("in einem kleinen Büro","v malé kanceláři"),vp("gerne im Team","rád/a v týmu"),vp("an einem neuen Projekt","na novém projektu"),vp("morgen von zu Hause","zítra z domova"))
+    ),
+    VerbDefinition(
+        "kaufen", "kaufen", "kupovat", "Nakupování a potřeby",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("kaufe","kaufst","kauft","kaufen","kaufen"), listOf("kupuji","kupuješ","kupuje","kupujeme","kupují"),
+        listOf(vp("frisches Brot beim Bäcker","čerstvý chléb u pekaře"),vp("heute eine Fahrkarte","dnes jízdenku"),vp("ein Geschenk für die Mutter","dárek pro maminku"),vp("Obst auf dem Markt","ovoce na trhu"),vp("nur das, was wir brauchen","jen to, co potřebujeme"))
+    ),
+    VerbDefinition(
+        "finden", "finden", "najít / považovat", "Názory a hledání",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("finde","findest","findet","finden","finden"), listOf("nacházím","nacházíš","nachází","nacházíme","nacházejí"),
+        listOf(vp("diesen Film sehr spannend","tento film velmi napínavý"),vp("meine Schlüssel nicht","své klíče nemohu najít"),vp("die Idee wirklich gut","ten nápad opravdu dobrý"),vp("den Weg zum Hotel","cestu k hotelu"),vp("eine gute Lösung","dobré řešení"))
+    ),
+    VerbDefinition(
+        "bleiben", "bleiben", "zůstat", "Plány a změny",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("bleibe","bleibst","bleibt","bleiben","bleiben"), listOf("zůstávám","zůstáváš","zůstává","zůstáváme","zůstávají"),
+        listOf(vp("heute zu Hause","dnes doma"),vp("bis morgen hier","tady do zítřka"),vp("am Wochenende länger","o víkendu déle"),vp("bei meiner Familie","u své rodiny"),vp("trotz des Regens draußen","navzdory dešti venku"))
+    ),
+    VerbDefinition(
+        "lernen", "lernen", "učit se", "Jazyky a dovednosti",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("lerne","lernst","lernt","lernen","lernen"), listOf("učím se","učíš se","učí se","učíme se","učí se"),
+        listOf(vp("jeden Tag zehn neue Wörter","každý den deset nových slov"),vp("Deutsch mit einer App","němčinu pomocí aplikace"),vp("für die Prüfung","na zkoušku"),vp("am liebsten mit Beispielen","nejraději s příklady"),vp("zusammen mit Freunden","společně s přáteli"))
+    ),
+    VerbDefinition(
+        "schlafen", "schlafen", "spát", "Denní režim a odpočinek",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("schlafe","schläfst","schläft","schlafen","schlafen"), listOf("spím","spíš","spí","spíme","spí"),
+        listOf(vp("normalerweise acht Stunden","obvykle osm hodin"),vp("am Sonntag länger","v neděli déle"),vp("bei offenem Fenster","u otevřeného okna"),vp("im Urlaub besonders gut","na dovolené obzvlášť dobře"),vp("heute wegen des Lärms schlecht","dnes kvůli hluku špatně"))
+    ),
+    VerbDefinition(
+        "hören", "hören", "slyšet / poslouchat", "Hudba a porozumění",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("höre","hörst","hört","hören","hören"), listOf("slyším","slyšíš","slyší","slyšíme","slyší"),
+        listOf(vp("gerne Musik beim Kochen","rád/a hudbu při vaření"),vp("die Durchsage am Bahnhof","hlášení na nádraží"),vp("ein interessantes Hörbuch","zajímavou audioknihu"),vp("den Lehrer gut","učitele dobře"),vp("im Radio die Nachrichten","v rádiu zprávy"))
+    ),
+    VerbDefinition(
+        "denken", "denken", "myslet", "Myšlení a názory",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("denke","denkst","denkt","denken","denken"), listOf("myslím","myslíš","myslí","myslíme","myslí"),
+        listOf(vp("oft an meine Familie","často na svou rodinu"),vp("dass die Idee gut ist","že je ten nápad dobrý"),vp("gerade über das Problem nach","právě o tom problému"),vp("gemeinsam über eine Lösung nach","společně o řešení"),vp("an unseren nächsten Urlaub","na naši příští dovolenou"))
+    ),
+    VerbDefinition(
+        "spielen", "spielen", "hrát", "Sport a volný čas",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("spiele","spielst","spielt","spielen","spielen"), listOf("hraji","hraješ","hraje","hrajeme","hrají"),
+        listOf(vp("am Wochenende Fußball","o víkendu fotbal"),vp("gerne Gitarre","rád/a na kytaru"),vp("mit seinen Kindern","se svými dětmi"),vp("jeden Freitag Karten","každý pátek karty"),vp("zusammen im Park","společně v parku"))
+    ),
+    VerbDefinition(
+        "wohnen", "wohnen", "bydlet", "Bydlení a domov",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("wohne","wohnst","wohnt","wohnen","wohnen"), listOf("bydlím","bydlíš","bydlí","bydlíme","bydlí"),
+        listOf(vp("in einer kleinen Wohnung","v malém bytě"),vp("seit zwei Jahren in Brünn","už dva roky v Brně"),vp("nicht weit vom Zentrum","nedaleko centra"),vp("zusammen mit meiner Familie","společně se svou rodinou"),vp("gerne auf dem Land","rád/a na venkově"))
+    ),
+    VerbDefinition(
+        "kochen", "kochen", "vařit", "Jídlo a domácnost",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("koche","kochst","kocht","kochen","kochen"), listOf("vařím","vaříš","vaří","vaříme","vaří"),
+        listOf(vp("jeden Abend etwas Warmes","každý večer něco teplého"),vp("gerne mit frischem Gemüse","rád/a s čerstvou zeleninou"),vp("heute für die ganze Familie","dnes pro celou rodinu"),vp("am Wochenende gemeinsam","o víkendu společně"),vp("nach einem neuen Rezept","podle nového receptu"))
+    ),
+    VerbDefinition(
+        "brauchen", "brauchen", "potřebovat", "Předměty a potřeby",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("brauche","brauchst","braucht","brauchen","brauchen"), listOf("potřebuji","potřebuješ","potřebuje","potřebujeme","potřebují"),
+        listOf(vp("mehr Zeit für die Aufgabe","více času na úkol"),vp("heute deine Hilfe","dnes tvou pomoc"),vp("noch zwei Fahrkarten","ještě dvě jízdenky"),vp("einen Termin beim Arzt","termín u lékaře"),vp("für die Reise einen Reisepass","na cestu cestovní pas"))
+    ),
+    VerbDefinition(
+        "dürfen", "dürfen", "smět", "Pravidla a dovolení",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("darf","darfst","darf","dürfen","dürfen"), listOf("smím","smíš","smí","smíme","smí"),
+        listOf(vp("hier parken","tady parkovat"),vp("das Fenster öffnen","otevřít okno"),vp("heute früher gehen","dnes odejít dříve"),vp("hier fotografieren","tady fotografovat"),vp("deinen Stift benutzen","použít tvé pero"))
+    ),
+    VerbDefinition(
+        "sollen", "sollen", "mít (povinnost / doporučení)", "Doporučení a pokyny",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("soll","sollst","soll","sollen","sollen"), listOf("mám","máš","má","máme","mají"),
+        listOf(vp("mehr Wasser trinken","pít více vody"),vp("die Aufgabe heute abgeben","dnes odevzdat úkol"),vp("den Arzt anrufen","zavolat lékaři"),vp("ruhiger sprechen","mluvit klidněji"),vp("das Formular unterschreiben","podepsat formulář"))
+    ),
+    VerbDefinition(
+        "verstehen", "verstehen", "rozumět", "Porozumění a komunikace",
+        listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
+        listOf("verstehe","verstehst","versteht","verstehen","verstehen"), listOf("rozumím","rozumíš","rozumí","rozumíme","rozumí"),
+        listOf(vp("die Frage sehr gut","otázce velmi dobře"),vp("diesen Satz nicht","této větě nerozumím"),vp("den Text ohne Wörterbuch","textu bez slovníku"),vp("einander immer besser","si navzájem stále lépe"),vp("die Erklärung jetzt","vysvětlení teď"))
+    )
 )
 
 internal val verbPracticeTopics = listOf(
-    VerbPracticeTopic(
-        "sein", "sein", "být", "Stav, vlastnosti a představení",
-        listOf("bin","bist","ist","sind","seid","sind"),
-        listOf("Ich","Du","Er","Wir","Ihr","Sie"),
-        listOf("heute müde","sehr freundlich","im Büro","zu Hause","pünktlich")
-    ),
-    VerbPracticeTopic(
-        "haben", "haben", "mít", "Vlastnictví, čas a běžné potřeby",
-        listOf("habe","hast","hat","haben","habt","haben"),
-        listOf("Ich","Du","Er","Wir","Ihr","Sie"),
-        listOf("einen Bruder","heute Zeit","ein Auto","eine Frage","viel Arbeit")
-    ),
-    VerbPracticeTopic(
-        "werden", "werden", "stávat se / být v budoucnu", "Budoucnost a změna stavu",
-        listOf("werde","wirst","wird","werden","werdet","werden"),
-        listOf("Ich","Du","Er","Wir","Ihr","Sie"),
-        listOf("bald müde","später fertig","morgen Arzt","bald erwachsen","nächstes Jahr älter")
-    ),
-    VerbPracticeTopic(
-        "gehen", "gehen", "jít", "Pohyb a každodenní plány",
-        listOf("gehe","gehst","geht","gehen","geht","gehen"),
-        listOf("Ich","Du","Er","Wir","Ihr","Sie"),
-        listOf("zur Arbeit","nach Hause","ins Kino","spazieren","in die Stadt")
-    ),
-    VerbPracticeTopic(
-        "sprechen", "sprechen", "mluvit", "Jazyky a komunikace",
-        listOf("spreche","sprichst","spricht","sprechen","sprecht","sprechen"),
-        listOf("Ich","Du","Er","Wir","Ihr","Sie"),
-        listOf("Deutsch","Englisch","mit dem Lehrer","sehr langsam","am Telefon")
-    )
+    VerbPracticeLesson("verb_basics", "1. Základní slovesa", "Být, mít, přijít, dělat a jít", listOf("sein","haben","kommen","machen","gehen")),
+    VerbPracticeLesson("verb_communication", "2. Komunikace a znalosti", "Mluvit, vědět, rozumět, číst a psát", listOf("sprechen","wissen","verstehen","lesen","schreiben")),
+    VerbPracticeLesson("verb_food", "3. Jídlo a nákup", "Jíst, pít, kupovat, brát a potřebovat", listOf("essen","trinken","kaufen","nehmen","brauchen")),
+    VerbPracticeLesson("verb_movement", "4. Pohyb a cestování", "Jít, běžet, jet, přijít a zůstat", listOf("gehen","laufen","fahren","kommen","bleiben")),
+    VerbPracticeLesson("verb_daily", "5. Každodenní režim", "Pracovat, učit se, spát, vařit a dělat", listOf("arbeiten","lernen","schlafen","kochen","machen")),
+    VerbPracticeLesson("verb_modal", "6. Možnosti a povinnosti", "Umět, chtít, muset, smět a mít povinnost", listOf("können","wollen","müssen","dürfen","sollen")),
+    VerbPracticeLesson("verb_perception", "7. Vnímání a myšlení", "Vidět, slyšet, myslet, vědět a najít", listOf("sehen","hören","denken","wissen","finden")),
+    VerbPracticeLesson("verb_home", "8. Domov a potřeby", "Bydlet, vařit, potřebovat, mít a zůstat", listOf("wohnen","kochen","brauchen","haben","bleiben")),
+    VerbPracticeLesson("verb_work", "9. Práce a komunikace", "Pracovat, mluvit, psát, dávat a brát", listOf("arbeiten","sprechen","schreiben","geben","nehmen")),
+    VerbPracticeLesson("verb_mixed", "10. Smíšené opakování", "Mix důležitých sloves ze všech předchozích sad", listOf("sein","haben","wissen","essen","trinken"))
 )
 
 internal fun expandedCourseQuestions(id: String): List<LessonQuestion> {
