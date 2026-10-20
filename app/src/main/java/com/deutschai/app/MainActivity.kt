@@ -16,9 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -37,12 +34,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,7 +47,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import java.text.Normalizer
 
 internal val Forest = Color(0xFF163D35)
 internal val Mint = Color(0xFFDDEFE6)
@@ -195,134 +187,6 @@ private val baseLessons = listOf(
 
 private val lessons = baseLessons.map { lesson ->
     lesson.copy(questions = lesson.questions + expandedCourseQuestions(lesson.id))
-}
-
-private data class ConversationPrompt(
-    val prompt: String,
-    val recognizedPhrases: List<String>,
-    val example: String,
-    val explanation: String
-)
-
-private data class ConversationMessage(
-    val text: String,
-    val fromBeatrice: Boolean,
-    val feedback: Boolean = false,
-    val recognized: Boolean = false,
-    val translation: String? = null
-)
-
-private val conversationPrompts = listOf(
-    ConversationPrompt(
-        prompt = "Hallo! Wie heißt du?",
-        recognizedPhrases = listOf("ich heiße", "ich heisse", "mein name ist", "ich bin"),
-        example = "Ich heiße …",
-        explanation = "Při představování můžeš použít „Ich heiße …“ nebo „Mein Name ist …“."
-    ),
-    ConversationPrompt(
-        prompt = "Woher kommst du?",
-        recognizedPhrases = listOf("ich komme aus", "ich wohne in"),
-        example = "Ich komme aus Tschechien.",
-        explanation = "„Woher kommst du?“ znamená „Odkud pocházíš?“"
-    ),
-    ConversationPrompt(
-        prompt = "Wie geht es dir heute?",
-        recognizedPhrases = listOf("mir geht es gut", "mir geht's gut", "gut", "prima", "super", "nicht so gut", "es geht", "müde"),
-        example = "Mir geht es gut, danke.",
-        explanation = "„Wie geht es dir?“ znamená „Jak se máš?“. „Mir geht es gut“ znamená „Mám se dobře“."
-    ),
-    ConversationPrompt(
-        prompt = "Was machst du gern in deiner Freizeit?",
-        recognizedPhrases = listOf("ich spiele", "ich lese", "ich höre", "ich hore", "ich koche", "ich schwimme", "ich gehe", "ich mache", "ich mag", "gern"),
-        example = "Ich lese gern.",
-        explanation = "Slovo „gern“ používáme, když říkáme, co rádi děláme. Například „Ich lese gern“ — „Rád čtu“."
-    ),
-    ConversationPrompt(
-        prompt = "Was machst du am Wochenende?",
-        recognizedPhrases = listOf("am wochenende", "ich gehe", "ich spiele", "ich treffe", "ich besuche", "ich bleibe", "ich fahre"),
-        example = "Am Wochenende treffe ich Freunde.",
-        explanation = "„Am Wochenende“ znamená „o víkendu“. Můžeš začít právě touto frází."
-    )
-)
-
-private fun normalizeGerman(text: String): String {
-    val expanded = text.lowercase().replace("ß", "ss")
-    return Normalizer.normalize(expanded, Normalizer.Form.NFD)
-        .replace(Regex("\\p{Mn}+"), "")
-        .replace(Regex("[^a-z0-9 ]"), " ")
-        .replace(Regex("\\s+"), " ")
-        .trim()
-}
-
-private fun evaluateConversationAnswer(
-    answer: String,
-    prompt: ConversationPrompt
-): Pair<Boolean, String> {
-    val normalized = normalizeGerman(answer)
-    val knownPhraseMatched = prompt.recognizedPhrases.any {
-        val phrase = normalizeGerman(it)
-        phrase.isNotBlank() && normalized.contains(phrase)
-    }
-
-    // Forgiving, context-aware offline check: common word stems and short natural replies.
-    val contextualMatch = when (prompt.prompt) {
-        "Hallo! Wie heißt du?" ->
-            normalized.split(" ").size in 1..4 ||
-                listOf("heiss", "heisse", "name", "ich bin").any { normalized.contains(it) }
-
-        "Woher kommst du?" ->
-            listOf(
-                "komm", "komme", "wohn", "wohne", "aus",
-                "tschechien", "deutschland", "osterreich", "schweiz",
-                "prag", "praha", "brno", "slowakei", "berlin", "wien"
-            ).any { normalized.contains(it) } ||
-                normalized.split(" ").size in 1..3
-
-        "Wie geht es dir heute?" ->
-            listOf("gut", "prima", "super", "schlecht", "mude", "geht",
-                "danke", "okay", "ok", "nicht so", "fine")
-                .any { normalized.contains(it) }
-
-        "Was machst du gern in deiner Freizeit?" ->
-            listOf(
-                "spiel", "les", "hor", "koch", "schwimm", "geh", "mach",
-                "mag", "lieb", "sport", "musik", "buch", "rad", "fussball",
-                "reise", "freund", "garten", "wander", "kino", "tanz",
-                "lauf", "jogg", "zeichn", "lern", "back", "fotograf"
-            ).any { normalized.contains(it) }
-
-        "Was machst du am Wochenende?" ->
-            listOf(
-                "wochenende", "samstag", "sonntag", "geh", "spiel", "treff",
-                "besuch", "bleib", "fahr", "arbeit", "entspann", "schlaf",
-                "reis", "seh", "mach", "koch", "freund", "familie", "kino",
-                "sport", "ausflug"
-            ).any { normalized.contains(it) }
-
-        else -> false
-    }
-
-    // These offline rules are only hints, not a full grammar checker or generative AI.
-    val recognized = knownPhraseMatched || contextualMatch
-    return recognized to prompt.explanation
-}
-
-private fun promptTranslation(prompt: ConversationPrompt): String = when (prompt.prompt) {
-    "Hallo! Wie heißt du?" -> "Ahoj! Jak se jmenuješ?"
-    "Woher kommst du?" -> "Odkud pocházíš?"
-    "Wie geht es dir heute?" -> "Jak se dnes máš?"
-    "Was machst du gern in deiner Freizeit?" -> "Co rád/a děláš ve volném čase?"
-    "Was machst du am Wochenende?" -> "Co děláš o víkendu?"
-    else -> "Český překlad zatím není k dispozici."
-}
-
-private fun exampleTranslation(example: String): String = when (example) {
-    "Ich heiße …" -> "Jmenuji se …"
-    "Ich komme aus Tschechien." -> "Pocházím z Česka."
-    "Mir geht es gut, danke." -> "Mám se dobře, děkuji."
-    "Ich lese gern." -> "Rád/a čtu."
-    "Am Wochenende treffe ich Freunde." -> "O víkendu se setkávám s přáteli."
-    else -> "Český překlad zatím není k dispozici."
 }
 
 class MainActivity : ComponentActivity() {
@@ -708,7 +572,7 @@ private fun LessonLibraryScreen(
                 lineHeight = 32.sp
             )
             Text(
-                text = "Vyber si krátkou lekci. Všechny otázky a vysvětlení jsou dostupné bez internetu.",
+                text = "Vyber si kurz o 25 otázkách. Otázky i česká vysvětlení jsou dostupné bez internetu.",
                 color = Muted,
                 fontSize = 14.sp,
                 lineHeight = 21.sp
@@ -1289,74 +1153,6 @@ private fun GuidedDialogueScreen(
     }
 }
 
-@Composable
-private fun ChatBubble(message: ConversationMessage) {
-    var showTranslation by remember(message.text) { mutableStateOf(false) }
-    val background = when {
-        !message.fromBeatrice -> Forest
-        message.feedback -> Mint
-        else -> Color.White
-    }
-    val foreground = if (message.fromBeatrice) Ink else Color.White
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = if (message.fromBeatrice) Arrangement.Start else Arrangement.End
-    ) {
-        Card(
-            onClick = {
-                if (message.fromBeatrice && message.translation != null) {
-                    showTranslation = !showTranslation
-                }
-            },
-            modifier = Modifier.fillMaxWidth(0.92f),
-            shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(containerColor = background)
-        ) {
-            Column(
-                modifier = Modifier.padding(14.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                if (message.fromBeatrice) {
-                    Text(
-                        text = if (message.feedback) "BEATRICE · VYSVĚTLENÍ" else "BEATRICE",
-                        color = Forest,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
-                    )
-                } else {
-                    Text(
-                        text = "TY",
-                        color = Color(0xFFDDEFE6),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
-                    )
-                }
-                Text(
-                    text = message.text,
-                    color = foreground,
-                    fontSize = 14.sp,
-                    lineHeight = 21.sp
-                )
-                if (message.fromBeatrice && message.translation != null) {
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = if (showTranslation) {
-                            "Česky: " + message.translation + "  ·  klepnutím skryješ"
-                        } else {
-                            "Klepnutím zobrazíš český překlad  ↓"
-                        },
-                        color = Forest,
-                        fontSize = 12.sp,
-                        lineHeight = 17.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            }
-        }
-    }
-}
 @Composable
 private fun ProgressCard(
     modifier: Modifier = Modifier,
