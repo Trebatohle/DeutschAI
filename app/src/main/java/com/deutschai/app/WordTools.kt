@@ -213,7 +213,7 @@ private fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Lis
             "words" -> {
                 val choices = options.map { it.czech }
                 WordToolQuestion(
-                    prompt = "Co znamená německý výraz „\${item.german}“?",
+                    prompt = "Co znamená německý výraz „${item.german}“?",
                     choices = choices,
                     correctIndex = choices.indexOf(item.czech),
                     fullGerman = item.german,
@@ -222,7 +222,7 @@ private fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Lis
                 )
             }
             "sentences" -> {
-                val pattern = Regex("(?i)(?<!\\\\p{L})" + Regex.escape(item.german) + "(?!\\\\p{L})")
+                val pattern = Regex("(?i)(?<!\\p{L})" + Regex.escape(item.german) + "(?!\\p{L})")
                 val sentenceWithBlank = pattern.replaceFirst(item.sentenceGerman, "_____")
                 val choices = options.map { it.german }
                 WordToolQuestion(
@@ -231,7 +231,7 @@ private fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Lis
                     correctIndex = choices.indexOf(item.german),
                     fullGerman = item.sentenceGerman,
                     fullCzech = item.sentenceCzech,
-                    explanation = "Výraz „\${item.german}“ zde znamená „\${item.czech}“."
+                    explanation = "Výraz „${item.german}“ zde znamená „${item.czech}“."
                 )
             }
             else -> {
@@ -244,7 +244,7 @@ private fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Lis
                     correctIndex = choices.indexOf(czech),
                     fullGerman = german,
                     fullCzech = czech,
-                    explanation = "Všímej si významu výrazu „\${item.german}“ v kontextu."
+                    explanation = "Všímej si významu výrazu „${item.german}“ v kontextu."
                 )
             }
         }
@@ -376,7 +376,7 @@ internal fun WordToolsScreen(onBack: () -> Unit) {
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text("Sada dokončena", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Bold)
-                                Text("$score z \${questions.size} správně", color = Gold, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                                Text("$score z ${questions.size} správně", color = Gold, fontSize = 28.sp, fontWeight = FontWeight.Bold)
                                 Text(
                                     "Výborně. Při opakování se otázky zamíchají a můžeš si znovu procvičit celé věty.",
                                     color = Color(0xFFE0EAE5), fontSize = 14.sp, lineHeight = 21.sp
@@ -396,7 +396,7 @@ internal fun WordToolsScreen(onBack: () -> Unit) {
                             shape = RoundedCornerShape(14.dp)
                         ) { Text("Vybrat jiný způsob procvičení", fontWeight = FontWeight.Bold) }
                     } else if (question != null) {
-                        Text("OTÁZKA \${questionIndex + 1} Z \${questions.size}", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                        Text("OTÁZKA ${questionIndex + 1} Z ${questions.size}", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                         LinearProgressIndicator(
                             progress = { (questionIndex + 1).toFloat() / questions.size.toFloat() },
                             modifier = Modifier.fillMaxWidth()
@@ -444,7 +444,7 @@ internal fun WordToolsScreen(onBack: () -> Unit) {
                             ) {
                                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                                     Text(
-                                        if (selectedAnswer == question.correctIndex) "Správně! Gut gemacht!" else "Správná odpověď: \${question.choices[question.correctIndex]}",
+                                        if (selectedAnswer == question.correctIndex) "Správně! Gut gemacht!" else "Správná odpověď: ${question.choices[question.correctIndex]}",
                                         color = Forest, fontWeight = FontWeight.Bold, fontSize = 16.sp
                                     )
                                     Text("Celá německá věta:", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
