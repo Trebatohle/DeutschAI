@@ -75,8 +75,8 @@ internal fun LearningHubScreen(
             )
             LearningCard(
                 icon = { Icon(Icons.Default.MenuBook, contentDescription = null, tint = Forest) },
-                title = "Kurzy A1",
-                subtitle = "Deset tematických sad praktických vět bez samostatných testů na členy nebo sloveso sein.",
+                title = "Kurzy A1–B2",
+                subtitle = "Čtyři úrovně podle náročnosti, tematické lekce a samostatné chytré opakování frází v každé úrovni.",
                 detail = sentenceCourseCatalog.size.toString() + " kurzů · 25 otázek v každém",
                 onClick = onCourses
             )
