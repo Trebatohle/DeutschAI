@@ -193,12 +193,6 @@ internal val wordToolGroups = listOf(
     )
 )
 
-private fun advancedSentenceGerman(item: WordToolItem) =
-    "Ich wiederhole diesen Beispielsatz, damit ich die Verwendung besser verstehe: " + item.sentenceGerman
-
-private fun advancedSentenceCzech(item: WordToolItem) =
-    "Opakuji si tuto ukázkovou větu, abych lépe pochopil použití: " + item.sentenceCzech
-
 private fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): List<WordToolQuestion> {
     val source = group.items
     return source.shuffled().map { item ->
@@ -235,16 +229,16 @@ private fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Lis
                 )
             }
             else -> {
-                val german = advancedSentenceGerman(item)
-                val czech = advancedSentenceCzech(item)
-                val choices = options.map { advancedSentenceCzech(it) }
+                val german = item.sentenceGerman
+                val czech = item.sentenceCzech
+                val choices = options.map { it.sentenceCzech }
                 WordToolQuestion(
-                    prompt = "Vyber správný překlad celé věty:\\n$german",
+                    prompt = "Vyber správný český překlad celé věty:\n" + german,
                     choices = choices,
                     correctIndex = choices.indexOf(czech),
                     fullGerman = german,
                     fullCzech = czech,
-                    explanation = "Všímej si významu výrazu „${item.german}“ v kontextu."
+                    explanation = "Zkus si přeložit celou větu a všímej si výrazu „" + item.german + "“ v kontextu."
                 )
             }
         }
