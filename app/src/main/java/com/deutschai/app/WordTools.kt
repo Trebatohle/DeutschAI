@@ -251,8 +251,7 @@ private fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Lis
                 val choices = options.map { it.german }
                 val numeral = arabicNumeral(item.german)
                 val sentencePrompt = if (group.id == "numbers") {
-                    val sentenceWithNumber = pattern.replaceFirst(item.sentenceGerman, numeral)
-                    "Jak se německy řekne číslo $numeral? Vyber správnou číslovku do věty:\n$sentenceWithNumber"
+                    "Jak se německy řekne číslo $numeral?\n$sentenceWithBlank"
                 } else {
                     "Vyber výraz, který správně doplní chybějící místo ve větě:\n$sentenceWithBlank"
                 }
