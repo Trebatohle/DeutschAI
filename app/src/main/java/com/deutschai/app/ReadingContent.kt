@@ -138,18 +138,39 @@ private val coreGermanGlossary = mapOf(
     "der Unterschied" to "rozdíl", "die Gemeinsamkeit" to "společný rys", "die Möglichkeit" to "možnost"
 )
 
-internal fun translateReadingWord(article: ReadingArticle, rawWord: String): String {
-    val key = rawWord.lowercase()
-        .replace("ä", "ae")
-        .replace("ö", "oe")
-        .replace("ü", "ue")
-        .replace("ß", "ss")
-        .trim()
-    val directKey = rawWord.lowercase().trim()
-    return article.glossary[directKey]
-        ?: article.glossary[key]
-        ?: coreGermanGlossary[directKey]
-        ?: coreGermanGlossary[key]
-        ?: coreGermanGlossary.entries.firstOrNull { it.key.equals(rawWord, ignoreCase = true) }?.value
-        ?: "Toto slovo zatím není v offline slovníčku. Jeho význam můžeme doplnit do další aktualizace."
+internal fun lookupReadingWordTranslation(article: ReadingArticle, rawWord: String): String? {
+    val original = rawWord.trim().trim(',', '.', '!', '?', ';', ':', '„', '“', '"', '\'', '(', ')')
+    if (original.isBlank()) return null
+
+    // Try the exact spelling first; capitalization matters for German "Sie".
+    article.glossary[original]?.let { return it }
+    coreGermanGlossary[original]?.let { return it }
+
+    val normalized = original.lowercase()
+    val candidates = linkedSetOf(normalized)
+    val endings = listOf("ierend", "lichkeit", "ungen", "ern", "em", "er", "es", "en", "e", "n", "t", "st", "te", "ten", "test", "tet", "end", "ende", "enden", "s")
+    endings.forEach { ending ->
+        if (normalized.length > ending.length + 2 && normalized.endsWith(ending)) {
+            candidates.add(normalized.dropLast(ending.length))
+        }
+    }
+    if (normalized.startsWith("ge") && normalized.length > 5) {
+        val withoutGe = normalized.drop(2)
+        candidates.add(withoutGe.removeSuffix("t").removeSuffix("en"))
+        candidates.add(withoutGe.removeSuffix("t"))
+        candidates.add(withoutGe.removeSuffix("en"))
+    }
+    candidates.add(
+        normalized.replace("ä", "ae").replace("ö", "oe").replace("ü", "ue").replace("ß", "ss")
+    )
+
+    for (candidate in candidates) {
+        article.glossary.entries.firstOrNull { it.key.equals(candidate, ignoreCase = true) }?.value?.let { return it }
+        coreGermanGlossary.entries.firstOrNull { it.key.equals(candidate, ignoreCase = true) }?.value?.let { return it }
+    }
+    return null
 }
+
+internal fun translateReadingWord(article: ReadingArticle, rawWord: String): String =
+    lookupReadingWordTranslation(article, rawWord)
+        ?: "Překlad se připravuje z offline německo-českého slovníku."
