@@ -117,6 +117,7 @@ private fun DeutschAIHome() {
     }
 
     var showConversation by remember { mutableStateOf(false) }
+    var showWordTools by remember { mutableStateOf(false) }
     var showLearningHub by remember { mutableStateOf(false) }
     var showLessonLibrary by remember { mutableStateOf(false) }
     var showArticleCategories by remember { mutableStateOf(false) }
@@ -139,6 +140,13 @@ private fun DeutschAIHome() {
             bestScore = score
             preferences.edit().putInt("best_score", bestScore).apply()
         }
+    }
+
+    if (showWordTools) {
+        WordToolsScreen(
+            onBack = { showWordTools = false; showLearningHub = true }
+        )
+        return
     }
 
     if (showConversation) {
@@ -215,7 +223,8 @@ private fun DeutschAIHome() {
             onArticles = { showLearningHub = false; showArticleCategories = true },
             onVerbs = { showLearningHub = false; showVerbCategories = true },
             onDialogues = { showLearningHub = false; showConversation = true },
-            onReading = { showLearningHub = false; showReadingLibrary = true }
+            onReading = { showLearningHub = false; showReadingLibrary = true },
+            onWordTools = { showLearningHub = false; showWordTools = true }
         )
         return
     }
@@ -631,7 +640,7 @@ private fun LessonScreen(
                 val question = questions[questionIndex]
 
                 Text(
-                    text = "PRVNÍ KROKY V NĚMČINĚ",
+                    text = "PRAKTICKÉ VĚTY A1",
                     color = Muted,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
@@ -721,6 +730,14 @@ private fun LessonScreen(
                                 fontWeight = FontWeight.Bold
                             )
                             Text(question.explanation, color = Ink, fontSize = 14.sp, lineHeight = 21.sp)
+                            if (question.germanSentence.isNotBlank()) {
+                                Text("Celá věta:", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text(question.germanSentence, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, lineHeight = 23.sp)
+                            }
+                            if (question.translation.isNotBlank()) {
+                                Text("Česky:", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text(question.translation, color = Ink, fontSize = 15.sp, lineHeight = 22.sp)
+                            }
                         }
                     }
                     Button(
