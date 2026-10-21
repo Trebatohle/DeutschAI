@@ -672,7 +672,8 @@ internal data class SentenceCourseDefinition(
     val id: String,
     val title: String,
     val subtitle: String,
-    val items: List<SentencePracticeItem>
+    val items: List<SentencePracticeItem>,
+    val level: String = "A1"
 )
 
 private fun sentenceCourse(
@@ -691,7 +692,7 @@ private fun sentenceCourse(
     }
 )
 
-internal val sentenceCourseCatalog = listOf(
+private val a1SentenceCourseCatalog = listOf(
     sentenceCourse("first_steps", "První kroky", "Pozdravy, seznamování a zdvořilé fráze",
         "Pozdravíš někoho ráno.§Guten Morgen!§Dobré ráno!",
         "Přes den někoho zdvořile pozdravíš.§Guten Tag!§Dobrý den!",
@@ -963,6 +964,8 @@ internal val sentenceCourseCatalog = listOf(
         "Poděkuješ za pobyt a rozloučíš se.§Vielen Dank für den angenehmen Aufenthalt.§Moc děkuji za příjemný pobyt."
     )
 )
+
+internal val sentenceCourseCatalog = a1SentenceCourseCatalog + expandedSentenceCourseCatalog
 
 internal fun sentenceCourseQuestions(courseId: String): List<LessonQuestion> {
     val course = sentenceCourseCatalog.firstOrNull { it.id == courseId } ?: return emptyList()
