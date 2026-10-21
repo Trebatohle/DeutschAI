@@ -797,6 +797,7 @@ private fun GuidedDialogueScreen(
     var isTransitioning by remember { mutableStateOf(false) }
 
     fun startTopic(topic: GuidedDialogueTopic) {
+        isTransitioning = false
         selectedTopic = topic
         turnIndex = 0
         completed = false
@@ -805,6 +806,7 @@ private fun GuidedDialogueScreen(
     }
 
     fun resetToTopics() {
+        isTransitioning = false
         selectedTopic = null
         turnIndex = 0
         completed = false
