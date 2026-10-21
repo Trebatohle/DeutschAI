@@ -632,7 +632,7 @@ private fun createAdvancedVerbQuestions(lesson: VerbPracticeLesson): List<Lesson
 
             result.add(
                 LessonQuestion(
-                    prompt = "Vyber sloveso a jeho správný tvar podle českého významu:\n„$czechSubject ${verb.czechForms[subjectIndex]} ${phrase.czech.trimEnd('.')}“\n\n$subject ___ ${phrase.german.trimEnd('.')}."
+                    prompt = "Vyber sloveso a jeho správný tvar podle českého významu:\n„$czechSubject ${verb.czechForms[subjectIndex]} ${phrase.czech.trimEnd('.')}“\n\n$subject ___ ${phrase.german.trimEnd('.')}.",
                     choices = choices,
                     correctIndex = correctIndex,
                     explanation = "„${verb.infinitive}“ znamená „${verb.czech}“. U osoby „$subject“ je správný tvar „$correctForm“.",
