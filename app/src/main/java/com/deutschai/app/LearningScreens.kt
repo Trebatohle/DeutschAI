@@ -40,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -141,6 +142,7 @@ internal fun ArticleCategoryLibraryScreen(
     onBack: () -> Unit,
     onSelectCategory: (ArticleCategory) -> Unit
 ) {
+    val context = LocalContext.current
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
             modifier = Modifier
@@ -180,6 +182,7 @@ internal fun ArticleCategoryLibraryScreen(
                             Text(category.title, color = Ink, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                             Text(category.subtitle, color = Muted, fontSize = 13.sp, lineHeight = 18.sp)
                             Text("25 otázek · A1", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            LatestResultLine(CourseResultStore.load(context, "articles_${category.id}"))
                         }
                     }
                 }
@@ -193,6 +196,9 @@ internal fun VerbCategoryLibraryScreen(
     onBack: () -> Unit,
     onSelectTopic: (VerbPracticeLesson) -> Unit
 ) {
+    val context = LocalContext.current
+    var selectedPart by remember { mutableStateOf<String?>(null) }
+
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
             modifier = Modifier
@@ -202,38 +208,73 @@ internal fun VerbCategoryLibraryScreen(
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            ScreenHeader("Důležitá slovesa", onBack)
-            Text("Procvič časování", color = Ink, fontSize = 27.sp, fontWeight = FontWeight.Bold)
+            ScreenHeader("Důležitá slovesa") {
+                if (selectedPart != null) selectedPart = null else onBack()
+            }
             Text(
-                "Každé sloveso procvičíš v 25 různých větách. Před výběrem odpovědi si větu přečti i česky v hlavě.",
+                if (selectedPart == null) "Vyber způsob procvičování"
+                else if (selectedPart == "advanced") "Pokročilé procvičování"
+                else "Základní procvičování",
+                color = Ink,
+                fontSize = 27.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                if (selectedPart == null) {
+                    "Nejprve si osvoj tvary v běžných větách. Až si budeš jistější, přejdi na obtížnější výběr mezi různými slovesy."
+                } else if (selectedPart == "advanced") {
+                    "V každé otázce jsou čtyři různá slovesa. Vyber jediné, které významově i tvarem správně zapadá do věty."
+                } else {
+                    "Doplň správný tvar jednoho procvičovaného slovesa. Otázky střídají pět sloves v jedné sadě."
+                },
                 color = Muted,
                 fontSize = 14.sp,
                 lineHeight = 21.sp
             )
-            verbPracticeTopics.forEachIndexed { index, topic ->
-                Card(
-                    onClick = { onSelectTopic(topic) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+
+            if (selectedPart == null) {
+                LearningCard(
+                    icon = { Icon(Icons.Default.Verified, contentDescription = null, tint = Forest) },
+                    title = "1. Základní procvičování",
+                    subtitle = "Nauč se tvary pěti důležitých sloves v různých větách.",
+                    detail = "10 lekcí · 25 otázek v každé",
+                    onClick = { selectedPart = "basic" }
+                )
+                LearningCard(
+                    icon = { Icon(Icons.Default.School, contentDescription = null, tint = Forest) },
+                    title = "2. Pokročilé procvičování",
+                    subtitle = "Rozlišuj významy pěti sloves a vybírej správný tvar ze čtyř různých sloves.",
+                    detail = "10 lekcí · 25 otázek v každé",
+                    onClick = { selectedPart = "advanced" }
+                )
+            } else {
+                val topics = if (selectedPart == "advanced") advancedVerbPracticeTopics else verbPracticeTopics
+                topics.forEachIndexed { index, topic ->
+                    Card(
+                        onClick = { onSelectTopic(topic) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White)
                     ) {
-                        Box(
-                            modifier = Modifier.size(42.dp).background(Mint, RoundedCornerShape(13.dp)),
-                            contentAlignment = Alignment.Center
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Default.Verified, contentDescription = null, tint = Forest)
-                        }
-                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(topic.title, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
-                            Text(topic.subtitle, color = Muted, fontSize = 13.sp, lineHeight = 18.sp)
-                            val verbNames = topic.verbIds.mapNotNull { id -> verbDefinitions.find { it.id == id }?.infinitive }
-                            Text(verbNames.joinToString(" · "), color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                            Text("25 otázek · 5 sloves v jedné sadě", color = Forest, fontSize = 12.sp)
+                            Box(
+                                modifier = Modifier.size(42.dp).background(Mint, RoundedCornerShape(13.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text((index + 1).toString(), color = Forest, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(topic.title, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                                Text(topic.subtitle, color = Muted, fontSize = 13.sp, lineHeight = 18.sp)
+                                val verbNames = topic.verbIds.mapNotNull { id -> verbDefinitions.find { it.id == id }?.infinitive }
+                                Text(verbNames.joinToString(" · "), color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text("25 otázek · stejných 5 sloves v sadě", color = Forest, fontSize = 12.sp)
+                                LatestResultLine(CourseResultStore.load(context, "verbs_${topic.id}"))
+                            }
                         }
                     }
                 }
