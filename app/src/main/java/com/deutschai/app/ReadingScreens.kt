@@ -5,6 +5,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,11 +34,18 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
+import kotlin.math.roundToInt
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.Color
@@ -54,6 +63,19 @@ internal fun ReadingLibraryScreen(
 ) {
     var selectedLevel by remember { mutableStateOf("A1") }
     val articles = readingArticles.filter { it.level == selectedLevel }
+    val context = LocalContext.current
+    var translationModelReady by remember { mutableStateOf(false) }
+    var translationModelStatus by remember { mutableStateOf("Při prvním použití připravíme offline překladový slovník.") }
+    LaunchedEffect(Unit) {
+        OfflineWordTranslator.prepare(context.applicationContext) { ready ->
+            translationModelReady = ready
+            translationModelStatus = if (ready) {
+                "Offline slovník je připraven. Významy slov se pak zobrazí i bez internetu."
+            } else {
+                "Pro automatický překlad neznámých slov otevři knihovnu na Wi-Fi; model se stáhne jednou (přibližně 30 MB)."
+            }
+        }
+    }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
@@ -72,6 +94,20 @@ internal fun ReadingLibraryScreen(
                 fontSize = 14.sp,
                 lineHeight = 21.sp
             )
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = if (translationModelReady) Mint else Color.White)
+            ) {
+                Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        if (translationModelReady) "Offline překlady připraveny" else "Příprava překladů",
+                        color = Forest, fontWeight = FontWeight.Bold, fontSize = 14.sp
+                    )
+                    Text(translationModelStatus, color = Muted, fontSize = 12.sp, lineHeight = 18.sp)
+                }
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -173,8 +209,13 @@ internal fun ReadingArticleScreen(
     article: ReadingArticle,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
+    val density = LocalDensity.current
     var textLayout by remember(article.id) { mutableStateOf<TextLayoutResult?>(null) }
     var pressedMeaning by remember(article.id) { mutableStateOf<Pair<String, String>?>(null) }
+    var activePressedWord by remember(article.id) { mutableStateOf<String?>(null) }
+    var pressToken by remember(article.id) { mutableStateOf(0) }
+    var popupOffset by remember(article.id) { mutableStateOf(IntOffset.Zero) }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
@@ -205,7 +246,7 @@ internal fun ReadingArticleScreen(
                 Column(modifier = Modifier.padding(17.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Lies auf Deutsch", color = Forest, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     Text(
-                        "Čti příběh pouze v němčině. Podrž prst přímo na slovu, kterému nerozumíš; překlad se ukáže, dokud prst nepustíš.",
+                        "Čti příběh pouze v němčině. Podrž prst přímo na slovu; jeho překlad se objeví nad ním a po puštění zmizí.",
                         color = Muted,
                         fontSize = 13.sp,
                         lineHeight = 19.sp
@@ -213,69 +254,126 @@ internal fun ReadingArticleScreen(
                 }
             }
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
-            ) {
-                Text(
-                    text = article.body,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(18.dp)
-                        .pointerInput(article.id, article.body) {
-                            detectTapGestures(
-                                onPress = {
-                                    try {
-                                        awaitRelease()
-                                    } finally {
-                                        pressedMeaning = null
-                                    }
-                                },
-                                onLongPress = { offset ->
-                                    val body = article.body
-                                    val layout = textLayout
-                                    if (layout != null && body.isNotEmpty()) {
-                                        var at = layout.getOffsetForPosition(offset).coerceIn(0, body.lastIndex)
-                                        if (!body[at].isLetterOrDigit()) {
-                                            val left = at - 1
-                                            if (left >= 0 && body[left].isLetterOrDigit()) at = left
-                                            else return@detectTapGestures
-                                        }
-                                        var start = at
-                                        var end = at + 1
-                                        while (start > 0 && body[start - 1].isLetterOrDigit()) start--
-                                        while (end < body.length && body[end].isLetterOrDigit()) end++
-                                        val word = body.substring(start, end)
-                                        pressedMeaning = word to translateReadingWord(article, word)
-                                    }
-                                }
-                            )
-                        },
-                    onTextLayout = { textLayout = it },
-                    color = Ink,
-                    fontSize = 16.sp,
-                    lineHeight = 27.sp
-                )
-            }
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                val popupWidth = 260.dp
+                val popupWidthPx = with(density) { popupWidth.toPx() }
+                val textInsetPx = with(density) { 18.dp.toPx() }
+                val popupLiftPx = with(density) { 78.dp.toPx() }
+                val containerWidthPx = with(density) { maxWidth.toPx() }
 
-            if (pressedMeaning != null) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(17.dp),
-                    colors = CardDefaults.cardColors(containerColor = Mint)
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
                 ) {
-                    Column(modifier = Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                        Text(pressedMeaning!!.first, color = Forest, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        Text(pressedMeaning!!.second, color = Ink, fontSize = 15.sp, lineHeight = 21.sp)
-                        Text("Překlad se skryje po puštění prstu.", color = Forest, fontSize = 11.sp)
+                    Text(
+                        text = article.body,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(18.dp)
+                            .pointerInput(article.id, article.body) {
+                                detectTapGestures(
+                                    onPress = {
+                                        try {
+                                            awaitRelease()
+                                        } finally {
+                                            pressToken += 1
+                                            activePressedWord = null
+                                            pressedMeaning = null
+                                        }
+                                    },
+                                    onLongPress = { offset ->
+                                        val body = article.body
+                                        val layout = textLayout
+                                        if (layout != null && body.isNotEmpty()) {
+                                            var at = layout.getOffsetForPosition(offset).coerceIn(0, body.lastIndex)
+                                            if (!body[at].isLetterOrDigit()) {
+                                                val left = at - 1
+                                                if (left >= 0 && body[left].isLetterOrDigit()) at = left
+                                                else return@detectTapGestures
+                                            }
+                                            var wordStart = at
+                                            var wordEnd = at + 1
+                                            while (wordStart > 0 && body[wordStart - 1].isLetterOrDigit()) wordStart--
+                                            while (wordEnd < body.length && body[wordEnd].isLetterOrDigit()) wordEnd++
+                                            val word = body.substring(wordStart, wordEnd)
+                                            val bounds = layout.getBoundingBox(wordStart)
+                                            val newToken = pressToken + 1
+                                            pressToken = newToken
+                                            activePressedWord = word
+                                            val maxX = (containerWidthPx - popupWidthPx).roundToInt().coerceAtLeast(0)
+                                            val x = (textInsetPx + bounds.center.x - popupWidthPx / 2f)
+                                                .roundToInt().coerceIn(0, maxX)
+                                            val y = (textInsetPx + bounds.top - popupLiftPx).roundToInt()
+                                            popupOffset = IntOffset(x, y)
+
+                                            val knownMeaning = lookupReadingWordTranslation(article, word)
+                                            pressedMeaning = word to (knownMeaning ?: "Připravuji offline překlad…")
+                                            if (knownMeaning == null) {
+                                                OfflineWordTranslator.translate(context.applicationContext, word) { translated ->
+                                                    if (pressToken == newToken && activePressedWord == word) {
+                                                        pressedMeaning = word to (
+                                                            translated ?: "Překlad teď není dostupný. Zkontroluj Wi-Fi v knihovně čtení a zkus slovo podržet znovu."
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                )
+                            },
+                        onTextLayout = { textLayout = it },
+                        color = Ink,
+                        fontSize = 16.sp,
+                        lineHeight = 27.sp
+                    )
+                }
+
+                if (pressedMeaning != null) {
+                    Popup(
+                        alignment = Alignment.TopStart,
+                        offset = popupOffset,
+                        properties = PopupProperties(
+                            focusable = false,
+                            dismissOnBackPress = false,
+                            dismissOnClickOutside = false,
+                            clippingEnabled = false
+                        )
+                    ) {
+                        Card(
+                            modifier = Modifier.width(popupWidth),
+                            shape = RoundedCornerShape(15.dp),
+                            colors = CardDefaults.cardColors(containerColor = Mint),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(horizontal = 13.dp, vertical = 10.dp),
+                                verticalArrangement = Arrangement.spacedBy(3.dp)
+                            ) {
+                                Text(
+                                    pressedMeaning!!.first,
+                                    color = Forest,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    pressedMeaning!!.second,
+                                    color = Ink,
+                                    fontSize = 15.sp,
+                                    lineHeight = 19.sp
+                                )
+                            }
+                        }
                     }
                 }
-            } else {
+            }
+
+            if (pressedMeaning == null) {
                 Text(
-                    "Tip: podrž slovo přímo v textu, dokud se neobjeví překlad.",
+                    "Tip: u neznámého slova podrž prst. Při prvním použití se překladový model připraví přes Wi-Fi; potom funguje offline.",
                     color = Muted,
-                    fontSize = 12.sp
+                    fontSize = 12.sp,
+                    lineHeight = 18.sp
                 )
             }
             Button(
