@@ -289,6 +289,7 @@ internal fun ArticleQuizScreen(
     onBack: () -> Unit,
     onComplete: (Int) -> Unit
 ) {
+    val context = LocalContext.current
     var words by remember(category.id) { mutableStateOf(category.words.shuffled()) }
     var questionIndex by remember(category.id) { mutableStateOf(0) }
     var selectedArticle by remember(category.id) { mutableStateOf<String?>(null) }
@@ -421,6 +422,7 @@ internal fun ArticleQuizScreen(
                                 questionIndex += 1
                                 selectedArticle = null
                             } else {
+                                CourseResultStore.save(context, "articles_${category.id}", score, total)
                                 onComplete(score)
                                 finished = true
                             }
@@ -443,14 +445,15 @@ internal fun VerbQuizScreen(
     onBack: () -> Unit,
     onComplete: (Int) -> Unit
 ) {
-    var questions by remember(topic.id) { mutableStateOf(createVerbQuestions(topic).shuffled()) }
+    val context = LocalContext.current
+    var questions by remember(topic.id) { mutableStateOf(buildVerbQuestions(topic).shuffled()) }
     var questionIndex by remember(topic.id) { mutableStateOf(0) }
     var selectedAnswer by remember(topic.id) { mutableStateOf<Int?>(null) }
     var score by remember(topic.id) { mutableStateOf(0) }
     var finished by remember(topic.id) { mutableStateOf(false) }
 
     fun restart() {
-        questions = createVerbQuestions(topic).shuffled()
+        questions = buildVerbQuestions(topic).shuffled()
         questionIndex = 0
         selectedAnswer = null
         score = 0
@@ -586,6 +589,7 @@ internal fun VerbQuizScreen(
                                 questionIndex += 1
                                 selectedAnswer = null
                             } else {
+                                CourseResultStore.save(context, "verbs_${topic.id}", score, questions.size)
                                 onComplete(score)
                                 finished = true
                             }
@@ -600,6 +604,45 @@ internal fun VerbQuizScreen(
             }
         }
     }
+}
+
+
+private fun buildVerbQuestions(lesson: VerbPracticeLesson): List<LessonQuestion> =
+    if (lesson.id.startsWith("advanced_")) createAdvancedVerbQuestions(lesson)
+    else createVerbQuestions(lesson)
+
+private fun createAdvancedVerbQuestions(lesson: VerbPracticeLesson): List<LessonQuestion> {
+    val definitions = lesson.verbIds.mapNotNull { id -> verbDefinitions.find { it.id == id } }
+    val result = mutableListOf<LessonQuestion>()
+
+    definitions.forEach { verb ->
+        verb.phrases.take(5).forEachIndexed { phraseIndex, phrase ->
+            val subjectIndex = phraseIndex % verb.subjects.size
+            val subject = verb.subjects[subjectIndex]
+            val czechSubject = verb.czechSubjects[subjectIndex]
+            val correctForm = verb.forms[subjectIndex]
+            val correctLabel = "$correctForm (${verb.infinitive})"
+            val distractorVerbs = definitions.filter { it.id != verb.id }.shuffled().take(3)
+            val choices = (listOf(verb) + distractorVerbs)
+                .map { candidate -> "${candidate.forms[subjectIndex]} (${candidate.infinitive})" }
+                .shuffled()
+            val correctIndex = choices.indexOf(correctLabel)
+            val germanSentence = "$subject $correctForm ${phrase.german.trimEnd('.')}."
+            val czechSentence = "$czechSubject ${verb.czechForms[subjectIndex]} ${phrase.czech.trimEnd('.')}."
+
+            result.add(
+                LessonQuestion(
+                    prompt = "Vyber správné sloveso a jeho tvar:\n$subject ___ ${phrase.german.trimEnd('.')} .".replace(" .", "."),
+                    choices = choices,
+                    correctIndex = correctIndex,
+                    explanation = "„${verb.infinitive}“ znamená „${verb.czech}“. U osoby „$subject“ je správný tvar „$correctForm“.",
+                    germanSentence = germanSentence,
+                    translation = czechSentence
+                )
+            )
+        }
+    }
+    return result.shuffled().take(25)
 }
 
 private fun createVerbQuestions(lesson: VerbPracticeLesson): List<LessonQuestion> {
