@@ -578,6 +578,14 @@ internal val verbPracticeTopics = listOf(
     VerbPracticeLesson("verb_mixed", "10. Smíšené opakování", "Mix důležitých sloves ze všech předchozích sad", listOf("sein","haben","wissen","essen","trinken"))
 )
 
+internal val advancedVerbPracticeTopics = verbPracticeTopics.mapIndexed { index, topic ->
+    topic.copy(
+        id = "advanced_${topic.id}",
+        title = "${index + 1}. ${topic.title.substringAfter(". ")} · Pokročilé",
+        subtitle = "Stejných pět sloves, ale vybíráš správné sloveso ze čtyř různých možností."
+    )
+}
+
 internal fun expandedCourseQuestions(id: String): List<LessonQuestion> {
     fun q(prompt: String, choices: List<String>, answer: Int, explanation: String) =
         LessonQuestion(prompt, choices, answer, explanation)
