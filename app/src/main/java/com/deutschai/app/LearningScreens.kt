@@ -52,7 +52,8 @@ internal fun LearningHubScreen(
     onArticles: () -> Unit,
     onVerbs: () -> Unit,
     onDialogues: () -> Unit,
-    onReading: () -> Unit
+    onReading: () -> Unit,
+    onWordTools: () -> Unit
 ) {
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
@@ -74,8 +75,8 @@ internal fun LearningHubScreen(
             LearningCard(
                 icon = { Icon(Icons.Default.MenuBook, contentDescription = null, tint = Forest) },
                 title = "Kurzy A1",
-                subtitle = "Základy, sloveso sein a smíšené procvičování. Každý kurz má 25 otázek.",
-                detail = "3 kurzy",
+                subtitle = "Deset tematických sad praktických vět bez samostatných testů na členy nebo sloveso sein.",
+                detail = sentenceCourseCatalog.size.toString() + " kurzů · 25 otázek v každém",
                 onClick = onCourses
             )
             LearningCard(
@@ -86,10 +87,17 @@ internal fun LearningHubScreen(
                 onClick = onArticles
             )
             LearningCard(
+                icon = { Icon(Icons.Default.Translate, contentDescription = null, tint = Forest) },
+                title = "Číslovky, předložky, spojky a příslovce",
+                subtitle = "Každá oblast má překlad slov, krátké věty a náročnější použití v kontextu.",
+                detail = "4 oblasti · 3 úrovně procvičení",
+                onClick = onWordTools
+            )
+            LearningCard(
                 icon = { Icon(Icons.Default.School, contentDescription = null, tint = Forest) },
                 title = "Důležitá slovesa",
                 subtitle = "Procvič si časování ve větách, ne jen izolované tvary.",
-                detail = verbPracticeTopics.size.toString() + " sloves · 25 otázek na každé",
+                detail = verbPracticeTopics.size.toString() + " lekcí · 25 smíšených otázek v každé",
                 onClick = onVerbs
             )
             LearningCard(
