@@ -946,6 +946,7 @@ internal val sentenceCourseCatalog = listOf(
         "Řekneš, že zůstaneš ještě jednu noc.§Ich bleibe noch eine Nacht.§Zůstanu ještě jednu noc.",
         "Oznámíš, že pokoj nebyl uklizený.§Das Zimmer wurde leider nicht gereinigt.§Pokoj bohužel nebyl uklizený.",
         "Požádáš o další ručník.§Könnte ich bitte ein zusätzliches Handtuch bekommen?§Mohl bych dostat další ručník?",
+        "Požádáš o další polštář na pokoji.§Könnte ich bitte ein zusätzliches Kissen bekommen?§Mohl bych prosím dostat další polštář.",
         "Zeptáš se, zda je poblíž restaurace.§Gibt es hier in der Nähe ein Restaurant?§Je tady poblíž restaurace?",
         "Řekneš, že chceš zavolat na recepci.§Ich möchte die Rezeption anrufen.§Chci zavolat na recepci.",
         "Oznámíš, že pas máš v batohu.§Mein Reisepass ist in meinem Rucksack.§Můj cestovní pas je v batohu.",
