@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -193,15 +194,44 @@ internal val wordToolGroups = listOf(
     )
 )
 
+private fun arabicNumeral(germanNumber: String): String = when (germanNumber) {
+    "null" -> "0"
+    "eins" -> "1"
+    "zwei" -> "2"
+    "drei" -> "3"
+    "vier" -> "4"
+    "fünf" -> "5"
+    "sechs" -> "6"
+    "sieben" -> "7"
+    "acht" -> "8"
+    "neun" -> "9"
+    "zehn" -> "10"
+    "elf" -> "11"
+    "zwölf" -> "12"
+    "dreizehn" -> "13"
+    "vierzehn" -> "14"
+    "fünfzehn" -> "15"
+    "sechzehn" -> "16"
+    "siebzehn" -> "17"
+    "achtzehn" -> "18"
+    "neunzehn" -> "19"
+    "zwanzig" -> "20"
+    "dreißig" -> "30"
+    "fünfzig" -> "50"
+    "hundert" -> "100"
+    "tausend" -> "1 000"
+    else -> germanNumber
+}
+
 private fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): List<WordToolQuestion> {
     val source = group.items
     return source.shuffled().map { item ->
         val index = source.indexOf(item)
         val options = listOf(
             item,
-            source[(index + 5) % source.size],
-            source[(index + 11) % source.size],
-            source[(index + 17) % source.size]
+            source[(index + 1) % source.size],
+            source[(index + 2) % source.size],
+            source[(index + 3) % source.size]
         ).distinctBy { it.german }.shuffled()
         when (mode.id) {
             "words" -> {
@@ -219,8 +249,15 @@ private fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Lis
                 val pattern = Regex("(?i)(?<!\\p{L})" + Regex.escape(item.german) + "(?!\\p{L})")
                 val sentenceWithBlank = pattern.replaceFirst(item.sentenceGerman, "_____")
                 val choices = options.map { it.german }
+                val numeral = arabicNumeral(item.german)
+                val sentencePrompt = if (group.id == "numbers") {
+                    val sentenceWithNumber = pattern.replaceFirst(item.sentenceGerman, numeral)
+                    "Jak se německy řekne číslo $numeral? Vyber správnou číslovku do věty:\n$sentenceWithNumber"
+                } else {
+                    "Vyber výraz, který správně doplní chybějící místo ve větě:\n$sentenceWithBlank"
+                }
                 WordToolQuestion(
-                    prompt = "Doplň správný výraz do věty:\\n$sentenceWithBlank",
+                    prompt = sentencePrompt,
                     choices = choices,
                     correctIndex = choices.indexOf(item.german),
                     fullGerman = item.sentenceGerman,
@@ -247,6 +284,7 @@ private fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Lis
 
 @Composable
 internal fun WordToolsScreen(onBack: () -> Unit) {
+    val context = LocalContext.current
     var selectedGroup by remember { mutableStateOf<WordToolGroup?>(null) }
     var selectedMode by remember { mutableStateOf<WordToolMode?>(null) }
     var questions by remember { mutableStateOf<List<WordToolQuestion>>(emptyList()) }
@@ -330,6 +368,7 @@ internal fun WordToolsScreen(onBack: () -> Unit) {
                                     Text(group.title, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
                                     Text(group.subtitle, color = Muted, fontSize = 13.sp, lineHeight = 18.sp)
                                     Text("25 výrazů · 3 způsoby procvičení", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    LatestResultLine(CourseResultStore.load(context, "wordtools_${group.id}"))
                                 }
                             }
                         }
@@ -349,6 +388,7 @@ internal fun WordToolsScreen(onBack: () -> Unit) {
                                 Text(mode.title, color = Forest, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                                 Text(mode.subtitle, color = Muted, fontSize = 13.sp, lineHeight = 19.sp)
                                 Text("25 otázek", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                LatestResultLine(CourseResultStore.load(context, "wordtools_${selectedGroup!!.id}_${mode.id}"))
                             }
                         }
                     }
@@ -454,6 +494,8 @@ internal fun WordToolsScreen(onBack: () -> Unit) {
                                         questionIndex += 1
                                         selectedAnswer = null
                                     } else {
+                                        CourseResultStore.save(context, "wordtools_${group.id}_${mode.id}", score, questions.size)
+                                        CourseResultStore.save(context, "wordtools_${group.id}", score, questions.size)
                                         finished = true
                                     }
                                 },
