@@ -43,7 +43,8 @@ internal val expandedSentenceCourseCatalog = listOf(
         "Požádáš o radu proti bolesti hlavy.§Was hilft gegen Kopfschmerzen?§Co pomáhá proti bolesti hlavy?",
         "Vysvětlíš, že jsi už dnes jedl.§Ich habe heute schon etwas gegessen.§Dnes už jsem něco jedl/a.",
         "Zeptáš se, zda je nutná další kontrola.§Ist eine weitere Untersuchung nötig?§Je nutná další kontrola?",
-        "Poděkuješ za vysvětlení.§Vielen Dank für die Erklärung.§Moc děkuji za vysvětlení."
+        "Poděkuješ za vysvětlení.§Vielen Dank für die Erklärung.§Moc děkuji za vysvětlení.",
+        "Zeptáš se, zda můžeš poslat dokument e-mailem.§Kann ich das Dokument per E-Mail schicken?§Mohu dokument poslat e-mailem?"
     ),
     levelSentenceCourse("A2", "a2_travel", "Cestování a nečekané situace", "Změny rezervací, zpoždění a řešení problémů na cestě",
         "Oznámíš, že jsi zmeškal vlak.§Ich habe den Zug verpasst.§Zmeškal/a jsem vlak.",
@@ -258,7 +259,8 @@ internal val expandedSentenceCourseCatalog = listOf(
         "Řekneš, že se chceš učit pravidelně.§Ich möchte regelmäßig lernen.§Chtěl/a bych se učit pravidelně.",
         "Oznámíš, že jsi rozuměl jen části vysvětlení.§Ich habe nur einen Teil der Erklärung verstanden.§Rozuměl/a jsem jen části vysvětlení.",
         "Požádáš o opravu věty.§Könnten Sie meinen Satz bitte korrigieren?§Mohl/a byste mi opravit větu?",
-        "Řekneš, že učení vyžaduje trpělivost.§Beim Lernen braucht man Geduld.§Při učení člověk potřebuje trpělivost."
+        "Řekneš, že učení vyžaduje trpělivost.§Beim Lernen braucht man Geduld.§Při učení člověk potřebuje trpělivost.",
+        "Oznámíš, že se ti lépe učí ráno.§Am Morgen kann ich mich beim Lernen besser konzentrieren.§Ráno se při učení dokážu lépe soustředit."
     ),
     levelSentenceCourse("A2", "a2_feelings", "Pocity a vlastní názory", "Vyjádřit náladu, preference a zdvořilý nesouhlas",
         "Řekneš, že jsi dnes trochu nervózní.§Ich bin heute etwas nervös.§Dnes jsem trochu nervózní.",
@@ -393,7 +395,8 @@ internal val expandedSentenceCourseCatalog = listOf(
         "Řekneš, že při práci dlouho sedíš.§Bei der Arbeit sitze ich lange.§V práci dlouho sedím.",
         "Vysvětlíš, že se snažíš pravidelně odpočívat.§Ich versuche, regelmäßig Pausen einzulegen.§Snažím se pravidelně dělat přestávky.",
         "Zeptáš se, zda je příznak běžný.§Ist dieses Symptom häufig?§Je tento příznak častý?",
-        "Poděkuješ za doporučení.§Vielen Dank für Ihre Empfehlung.§Děkuji za vaše doporučení."
+        "Poděkuješ za doporučení.§Vielen Dank für Ihre Empfehlung.§Děkuji za vaše doporučení.",
+        "Vysvětlíš, že chceš znát i další možnosti léčby.§Ich würde gern auch andere Behandlungsmöglichkeiten kennenlernen.§Rád/a bych poznal/a i další možnosti léčby."
     ),
     levelSentenceCourse("B1", "b1_renting", "Bydlení, nájem a smlouvy", "Porozumět smlouvě, popsat závadu a jednat s pronajímatelem",
         "Zeptáš se, co je zahrnuto v nájmu.§Welche Kosten sind in der Miete enthalten?§Jaké náklady jsou zahrnuty v nájmu?",
@@ -419,7 +422,8 @@ internal val expandedSentenceCourseCatalog = listOf(
         "Oznámíš, že chceš změnit adresu doručování.§Ich möchte meine Zustelladresse ändern.§Chtěl/a bych změnit doručovací adresu.",
         "Vysvětlíš, že máš doklad o platbě.§Ich habe einen Zahlungsnachweis.§Mám doklad o platbě.",
         "Zeptáš se, kdy proběhne vrácení kauce.§Wann wird die Kaution zurücküberwiesen?§Kdy bude kauce vrácena převodem?",
-        "Poděkuješ za rychlé vyřešení záležitosti.§Vielen Dank, dass Sie die Angelegenheit so schnell geklärt haben.§Děkuji, že jste záležitost vyřešil/a tak rychle."
+        "Poděkuješ za rychlé vyřešení záležitosti.§Vielen Dank, dass Sie die Angelegenheit so schnell geklärt haben.§Děkuji, že jste záležitost vyřešil/a tak rychle.",
+        "Zeptáš se, zda se lze domluvit na splátkách.§Wäre eine Zahlung in Raten möglich?§Bylo by možné domluvit se na splátkách?"
     ),
     levelSentenceCourse("B1", "b1_digital", "Digitální komunikace a média", "Psát zprávy, řešit technické problémy a hodnotit informace",
         "Oznámíš, že příloha se neotevírá.§Der Anhang lässt sich nicht öffnen.§Přílohu nelze otevřít.",
@@ -526,7 +530,8 @@ internal val expandedSentenceCourseCatalog = listOf(
         "Vysvětlíš, že chceš mít více času pro rodinu.§Ich möchte mehr Zeit für meine Familie haben.§Chtěl/a bych mít více času na rodinu.",
         "Řekneš, že se můžeš přizpůsobit novým podmínkám.§Ich kann mich an die neuen Bedingungen anpassen.§Dokážu se přizpůsobit novým podmínkám.",
         "Oznámíš, že se k rozhodnutí vrátíte příští týden.§Wir werden nächste Woche auf die Entscheidung zurückkommen.§K rozhodnutí se vrátíme příští týden.",
-        "Shrneš, proč sis vybral tuto možnost.§Aus diesen Gründen habe ich mich für diese Möglichkeit entschieden.§Z těchto důvodů jsem si vybral/a tuto možnost."
+        "Shrneš, proč sis vybral tuto možnost.§Aus diesen Gründen habe ich mich für diese Möglichkeit entschieden.§Z těchto důvodů jsem si vybral/a tuto možnost.",
+        "Řekneš, že se rozhodnutí může časem změnit.§Die Entscheidung kann sich im Laufe der Zeit noch ändern.§Rozhodnutí se může v průběhu času ještě změnit."
     ),
     levelSentenceCourse("B1", "b1_discussion", "Diskuse a argumentace", "Vyjádřit postoj, uvést důvod a reagovat na jiný názor",
         "Uvedeš svůj hlavní argument.§Mein wichtigstes Argument ist, dass diese Lösung langfristig günstiger ist.§Můj hlavní argument je, že toto řešení je z dlouhodobého hlediska levnější.",
