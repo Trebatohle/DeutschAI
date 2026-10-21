@@ -72,6 +72,7 @@ private data class Lesson(
     val id: String,
     val title: String,
     val subtitle: String,
+    val level: String,
     val questions: List<LessonQuestion>
 )
 
@@ -80,6 +81,7 @@ private val lessons = sentenceCourseCatalog.map { course ->
         id = course.id,
         title = course.title,
         subtitle = course.subtitle,
+        level = course.level,
         questions = sentenceCourseQuestions(course.id)
     )
 }
@@ -129,6 +131,7 @@ private fun DeutschAIHome() {
     var showReadingLibrary by remember { mutableStateOf(false) }
     var selectedReadingArticle by remember { mutableStateOf<ReadingArticle?>(null) }
     var selectedLesson by remember { mutableStateOf<Lesson?>(null) }
+    var selectedPhraseReviewLevel by remember { mutableStateOf<String?>(null) }
     var selectedTab by remember { mutableStateOf("Učení") }
 
     fun recordSession() {
@@ -231,6 +234,14 @@ private fun DeutschAIHome() {
         return
     }
 
+    if (selectedPhraseReviewLevel != null) {
+        PhraseReviewScreen(
+            level = selectedPhraseReviewLevel!!,
+            onBack = { selectedPhraseReviewLevel = null; showLessonLibrary = true }
+        )
+        return
+    }
+
     if (selectedLesson != null) {
         LessonScreen(
             lesson = selectedLesson!!,
@@ -245,6 +256,10 @@ private fun DeutschAIHome() {
             onBack = { showLessonLibrary = false; showLearningHub = true },
             onSelectLesson = { lesson ->
                 selectedLesson = lesson
+                showLessonLibrary = false
+            },
+            onSelectPhraseReview = { level ->
+                selectedPhraseReviewLevel = level
                 showLessonLibrary = false
             }
         )
@@ -361,8 +376,8 @@ private fun DeutschAIHome() {
                 ProgressCard(
                     modifier = Modifier.weight(1f),
                     title = "Úroveň",
-                    value = "A1",
-                    detail = "Začátečník"
+                    value = "A1–B2",
+                    detail = "Dostupné úrovně"
                 )
                 ProgressCard(
                     modifier = Modifier.weight(1f),
@@ -461,24 +476,27 @@ private fun DeutschAIHome() {
 @Composable
 private fun LessonLibraryScreen(
     onBack: () -> Unit,
-    onSelectLesson: (Lesson) -> Unit
+    onSelectLesson: (Lesson) -> Unit,
+    onSelectPhraseReview: (String) -> Unit
 ) {
     val context = LocalContext.current
+    var selectedLevel by remember { mutableStateOf<String?>(null) }
+    val levelDetails = listOf(
+        Triple("A1", "Začátečník", "Základní fráze, pozdravy a běžné situace."),
+        Triple("A2", "Mírně pokročilý", "Praktická domluva, plány a každodenní problémy."),
+        Triple("B1", "Středně pokročilý", "Práce, argumentace, samostatná komunikace a složitější situace."),
+        Triple("B2", "Vyšší středně pokročilý", "Přesné vyjadřování, profesní komunikace a náročnější témata.")
+    )
+
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .navigationBarsPadding()
-                .verticalScroll(rememberScrollState())
+            modifier = Modifier.fillMaxSize().navigationBarsPadding().verticalScroll(rememberScrollState())
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Button(
-                    onClick = onBack,
+                    onClick = { if (selectedLevel != null) selectedLevel = null else onBack() },
                     colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
                     shape = RoundedCornerShape(12.dp)
                 ) {
@@ -487,57 +505,102 @@ private fun LessonLibraryScreen(
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text("DEUTSCHAI", color = Forest, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
-                    Text("Knihovna lekcí", color = Muted, fontSize = 13.sp)
+                    Text(if (selectedLevel == null) "Kurzy podle úrovně" else "Kurzová knihovna · ${selectedLevel}", color = Muted, fontSize = 13.sp)
                 }
             }
 
-            Text(
-                text = "Co se dnes naučíme?",
-                color = Ink,
-                fontSize = 27.sp,
-                fontWeight = FontWeight.Bold,
-                lineHeight = 32.sp
-            )
-            Text(
-                text = "Vyber si kurz o 25 otázkách. Otázky i česká vysvětlení jsou dostupné bez internetu.",
-                color = Muted,
-                fontSize = 14.sp,
-                lineHeight = 21.sp
-            )
-
-            lessons.forEachIndexed { index, lesson ->
+            if (selectedLevel == null) {
+                Text("Vyber svou úroveň", color = Ink, fontSize = 27.sp, fontWeight = FontWeight.Bold, lineHeight = 32.sp)
+                Text(
+                    "Každá úroveň obsahuje tematické lekce po 25 otázkách a vlastní podkategorii chytrého opakování frází. Pokrok se ukládá přímo v telefonu.",
+                    color = Muted, fontSize = 14.sp, lineHeight = 21.sp
+                )
+                levelDetails.forEach { (level, name, description) ->
+                    val levelLessons = lessons.filter { it.level == level }
+                    Card(
+                        onClick = { selectedLevel = level },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(18.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(14.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier.size(52.dp).background(Mint, RoundedCornerShape(15.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(level, color = Forest, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                Text("$level · $name", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                                Text(description, color = Muted, fontSize = 13.sp, lineHeight = 19.sp)
+                                Text("${levelLessons.size} tematických kurzů · 25 otázek v každém", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+            } else {
+                val level = selectedLevel!!
+                val levelLessons = lessons.filter { it.level == level }
+                Text("Úroveň $level", color = Ink, fontSize = 27.sp, fontWeight = FontWeight.Bold, lineHeight = 32.sp)
+                Text(
+                    "Vyber si konkrétní téma, nebo si procvič fráze, které aplikace vybere podle toho, kdy je potřebuješ zopakovat.",
+                    color = Muted, fontSize = 14.sp, lineHeight = 21.sp
+                )
                 Card(
-                    onClick = { onSelectLesson(lesson) },
+                    onClick = { onSelectPhraseReview(level) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = Forest)
                 ) {
                     Row(
-                        modifier = Modifier.padding(18.dp),
+                        modifier = Modifier.fillMaxWidth().padding(18.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
                         Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .background(Mint, RoundedCornerShape(15.dp)),
+                            modifier = Modifier.size(48.dp).background(Color(0xFF2B5B4F), RoundedCornerShape(15.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = (index + 1).toString(),
-                                color = Forest,
-                                fontSize = 21.sp,
-                                fontWeight = FontWeight.Bold
-                            )
+                            Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = Gold, modifier = Modifier.size(25.dp))
                         }
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(5.dp)
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                            Text("Chytré opakování frází", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                "Zkus si frázi vybavit před odhalením odpovědi. Opakování se načasuje podle toho, jak dobře ji znáš.",
+                                color = Color(0xFFE0EAE5), fontSize = 13.sp, lineHeight = 19.sp
+                            )
+                            Text("${levelLessons.sumOf { it.questions.size }} frází z úrovně $level", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+                levelLessons.forEachIndexed { index, lesson ->
+                    Card(
+                        onClick = { onSelectLesson(lesson) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(18.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
-                            Text(lesson.title, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
-                            Text(lesson.subtitle, color = Muted, fontSize = 13.sp, lineHeight = 18.sp)
-                            Text("A1  •  " + lesson.questions.size + " otázek", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                            LatestResultLine(CourseResultStore.load(context, "sentence_${lesson.id}"))
+                            Box(
+                                modifier = Modifier.size(48.dp).background(Mint, RoundedCornerShape(15.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text((index + 1).toString(), color = Forest, fontSize = 21.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                Text(lesson.title, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                                Text(lesson.subtitle, color = Muted, fontSize = 13.sp, lineHeight = 18.sp)
+                                Text("${lesson.level}  •  ${lesson.questions.size} otázek", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                LatestResultLine(CourseResultStore.load(context, "sentence_${lesson.id}"))
+                            }
                         }
                     }
                 }
@@ -590,7 +653,7 @@ private fun LessonScreen(
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text("DEUTSCHAI", color = Forest, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
-                    Text(lesson.title + " · A1", color = Muted, fontSize = 13.sp)
+                    Text(lesson.title + " · " + lesson.level, color = Muted, fontSize = 13.sp)
                 }
             }
 
