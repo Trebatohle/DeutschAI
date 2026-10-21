@@ -36,6 +36,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,6 +48,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 
 internal val Forest = Color(0xFF163D35)
 internal val Mint = Color(0xFFDDEFE6)
@@ -461,6 +463,7 @@ private fun LessonLibraryScreen(
     onBack: () -> Unit,
     onSelectLesson: (Lesson) -> Unit
 ) {
+    val context = LocalContext.current
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
             modifier = Modifier
@@ -534,6 +537,7 @@ private fun LessonLibraryScreen(
                             Text(lesson.title, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
                             Text(lesson.subtitle, color = Muted, fontSize = 13.sp, lineHeight = 18.sp)
                             Text("A1  •  " + lesson.questions.size + " otázek", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            LatestResultLine(CourseResultStore.load(context, "sentence_${lesson.id}"))
                         }
                     }
                 }
@@ -548,6 +552,7 @@ private fun LessonScreen(
     onBack: () -> Unit,
     onComplete: (score: Int, total: Int) -> Unit
 ) {
+    val context = LocalContext.current
     var questions by remember(lesson.id) { mutableStateOf(lesson.questions.shuffled()) }
     var questionIndex by remember(lesson.id) { mutableStateOf(0) }
     var selectedAnswer by remember(lesson.id) { mutableStateOf<Int?>(null) }
@@ -746,6 +751,7 @@ private fun LessonScreen(
                                 questionIndex += 1
                                 selectedAnswer = null
                             } else {
+                                CourseResultStore.save(context, "sentence_${lesson.id}", score, questions.size)
                                 onComplete(score, questions.size)
                                 finished = true
                             }
@@ -788,6 +794,7 @@ private fun GuidedDialogueScreen(
     var completed by remember { mutableStateOf(false) }
     var completionRecorded by remember { mutableStateOf(false) }
     var lines by remember { mutableStateOf(emptyList<GuidedDialogueLine>()) }
+    var isTransitioning by remember { mutableStateOf(false) }
 
     fun startTopic(topic: GuidedDialogueTopic) {
         selectedTopic = topic
@@ -807,20 +814,30 @@ private fun GuidedDialogueScreen(
 
     fun chooseOption(option: GuidedDialogueOption) {
         val topic = selectedTopic ?: return
-        if (completed) return
+        if (completed || isTransitioning) return
 
         lines = lines +
             GuidedDialogueLine(option.german, option.czech, learner = true) +
             GuidedDialogueLine(option.replyGerman, option.replyCzech, learner = false)
+        isTransitioning = true
+    }
 
-        if (turnIndex >= topic.turns.lastIndex) {
-            completed = true
-            if (!completionRecorded) {
-                completionRecorded = true
-                onComplete()
+    LaunchedEffect(isTransitioning) {
+        if (isTransitioning) {
+            delay(900L)
+            val topic = selectedTopic
+            if (topic != null && !completed) {
+                if (turnIndex >= topic.turns.lastIndex) {
+                    completed = true
+                    if (!completionRecorded) {
+                        completionRecorded = true
+                        onComplete()
+                    }
+                } else {
+                    turnIndex += 1
+                }
             }
-        } else {
-            turnIndex += 1
+            isTransitioning = false
         }
     }
 
@@ -1051,7 +1068,17 @@ private fun GuidedDialogueScreen(
                             Text(turn.promptCzech, color = Forest, fontSize = 15.sp, lineHeight = 21.sp)
                         }
                     }
-                    Text("Vyber odpověď a přečti ji nahlas", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                    if (isTransitioning) {
+                        Text(
+                            "Beatrice právě reaguje… přečti si odpověď a její překlad. Další otázka se zobrazí za chvilku.",
+                            color = Forest,
+                            fontSize = 14.sp,
+                            lineHeight = 21.sp
+                        )
+                    } else {
+                        Text("Vyber odpověď a přečti ji nahlas", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                    }
+                    if (!isTransitioning) {
                     turn.options.forEachIndexed { index, option ->
                         Card(
                             onClick = { chooseOption(option) },
@@ -1080,6 +1107,7 @@ private fun GuidedDialogueScreen(
                                 }
                             }
                         }
+                    }
                     }
                 }
             }
