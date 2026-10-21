@@ -73,122 +73,13 @@ private data class Lesson(
     val questions: List<LessonQuestion>
 )
 
-private val baseLessons = listOf(
+private val lessons = sentenceCourseCatalog.map { course ->
     Lesson(
-        id = "first_steps",
-        title = "První kroky",
-        subtitle = "Pozdravy, slovíčka a jednoduché věty",
-        questions = listOf(
-            LessonQuestion(
-                "Jak se německy řekne „Dobrý den“?",
-                listOf("Gute Nacht", "Guten Tag", "Auf Wiedersehen", "Danke"),
-                1,
-                "„Guten Tag“ znamená „Dobrý den“. Použiješ ho při běžném denním pozdravu."
-            ),
-            LessonQuestion(
-                "Doplň větu: Ich ___ Erik.",
-                listOf("bist", "ist", "bin", "sind"),
-                2,
-                "Sloveso „sein“ (být): ich bin, du bist, er/sie/es ist. Proto říkáme „Ich bin Erik“."
-            ),
-            LessonQuestion(
-                "Co znamená německé „Danke“?",
-                listOf("Prosím", "Promiňte", "Na shledanou", "Děkuji"),
-                3,
-                "„Danke“ znamená „Děkuji“. Odpovědět můžeš například „Bitte“ — „Prosím / Není zač“."
-            ),
-            LessonQuestion(
-                "Vyber správný člen: ___ Haus (dům)",
-                listOf("der", "die", "das", "den"),
-                2,
-                "Správně je „das Haus“. Německá podstatná jména se učíme společně s členem: das Haus, die Tür, der Tisch."
-            ),
-            LessonQuestion(
-                "Co znamená „Wie geht es dir?“",
-                listOf("Jak se máš?", "Kde bydlíš?", "Kolik je hodin?", "Jak se jmenuješ?"),
-                0,
-                "„Wie geht es dir?“ znamená „Jak se máš?“. Neformálně můžeš odpovědět „Gut, danke“ — „Dobře, děkuji“."
-            )
-        )
-    ),
-    Lesson(
-        id = "sein",
-        title = "Sloveso sein",
-        subtitle = "Řekni, kdo jsi, jak se máš a odkud jsi",
-        questions = listOf(
-            LessonQuestion(
-                "Doplň: Ich ___ müde. (Jsem unavený.)",
-                listOf("bist", "bin", "ist", "seid"),
-                1,
-                "S osobou „ich“ používáme „bin“: ich bin — já jsem."
-            ),
-            LessonQuestion(
-                "Doplň: Du ___ nett. (Jsi milý.)",
-                listOf("bin", "sind", "bist", "ist"),
-                2,
-                "S osobou „du“ používáme „bist“: du bist — ty jsi."
-            ),
-            LessonQuestion(
-                "Která věta je správně?",
-                listOf("Er bin hier.", "Er bist hier.", "Er sind hier.", "Er ist hier."),
-                3,
-                "Pro „er/sie/es“ používáme „ist“: er ist — on je, sie ist — ona je."
-            ),
-            LessonQuestion(
-                "Jak německy řekneš „My jsme tady“?",
-                listOf("Wir sind hier.", "Wir ist hier.", "Wir seid hier.", "Wir bin hier."),
-                0,
-                "S „wir“ (my) používáme tvar „sind“: wir sind."
-            ),
-            LessonQuestion(
-                "Doplň: Ihr ___ heute pünktlich. (Vy jste dnes přesní.)",
-                listOf("sind", "bist", "seid", "bin"),
-                2,
-                "S „ihr“ (vy, množné číslo) používáme „seid“: ihr seid."
-            )
-        )
-    ),
-    Lesson(
-        id = "articles",
-        title = "Členy der, die, das",
-        subtitle = "Procvič si rod běžných německých podstatných jmen",
-        questions = listOf(
-            LessonQuestion(
-                "Který člen patří ke slovu „Tisch“ (stůl)?",
-                listOf("die Tisch", "das Tisch", "der Tisch", "den Tisch"),
-                2,
-                "Správně je „der Tisch“. Uč se vždy celé spojení včetně členu."
-            ),
-            LessonQuestion(
-                "Který člen patří ke slovu „Schule“ (škola)?",
-                listOf("der Schule", "die Schule", "das Schule", "den Schule"),
-                1,
-                "Správně je „die Schule“."
-            ),
-            LessonQuestion(
-                "Který člen patří ke slovu „Auto“ (auto)?",
-                listOf("das Auto", "die Auto", "der Auto", "den Auto"),
-                0,
-                "Správně je „das Auto“."
-            ),
-            LessonQuestion(
-                "Který člen patří ke slovu „Frau“ (žena/paní)?",
-                listOf("das Frau", "der Frau", "die Frau", "den Frau"),
-                2,
-                "Správně je „die Frau“."
-            ),
-            LessonQuestion(
-                "Který člen patří ke slovu „Kind“ (dítě)?",
-                listOf("der Kind", "die Kind", "das Kind", "den Kind"),
-                2,
-                "Správně je „das Kind“. Pozor: gramatický rod se nemusí vždy shodovat s přirozeným rodem."
-            )
-        )
+        id = course.id,
+        title = course.title,
+        subtitle = course.subtitle,
+        questions = sentenceCourseQuestions(course.id)
     )
-)
-
-private val lessons = baseLessons.map { lesson ->
-    lesson.copy(questions = lesson.questions + expandedCourseQuestions(lesson.id))
 }
 
 class MainActivity : ComponentActivity() {
