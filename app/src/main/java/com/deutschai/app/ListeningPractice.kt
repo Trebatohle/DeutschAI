@@ -295,6 +295,7 @@ internal fun ListeningPracticeScreen(level: String, onBack: () -> Unit) {
                                         savePhraseRating(context, phraseKey, rating)
                                         ratingSaved = true
                                     },
+                                    enabled = !ratingSaved,
                                     modifier = Modifier.weight(1f).heightIn(min = 58.dp),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = when (rating) {
