@@ -104,6 +104,7 @@ internal fun ListeningPracticeScreen(level: String, onBack: () -> Unit) {
     val question = questions.getOrNull(questionIndex)
     var heard by remember(level, questionIndex) { mutableStateOf(false) }
     var selectedAnswer by remember(level, questionIndex) { mutableStateOf<Int?>(null) }
+    var ratingSaved by remember(level, questionIndex) { mutableStateOf(false) }
 
     fun restart() {
         questions = buildListeningQuestions(level)
@@ -268,6 +269,58 @@ internal fun ListeningPracticeScreen(level: String, onBack: () -> Unit) {
                             Text("Situace: ${question.source.item.prompt}", color = Muted, fontSize = 13.sp, lineHeight = 19.sp)
                         }
                     }
+                    Text(
+                        "Už tuto frázi umíš?",
+                        color = Ink, fontSize = 16.sp, fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "Označení se uloží do chytrého opakování a určí, kdy se fráze znovu objeví.",
+                        color = Muted, fontSize = 12.sp, lineHeight = 18.sp
+                    )
+                    val phraseKey = "${level}_${question.source.courseId}_${question.source.itemIndex}"
+                    val ratings = listOf(
+                        PhraseRating.AGAIN to ("Zatím ne" to "znovu za 10 min"),
+                        PhraseRating.HARD to ("Ještě si nejsem jistý/á" to "zítra"),
+                        PhraseRating.GOOD to ("Umím" to "za 1–3 dny"),
+                        PhraseRating.EASY to ("Umím dobře" to "za 3–6 dní")
+                    )
+                    ratings.chunked(2).forEach { ratingRow ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            ratingRow.forEach { (rating, labels) ->
+                                Button(
+                                    onClick = {
+                                        savePhraseRating(context, phraseKey, rating)
+                                        ratingSaved = true
+                                    },
+                                    modifier = Modifier.weight(1f).heightIn(min = 58.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = when (rating) {
+                                            PhraseRating.AGAIN -> Incorrect
+                                            PhraseRating.HARD -> Color(0xFFF5E9D4)
+                                            PhraseRating.GOOD -> Mint
+                                            PhraseRating.EASY -> Color(0xFFD9EDE1)
+                                        },
+                                        contentColor = Ink
+                                    ),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                                    ) {
+                                        Text(labels.first, fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 2)
+                                        Text(labels.second, fontSize = 10.sp, maxLines = 1)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (ratingSaved) {
+                        Text("Uloženo do chytrého opakování ✓", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                    }
                     Button(
                         onClick = {
                             if (questionIndex < questions.lastIndex) {
@@ -277,11 +330,19 @@ internal fun ListeningPracticeScreen(level: String, onBack: () -> Unit) {
                                 finished = true
                             }
                         },
+                        enabled = ratingSaved,
                         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Forest, contentColor = Color.White),
                         shape = RoundedCornerShape(14.dp)
                     ) {
-                        Text(if (questionIndex == questions.lastIndex) "Zobrazit výsledek" else "Další otázka", fontWeight = FontWeight.Bold)
+                        Text(
+                            when {
+                                !ratingSaved -> "Nejprve označ, zda frázi umíš"
+                                questionIndex == questions.lastIndex -> "Zobrazit výsledek"
+                                else -> "Další otázka"
+                            },
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             } else {
