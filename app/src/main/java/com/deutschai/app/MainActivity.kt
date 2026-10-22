@@ -102,14 +102,14 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MaterialTheme {
-                DeutschAIHome()
+                BeatriceHome()
             }
         }
     }
 }
 
 @Composable
-private fun DeutschAIHome() {
+private fun BeatriceHome() {
     val context = LocalContext.current
     val preferences = remember(context) {
         context.getSharedPreferences("deutschai_progress", Context.MODE_PRIVATE)
@@ -320,7 +320,7 @@ private fun DeutschAIHome() {
                 ) {
                     Icon(
                         imageVector = Icons.Default.AutoAwesome,
-                        contentDescription = "DeutschAI",
+                        contentDescription = "Beatrice",
                         tint = Forest,
                         modifier = Modifier.size(24.dp)
                     )
