@@ -17,7 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Headphones
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -151,7 +151,7 @@ internal fun ListeningPracticeScreen(level: String, onBack: () -> Unit) {
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Icon(Icons.Default.Headphones, contentDescription = null, tint = Gold)
+                        Icon(Icons.Default.VolumeUp, contentDescription = null, tint = Gold)
                         Text("Poslech dokončen", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Bold)
                         Text("$score z ${questions.size} správně", color = Gold, fontSize = 29.sp, fontWeight = FontWeight.Bold)
                         Text(
@@ -189,7 +189,7 @@ internal fun ListeningPracticeScreen(level: String, onBack: () -> Unit) {
                 ) {
                     Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                            Icon(Icons.Default.Headphones, contentDescription = null, tint = Forest)
+                            Icon(Icons.Default.VolumeUp, contentDescription = null, tint = Forest)
                             Text(question.source.courseTitle, color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                         Text("Co znamená věta, kterou uslyšíš?", color = Ink, fontSize = 20.sp, lineHeight = 28.sp, fontWeight = FontWeight.SemiBold)
