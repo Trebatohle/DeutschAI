@@ -25,7 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ChatBubbleOutline
-import androidx.compose.material.icons.filled.Headphones
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.Button
@@ -580,7 +580,7 @@ private fun LessonLibraryScreen(
                             modifier = Modifier.size(48.dp).background(Mint, RoundedCornerShape(15.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Headphones, contentDescription = null, tint = Forest, modifier = Modifier.size(25.dp))
+                            Icon(Icons.Default.VolumeUp, contentDescription = null, tint = Forest, modifier = Modifier.size(25.dp))
                         }
                         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                             Text("Poslech a porozumění", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
