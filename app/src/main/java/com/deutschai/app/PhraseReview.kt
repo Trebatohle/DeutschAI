@@ -53,7 +53,7 @@ private data class PhraseReviewCard(
     val czech: String
 )
 
-private enum class PhraseRating { AGAIN, HARD, GOOD, EASY }
+internal enum class PhraseRating { AGAIN, HARD, GOOD, EASY }
 
 private fun phraseReviewCards(level: String): List<PhraseReviewCard> =
     sentenceCourseCatalog.filter { it.level == level }.flatMap { course ->
@@ -84,10 +84,17 @@ private fun savePhraseRating(
     card: PhraseReviewCard,
     rating: PhraseRating,
     now: Long = System.currentTimeMillis()
+) = savePhraseRating(context, card.id, rating, now)
+
+internal fun savePhraseRating(
+    context: Context,
+    phraseKey: String,
+    rating: PhraseRating,
+    now: Long = System.currentTimeMillis()
 ) {
-    val prefs = context.getSharedPreferences(PHRASE_REVIEW_PREFS, Context.MODE_PRIVATE)
-    val oldReps = prefs.getInt("${card.id}_reps", 0)
-    val oldInterval = prefs.getFloat("${card.id}_interval", 0f).toDouble()
+    val prefs = context.applicationContext.getSharedPreferences(PHRASE_REVIEW_PREFS, Context.MODE_PRIVATE)
+    val oldReps = prefs.getInt("${phraseKey}_reps", 0)
+    val oldInterval = prefs.getFloat("${phraseKey}_interval", 0f).toDouble()
     val nextReps: Int
     val intervalDays: Double
     when (rating) {
@@ -117,9 +124,9 @@ private fun savePhraseRating(
         }
     }
     prefs.edit()
-        .putInt("${card.id}_reps", nextReps)
-        .putFloat("${card.id}_interval", intervalDays.toFloat())
-        .putLong("${card.id}_due", now + (intervalDays * 24.0 * 60.0 * 60.0 * 1000.0).roundToInt())
+        .putInt("${phraseKey}_reps", nextReps)
+        .putFloat("${phraseKey}_interval", intervalDays.toFloat())
+        .putLong("${phraseKey}_due", now + (intervalDays * 24.0 * 60.0 * 60.0 * 1000.0).roundToInt())
         .apply()
 }
 
