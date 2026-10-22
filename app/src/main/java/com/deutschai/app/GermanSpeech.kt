@@ -10,6 +10,7 @@ import android.speech.tts.UtteranceProgressListener
 import android.speech.tts.Voice
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -142,7 +143,7 @@ internal class GermanSpeechPlayer(private val context: Context) {
 
         val utteranceId = "deutschai_${utteranceCounter.incrementAndGet()}"
         if (onCompleted != null) completionCallbacks[utteranceId] = onCompleted
-        tts.setSpeechRate(if (slow) 0.78f else 1.0f)
+        tts.setSpeechRate(if (slow) 0.62f else 1.0f)
         val result = tts.speak(text, TextToSpeech.QUEUE_FLUSH, Bundle(), utteranceId)
         if (result != TextToSpeech.SUCCESS) {
             completionCallbacks.remove(utteranceId)
@@ -199,21 +200,30 @@ internal fun GermanAudioControls(
             onClick = { player.speak(text, slow = false, onCompleted = onPlaybackCompleted) },
             enabled = player.status == GermanVoiceStatus.READY,
             modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+            contentPadding = PaddingValues(horizontal = 7.dp, vertical = 10.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Forest, contentColor = androidx.compose.ui.graphics.Color.White),
             shape = RoundedCornerShape(12.dp)
         ) {
-            androidx.compose.material3.Icon(Icons.Default.VolumeUp, contentDescription = null)
-            Text("Poslechnout", fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.padding(start = 5.dp))
+            androidx.compose.material3.Icon(Icons.Default.VolumeUp, contentDescription = null, modifier = Modifier.size(18.dp))
+            Text(
+                "Poslechnout",
+                fontWeight = FontWeight.Bold,
+                fontSize = 12.sp,
+                maxLines = 1,
+                softWrap = false,
+                modifier = Modifier.padding(start = 4.dp)
+            )
         }
         if (showSlow) {
             Button(
                 onClick = { player.speak(text, slow = true, onCompleted = onPlaybackCompleted) },
                 enabled = player.status == GermanVoiceStatus.READY,
                 modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                contentPadding = PaddingValues(horizontal = 7.dp, vertical = 10.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Pomalu", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                Text("Pomalu", fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 1, softWrap = false)
             }
         }
     }
