@@ -358,7 +358,7 @@ internal data class VerbPracticeLesson(
 
 private fun vp(german: String, czech: String) = VerbPhrase(german, czech)
 
-internal val verbDefinitions = listOf(
+private val baseVerbDefinitions = listOf(
     VerbDefinition(
         "sein", "sein", "být", "Stav a vlastnosti",
         listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
@@ -565,7 +565,9 @@ internal val verbDefinitions = listOf(
     )
 )
 
-internal val verbPracticeTopics = listOf(
+internal val verbDefinitions = baseVerbDefinitions + extendedVerbDefinitions
+
+private val baseVerbPracticeTopics = listOf(
     VerbPracticeLesson("verb_basics", "1. Základní slovesa", "Být, mít, přijít, dělat a jít", listOf("sein","haben","kommen","machen","gehen")),
     VerbPracticeLesson("verb_communication", "2. Komunikace a znalosti", "Mluvit, vědět, rozumět, číst a psát", listOf("sprechen","wissen","verstehen","lesen","schreiben")),
     VerbPracticeLesson("verb_food", "3. Jídlo a nákup", "Jíst, pít, kupovat, brát a potřebovat", listOf("essen","trinken","kaufen","nehmen","brauchen")),
@@ -577,6 +579,8 @@ internal val verbPracticeTopics = listOf(
     VerbPracticeLesson("verb_work", "9. Práce a komunikace", "Pracovat, mluvit, psát, dávat a brát", listOf("arbeiten","sprechen","schreiben","geben","nehmen")),
     VerbPracticeLesson("verb_mixed", "10. Smíšené opakování", "Mix důležitých sloves ze všech předchozích sad", listOf("sein","haben","wissen","essen","trinken"))
 )
+
+internal val verbPracticeTopics = baseVerbPracticeTopics + extendedVerbPracticeTopics
 
 internal val advancedVerbPracticeTopics = verbPracticeTopics.mapIndexed { index, topic ->
     topic.copy(
