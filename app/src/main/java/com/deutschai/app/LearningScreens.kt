@@ -237,14 +237,14 @@ internal fun VerbCategoryLibraryScreen(
                     icon = { Icon(Icons.Default.Verified, contentDescription = null, tint = Forest) },
                     title = "1. Základní procvičování",
                     subtitle = "Nauč se tvary pěti důležitých sloves v různých větách.",
-                    detail = "10 lekcí · 25 otázek v každé",
+                    detail = verbPracticeTopics.size.toString() + " lekcí · 25 otázek v každé",
                     onClick = { selectedPart = "basic" }
                 )
                 LearningCard(
                     icon = { Icon(Icons.Default.School, contentDescription = null, tint = Forest) },
                     title = "2. Pokročilé procvičování",
                     subtitle = "Rozlišuj významy pěti sloves a vybírej správný tvar ze čtyř různých sloves.",
-                    detail = "10 lekcí · 25 otázek v každé",
+                    detail = verbPracticeTopics.size.toString() + " lekcí · 25 otázek v každé",
                     onClick = { selectedPart = "advanced" }
                 )
             } else {
