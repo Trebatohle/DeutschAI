@@ -132,6 +132,7 @@ private fun DeutschAIHome() {
     var selectedReadingArticle by remember { mutableStateOf<ReadingArticle?>(null) }
     var selectedLesson by remember { mutableStateOf<Lesson?>(null) }
     var selectedPhraseReviewLevel by remember { mutableStateOf<String?>(null) }
+    var selectedListeningLevel by remember { mutableStateOf<String?>(null) }
     var selectedTab by remember { mutableStateOf("Učení") }
 
     fun recordSession() {
@@ -242,6 +243,14 @@ private fun DeutschAIHome() {
         return
     }
 
+    if (selectedListeningLevel != null) {
+        ListeningPracticeScreen(
+            level = selectedListeningLevel!!,
+            onBack = { selectedListeningLevel = null; showLessonLibrary = true }
+        )
+        return
+    }
+
     if (selectedLesson != null) {
         LessonScreen(
             lesson = selectedLesson!!,
@@ -260,6 +269,10 @@ private fun DeutschAIHome() {
             },
             onSelectPhraseReview = { level ->
                 selectedPhraseReviewLevel = level
+                showLessonLibrary = false
+            },
+            onSelectListening = { level ->
+                selectedListeningLevel = level
                 showLessonLibrary = false
             }
         )
@@ -477,7 +490,8 @@ private fun DeutschAIHome() {
 private fun LessonLibraryScreen(
     onBack: () -> Unit,
     onSelectLesson: (Lesson) -> Unit,
-    onSelectPhraseReview: (String) -> Unit
+    onSelectPhraseReview: (String) -> Unit,
+    onSelectListening: (String) -> Unit
 ) {
     val context = LocalContext.current
     var selectedLevel by remember { mutableStateOf<String?>(null) }
@@ -550,6 +564,34 @@ private fun LessonLibraryScreen(
                     "Vyber si konkrétní téma, nebo si procvič fráze, které aplikace vybere podle toho, kdy je potřebuješ zopakovat.",
                     color = Muted, fontSize = 14.sp, lineHeight = 21.sp
                 )
+                Card(
+                    onClick = { onSelectListening(level) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(18.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier.size(48.dp).background(Mint, RoundedCornerShape(15.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.Headphones, contentDescription = null, tint = Forest, modifier = Modifier.size(25.dp))
+                        }
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                            Text("Poslech a porozumění", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                "Poslechni si větu v němčině (de-DE) a vyber její český význam. Text se zobrazí až po odpovědi.",
+                                color = Muted, fontSize = 13.sp, lineHeight = 19.sp
+                            )
+                            Text("25 poslechových otázek", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            LatestResultLine(CourseResultStore.load(context, "listening_$level"))
+                        }
+                    }
+                }
                 Card(
                     onClick = { onSelectPhraseReview(level) },
                     modifier = Modifier.fillMaxWidth(),
