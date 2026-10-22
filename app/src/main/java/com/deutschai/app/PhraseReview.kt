@@ -126,6 +126,7 @@ private fun savePhraseRating(
 @Composable
 internal fun PhraseReviewScreen(level: String, onBack: () -> Unit) {
     val context = LocalContext.current
+    val speaker = rememberGermanSpeechPlayer()
     val cards = remember(level) { phraseReviewCards(level) }
     var session by remember(level) {
         mutableStateOf(duePhraseCards(context, cards).shuffled().take(25))
@@ -202,6 +203,7 @@ internal fun PhraseReviewScreen(level: String, onBack: () -> Unit) {
                             Spacer(Modifier.heightIn(min = 2.dp))
                             Text("NĚMECKY", color = Forest, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                             Text(current.german, color = Ink, fontSize = 20.sp, lineHeight = 28.sp, fontWeight = FontWeight.Bold)
+                            GermanAudioControls(player = speaker, text = current.german)
                             Text("ČESKY", color = Forest, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                             Text(current.czech, color = Muted, fontSize = 15.sp, lineHeight = 22.sp)
                         }
