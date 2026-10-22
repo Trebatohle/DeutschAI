@@ -299,7 +299,7 @@ private fun BeatriceHome() {
             ) {
                 Column {
                     Text(
-                        text = "DEUTSCHAI",
+                        text = "BEATRICE",
                         color = Forest,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
