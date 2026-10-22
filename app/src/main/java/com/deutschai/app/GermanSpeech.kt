@@ -158,6 +158,11 @@ internal class GermanSpeechPlayer(private val context: Context) {
         isSpeaking = false
     }
 
+    fun retry() {
+        shutdown()
+        initialize()
+    }
+
     fun shutdown() {
         stop()
         engine?.shutdown()
@@ -221,7 +226,7 @@ internal fun GermanAudioControls(
         GermanVoiceStatus.UNAVAILABLE -> {
             Text(
                 "V telefonu není dostupný hlas němčiny pro Německo (de-DE). Jiným jazykem větu nepřehraji.",
-                color = Incorrect, fontSize = 12.sp, lineHeight = 18.sp
+                color = androidx.compose.ui.graphics.Color(0xFF9B2C20), fontSize = 12.sp, lineHeight = 18.sp
             )
             Button(
                 onClick = {
@@ -235,10 +240,16 @@ internal fun GermanAudioControls(
                 colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
                 shape = RoundedCornerShape(12.dp)
             ) { Text("Nainstalovat německý hlas", fontWeight = FontWeight.Bold) }
+            Button(
+                onClick = { player.retry() },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFEFEDE7), contentColor = Forest),
+                shape = RoundedCornerShape(12.dp)
+            ) { Text("Znovu ověřit dostupný hlas", fontWeight = FontWeight.Bold) }
         }
         GermanVoiceStatus.ERROR -> Text(
             "Nepodařilo se spustit hlasový engine. Zkontroluj v nastavení telefonu službu Převod textu na řeč.",
-            color = Incorrect, fontSize = 12.sp, lineHeight = 18.sp
+            color = androidx.compose.ui.graphics.Color(0xFF9B2C20), fontSize = 12.sp, lineHeight = 18.sp
         )
         GermanVoiceStatus.READY -> Unit
     }
