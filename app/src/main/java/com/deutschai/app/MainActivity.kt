@@ -616,6 +616,7 @@ private fun LessonScreen(
     onComplete: (score: Int, total: Int) -> Unit
 ) {
     val context = LocalContext.current
+    val speaker = rememberGermanSpeechPlayer()
     var questions by remember(lesson.id) { mutableStateOf(lesson.questions.shuffled()) }
     var questionIndex by remember(lesson.id) { mutableStateOf(0) }
     var selectedAnswer by remember(lesson.id) { mutableStateOf<Int?>(null) }
@@ -708,7 +709,7 @@ private fun LessonScreen(
                 val question = questions[questionIndex]
 
                 Text(
-                    text = "PRAKTICKÉ VĚTY A1",
+                    text = "PRAKTICKÉ VĚTY " + lesson.level,
                     color = Muted,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
@@ -762,7 +763,17 @@ private fun LessonScreen(
                                 onClick = {
                                     if (selectedAnswer == null) {
                                         selectedAnswer = index
-                                        if (index == question.correctIndex) score += 1
+                                        if (index == question.correctIndex) {
+                                            score += 1
+                                        } else {
+                                            val sourceIndex = lesson.questions.indexOfFirst {
+                                                it.germanSentence == question.germanSentence &&
+                                                    it.translation == question.translation
+                                            }
+                                            if (sourceIndex >= 0) {
+                                                markPhraseNeedsReview(context, lesson.level, lesson.id, sourceIndex)
+                                            }
+                                        }
                                     }
                                 },
                                 modifier = Modifier.fillMaxWidth(),
@@ -801,6 +812,7 @@ private fun LessonScreen(
                             if (question.germanSentence.isNotBlank()) {
                                 Text("Celá věta:", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 Text(question.germanSentence, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, lineHeight = 23.sp)
+                                GermanAudioControls(player = speaker, text = question.germanSentence)
                             }
                             if (question.translation.isNotBlank()) {
                                 Text("Česky:", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
