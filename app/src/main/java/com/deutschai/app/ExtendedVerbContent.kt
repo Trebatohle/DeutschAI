@@ -35,8 +35,8 @@ internal val extendedVerbDefinitions = listOf(
         "die Haustür§vchodové dveře", "das Fenster im Schlafzimmer§okno v ložnici", "den Koffer§kufr", "den Laden um sechs Uhr§obchod v šest hodin", "die Datei nach der Arbeit§soubor po práci"),
     extVerb("aufräumen", "uklízet", "Domácnost", "räume|räumst|räumt|räumen|räumen", "uklízím|uklízíš|uklízí|uklízíme|uklízí",
         "mein Zimmer auf§svůj pokoj", "den Schreibtisch auf§psací stůl", "die Küche nach dem Essen auf§kuchyň po jídle", "die Garage am Samstag auf§garáž v sobotu", "das Wohnzimmer nach der Feier auf§obývací pokoj po oslavě"),
-    extVerb("waschen", "prát / mýt", "Čistota a péče", "wasche|wäschst|wäscht|waschen|waschen", "peru / myji|pereš / myješ|pere / myje|pereme / myjeme|perou / myjí",
-        "die Wäsche am Wochenende§prádlo o víkendu", "das Auto am Sonntag§auto v neděli", "das Gemüse vor dem Kochen§zeleninu před vařením", "meine Hände vor dem Essen§ruce před jídlem", "die Kleidung bei niedriger Temperatur§oblečení při nízké teplotě"),
+    extVerb("waschen", "mýt", "Čistota a péče", "wasche|wäschst|wäscht|waschen|waschen", "myji|myješ|myje|myjeme|myjí",
+        "das Gesicht§obličej", "das Auto am Sonntag§auto v neděli", "das Gemüse vor dem Kochen§zeleninu před vařením", "meine Hände vor dem Essen§ruce před jídlem", "die Fenster im Frühling§okna na jaře"),
     extVerb("putzen", "čistit / uklízet", "Čistota a péče", "putze|putzt|putzt|putzen|putzen", "čistím|čistíš|čistí|čistíme|čistí",
         "die Fenster im Frühling§okna na jaře", "die Schuhe nach dem Spaziergang§boty po procházce", "das Badezimmer gründlich§koupelnu důkladně", "den Boden jeden Freitag§podlahu každý pátek", "die Küche nach dem Kochen§kuchyň po vaření"),
 
@@ -115,7 +115,7 @@ internal val extendedVerbDefinitions = listOf(
     // 18. Spolupráce, pozvání a doporučení
     extVerb("treffen", "setkávat se / potkávat", "Lidé a setkávání", "treffe|triffst|trifft|treffen|treffen", "potkávám|potkáváš|potkává|potkáváme|potkávají",
         "einen Freund nach der Arbeit§kamaráda po práci", "uns vor dem Kino§se před kinem", "die Kollegen um neun Uhr§kolegy v devět hodin", "den Kunden persönlich§zákazníka osobně", "die Nachbarn im Treppenhaus§sousedy na schodišti"),
-    extVerb("teilnehmen", "účastnit se", "Spolupráce a akce", "nehme|nimmst|nimmt|nehmen|nehmen", "účastním se|účastníš se|účastní se|účastníme se|účastní se",
+    extVerb("teilnehmen", "účastnit se", "Spolupráce a akce", "nehme|nimmst|nimmt|nehmen|nehmen", "se účastním|se účastníš|se účastní|se účastníme|se účastní",
         "an der Besprechung teil§porady", "an einem Sprachkurs teil§jazykového kurzu", "an der Konferenz teil§konference", "regelmäßig am Training teil§tréninku pravidelně", "an einer Umfrage teil§průzkumu"),
     extVerb("einladen", "zvat", "Pozvání a společenský život", "lade|lädst|lädt|laden|laden", "zvu|zveš|zve|zveme|zvou",
         "unsere Nachbarn zum Essen ein§naše sousedy na večeři", "die Kollegen zur Feier ein§kolegy na oslavu", "deine Freunde zum Geburtstag ein§své přátele na narozeniny", "die ganze Familie ein§celou rodinu", "den neuen Mitarbeiter auf einen Kaffee ein§nového kolegu na kávu"),
@@ -157,7 +157,7 @@ internal val extendedVerbDefinitions = listOf(
         "dass der Preis zu hoch ist§že je cena příliš vysoká", "das Gegenteil§opak", "etwas ohne Beweise§něco bez důkazů", "dass alles schon fertig ist§že je všechno hotové", "seine Unschuld§svou nevinu"),
     extVerb("erkennen", "rozpoznávat", "Vnímání a porozumění", "erkenne|erkennst|erkennt|erkennen|erkennen", "rozpoznávám|rozpoznáváš|rozpoznává|rozpoznáváme|rozpoznávají",
         "den Unterschied sofort§rozdíl okamžitě", "die Stimme eines Freundes§hlas kamaráda", "das Problem auf den ersten Blick§problém na první pohled", "den Fehler in der Berechnung§chybu ve výpočtu", "eine bekannte Melodie§známou melodii"),
-    extVerb("bemerken", "všímat si / zpozorovat", "Pozorování", "bemerke|bemerkst|bemerkt|bemerken|bemerken", "všímám si|všímáš si|všímá si|všímáme si|všímají si",
+    extVerb("bemerken", "všímat si / zpozorovat", "Pozorování", "bemerke|bemerkst|bemerkt|bemerken|bemerken", "si všímám|si všímáš|si všímá|si všímáme|si všímají",
         "die Veränderung sofort§změny okamžitě", "einen Fehler im Text§chyby v textu", "den Unterschied zwischen den Bildern§rozdílu mezi obrázky", "die Verspätung erst später§zpoždění až později", "dass die Tür offen steht§že jsou dveře otevřené"),
 
     // 22. Vnímání a zážitky
@@ -166,7 +166,7 @@ internal val extendedVerbDefinitions = listOf(
     extVerb("schmecken", "ochutnávat / chutnat", "Jídlo a smysly", "schmecke|schmeckst|schmeckt|schmecken|schmecken", "ochutnávám|ochutnáváš|ochutnává|ochutnáváme|ochutnávají",
         "die Kräuter in der Suppe§bylinky v polévce", "eine neue Soße§novou omáčku", "den Unterschied zwischen zwei Käsesorten§rozdíl mezi dvěma druhy sýra", "das Gericht vor dem Servieren§jídlo před podáváním", "etwas Süßes zum Nachtisch§něco sladkého jako dezert"),
     extVerb("riechen", "cítit / vonět", "Vůně a smysly", "rieche|riechst|riecht|riechen|riechen", "cítím vůni|cítíš vůni|cítí vůni|cítíme vůni|cítí vůni",
-        "den frischen Kaffee§čerstvou kávu", "das Brot aus der Bäckerei§chléb z pekárny", "den Rauch im Flur§kouř na chodbě", "die Blumen im Garten§květiny na zahradě", "den Duft von Zitronen§vůni citronů"),
+        "den frischen Kaffee§čerstvé kávy", "das Brot aus der Bäckerei§chléb z pekárny", "den Rauch im Flur§kouř na chodbě", "die Blumen im Garten§květiny na zahradě", "den Duft von Zitronen§vůni citronů"),
     extVerb("genießen", "užívat si", "Volný čas a zážitky", "genieße|genießt|genießt|genießen|genießen", "užívám si|užíváš si|užívá si|užíváme si|užívají si",
         "die Ruhe am Morgen§klid ráno", "den Urlaub am Meer§dovolenou u moře", "ein gutes Essen mit Freunden§dobré jídlo s přáteli", "den letzten Sonnenschein§poslední sluneční paprsky", "die freie Zeit mit der Familie§volný čas s rodinou"),
     extVerb("entdecken", "objevovat", "Cestování a poznávání", "entdecke|entdeckst|entdeckt|entdecken|entdecken", "objevuji|objevuješ|objevuje|objevujeme|objevují",
@@ -250,7 +250,7 @@ internal val extendedVerbDefinitions = listOf(
     extVerb("tragen", "nést / nosit", "Oblečení a předměty", "trage|trägst|trägt|tragen|tragen", "nesu / nosím|neseš / nosíš|nese / nosí|neseme / nosíme|nesou / nosí",
         "eine schwere Tasche§těžkou tašku", "im Winter einen warmen Mantel§v zimě teplý kabát", "die Kisten in den Keller§bedny do sklepa", "bei der Arbeit Schutzkleidung§v práci ochranný oděv", "die Verantwortung für das Ergebnis§odpovědnost za výsledek"),
     extVerb("verlieren", "ztrácet", "Věci a soutěže", "verliere|verlierst|verliert|verlieren|verlieren", "ztrácím|ztrácíš|ztrácí|ztrácíme|ztrácejí",
-        "meine Schlüssel§své klíče", "bei einem Spiel die Nerven§při hře nervy", "den Überblick über die Kosten§přehled o nákladech", "keine Zeit mit unnötigen Aufgaben§žádný čas zbytečnými úkoly", "leider oft den Anschluss§bohužel často přípoj"),
+        "meine Schlüssel§své klíče", "bei einem Spiel die Nerven§při hře nervy", "den Überblick über die Kosten§přehled o nákladech", "Zeit durch unnötige Aufgaben§čas zbytečnými úkoly", "leider oft den Anschluss§bohužel často přípoj"),
     extVerb("gewinnen", "vyhrávat / získávat", "Soutěže a výsledky", "gewinne|gewinnst|gewinnt|gewinnen|gewinnen", "vyhrávám|vyhráváš|vyhrává|vyhráváme|vyhrávají",
         "das Spiel mit zwei Toren§zápas o dva góly", "einen Preis bei einem Wettbewerb§cenu v soutěži", "mehr Kunden durch gute Beratung§více zákazníků díky dobrému poradenství", "das Vertrauen der Kollegen§důvěru kolegů", "die Unterstützung des Teams§podporu týmu"),
     extVerb("vergessen", "zapomínat", "Paměť a každodenní situace", "vergesse|vergisst|vergisst|vergessen|vergessen", "zapomínám|zapomínáš|zapomíná|zapomínáme|zapomínají",
