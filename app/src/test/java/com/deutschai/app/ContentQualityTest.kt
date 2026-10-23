@@ -224,6 +224,62 @@ class ContentQualityTest {
     }
 
     @Test
+    fun generatedWordToolQuestionsHaveFourDistinctChoicesAndOneValidCorrectIndex() {
+        wordToolGroups.forEach { group ->
+            wordToolModes.forEach { mode ->
+                val questions = makeWordToolQuestions(group, mode)
+                assertEquals("${group.id}/${mode.id} should have one question per item", group.items.size, questions.size)
+                questions.forEachIndexed { index, question ->
+                    assertEquals("${group.id}/${mode.id} question $index should have four choices", 4, question.choices.size)
+                    val normalizedChoices = question.choices.map { it.trim().lowercase() }
+                    assertEquals(
+                        "${group.id}/${mode.id} question $index has duplicate visible answers",
+                        normalizedChoices.size,
+                        normalizedChoices.toSet().size
+                    )
+                    assertTrue(
+                        "${group.id}/${mode.id} question $index has invalid correct index ${question.correctIndex}",
+                        question.correctIndex in question.choices.indices
+                    )
+                    when (mode.id) {
+                        "words" -> assertEquals(question.fullCzech, question.choices[question.correctIndex])
+                        "challenge" -> assertEquals(question.fullCzech, question.choices[question.correctIndex])
+                        "sentences" -> assertTrue(
+                            "${group.id} correct form is missing from the full German sentence",
+                            question.fullGerman.contains(question.choices[question.correctIndex], ignoreCase = true)
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun possessivePracticeHasCorrectOurTranslationAndNoDuplicateMeinemMeaning() {
+        val group = wordToolGroups.single { it.id == "possessives" }
+        assertFalse(
+            "The misspelling 'náše' must not appear in possessive practice",
+            group.items.any { it.czech.contains("náše", ignoreCase = true) }
+        )
+        val unser = group.items.single { it.german == "unsere" }
+        assertTrue(unser.czech.startsWith("naše", ignoreCase = true))
+        assertEquals("Unsere Schule ist groß.", unser.sentenceGerman)
+        assertEquals("Naše škola je velká.", unser.sentenceCzech)
+
+        val wordMode = wordToolModes.single { it.id == "words" }
+        val meinemQuestions = makeWordToolQuestions(group, wordMode).filter { it.prompt.contains("meinem") }
+        assertTrue("The question for 'meinem' must be present", meinemQuestions.isNotEmpty())
+        meinemQuestions.forEach { question ->
+            assertTrue("The 'meinem' question should include a sentence context", question.prompt.contains("Ich helfe meinem Vater."))
+            assertEquals(
+                "The identical Czech gloss must appear only once as a choice",
+                1,
+                question.choices.count { it == "svému (mužský rod, 3. pád)" }
+            )
+        }
+    }
+
+    @Test
     fun wellKnownDictionaryMeaningsAreNotOverriddenByMachineTranslation() {
         val article = ReadingArticle(
             id = "test",
