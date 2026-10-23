@@ -567,7 +567,14 @@ internal fun WordToolsScreen(
                                 onClick = {
                                     if (selectedAnswer == null) {
                                         selectedAnswer = index
-                                        if (index == question.correctIndex) {
+                                        val correct = index == question.correctIndex
+                                        LearningReviewStore.recordAnswer(
+                                            context = context,
+                                            question = question.toReviewQuestion(group, mode),
+                                            wasCorrect = correct,
+                                            isMistakeReview = isErrorReview
+                                        )
+                                        if (correct) {
                                             score += 1
                                         } else {
                                             wrongQuestions = wrongQuestions + question
