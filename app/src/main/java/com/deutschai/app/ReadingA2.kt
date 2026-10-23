@@ -124,7 +124,7 @@ internal val readingArticlesA2 = listOf(
             "Tierheim" to "útulek pro zvířata", "Gehege" to "ohrada / výběh", "Pfoten" to "tlapky",
             "vorsichtig" to "opatrný", "geduldig" to "trpělivý", "Vertrauen" to "důvěra",
             "Leine" to "vodítko", "schnuppert" to "čichá", "Geräusch" to "zvuk", "ausführt" to "vyvenčí",
-            "Tierarzt" to "veterinář", "Nä pfe" to "misky", "Gewohnheiten" to "návyky", "Staubsauger" to "vysavač",
+            "Tierarzt" to "veterinář", "Näpfe" to "misky", "Gewohnheiten" to "návyky", "Staubsauger" to "vysavač",
             "Hintertür" to "zadní dveře", "Spalt" to "štěrbina", "Hecke" to "živý plot", "Zaun" to "plot",
             "Sicherheit" to "bezpečnost", "Hundebesitzer" to "majitelé psů"
         )
