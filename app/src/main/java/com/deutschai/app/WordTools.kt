@@ -165,6 +165,37 @@ internal val wordToolGroups = listOf(
         "dennoch§přesto / nicméně§Es ist kalt, dennoch gehe ich joggen.§Je zima, přesto jdu běhat.",
         "also§takže / tedy§Ich bin fertig, also können wir gehen.§Jsem hotový, takže můžeme jít."
     ),
+    wordToolGroup(
+        "possessives",
+        "Přivlastňovací zájmena",
+        "mein, dein, sein, ihr… Nauč se, jak se koncovka mění podle rodu, čísla a pádu.",
+        "mein§můj (mužský rod, 1. pád)§Mein Bruder wohnt in Brünn.§Můj bratr bydlí v Brně.",
+        "meine§moje (ženský rod, 1. pád)§Meine Schwester lernt Deutsch.§Moje sestra se učí německy.",
+        "mein§moje (střední rod, 1. pád)§Mein Kind spielt im Garten.§Moje dítě si hraje na zahradě.",
+        "meine§moji (množné číslo, 1. pád)§Meine Freunde kommen heute.§Moji přátelé dnes přijdou.",
+        "meinen§svého (mužský rod, 4. pád)§Ich besuche meinen Bruder.§Navštívím svého bratra.",
+        "meinem§svému (mužský rod, 3. pád)§Ich helfe meinem Vater.§Pomáhám svému otci.",
+        "meiner§své (ženský rod, 3. pád)§Ich helfe meiner Mutter.§Pomáhám své matce.",
+        "meinen§svým (množné číslo, 3. pád)§Ich schreibe meinen Freunden.§Píšu svým přátelům.",
+        "dein§tvůj (mužský rod, 1. pád)§Dein Vater wohnt in Brünn.§Tvůj otec bydlí v Brně.",
+        "deine§tvoje (ženský rod, 1. pád)§Deine Tasche liegt hier.§Tvoje taška leží tady.",
+        "dein§tvoje (střední rod, 1. pád)§Dein Kind liest ein Buch.§Tvoje dítě čte knihu.",
+        "deinen§tvého (mužský rod, 4. pád)§Ich kenne deinen Bruder.§Znám tvého bratra.",
+        "deinem§tvému (mužský rod, 3. pád)§Ich helfe deinem Vater.§Pomáhám tvému otci.",
+        "deiner§tvé (ženský rod, 3. pád)§Ich helfe deiner Schwester.§Pomáhám tvé sestře.",
+        "sein§jeho (mužský rod, 1. pád)§Sein Bruder arbeitet heute.§Jeho bratr dnes pracuje.",
+        "seine§jeho (ženský rod, 1. pád)§Seine Schwester kommt später.§Jeho sestra přijde později.",
+        "seinen§svého (mužský rod, 4. pád)§Er besucht seinen Großvater.§Navštíví svého dědečka.",
+        "seinem§svému (mužský rod, 3. pád)§Er hilft seinem Vater.§Pomáhá svému otci.",
+        "ihr§její (mužský rod, 1. pád)§Ihr Vater lebt in Berlin.§Její otec žije v Berlíně.",
+        "ihre§její (ženský rod, 1. pád)§Ihre Mutter lebt in Wien.§Její matka žije ve Vídni.",
+        "ihre§její (množné číslo, 1. pád)§Ihre Freunde kommen morgen.§Její přátelé přijedou zítra.",
+        "unser§náš (mužský rod, 1. pád)§Unser Lehrer spricht langsam.§Náš učitel mluví pomalu.",
+        "unsere§náše (ženský rod, 1. pád)§Unsere Wohnung ist hell.§Náš byt je světlý.",
+        "euer§váš (mužský rod, 1. pád)§Euer Hund ist freundlich.§Váš pes je přátelský.",
+        "Ihre§Vaše (zdvořilé oslovení, 4. pád)§Ich habe Ihre Tasche gefunden.§Našel/Našla jsem Vaši tašku."
+    ),
+
     wordToolGroup("adverbs", "Příslovce", "Čas, četnost, místo a způsob",
         "heute§dnes§Heute arbeite ich von zu Hause.§Dnes pracuji z domova.",
         "gestern§včera§Gestern habe ich lange gearbeitet.§Včera jsem dlouho pracoval.",
@@ -227,12 +258,13 @@ private fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Lis
     val source = group.items
     return source.shuffled().map { item ->
         val index = source.indexOf(item)
-        val options = listOf(
-            item,
-            source[(index + 1) % source.size],
-            source[(index + 2) % source.size],
-            source[(index + 3) % source.size]
-        ).distinctBy { it.german }.shuffled()
+        val options = (
+            listOf(item) +
+                source.filter { it.german != item.german }
+                    .distinctBy { it.german }
+                    .shuffled()
+                    .take(3)
+            ).shuffled()
         when (mode.id) {
             "words" -> {
                 val choices = options.map { it.czech }
@@ -242,7 +274,11 @@ private fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Lis
                     correctIndex = choices.indexOf(item.czech),
                     fullGerman = item.german,
                     fullCzech = item.czech,
-                    explanation = "Uč se výraz společně s jeho významem a příkladem použití."
+                    explanation = if (group.id == "possessives") {
+                        "Koncovka přivlastňovacího zájmena se řídí rodem, číslem a pádem podstatného jména. Sleduj celý příklad, nejen český překlad."
+                    } else {
+                        "Uč se výraz společně s jeho významem a příkladem použití."
+                    }
                 )
             }
             "sentences" -> {
@@ -274,7 +310,7 @@ private fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Lis
                     correctIndex = choices.indexOf(czech),
                     fullGerman = german,
                     fullCzech = czech,
-                    explanation = "Zkus si přeložit celou větu a všímej si výrazu „" + item.german + "“ v kontextu."
+                    explanation = if (group.id == "possessives") "Všimni si koncovky přivlastňovacího výrazu. Záleží na rodu, čísle a pádu podstatného jména." else "Zkus si přeložit celou větu a všímej si výrazu „" + item.german + "“ v kontextu."
                 )
             }
         }
