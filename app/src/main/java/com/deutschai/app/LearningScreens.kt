@@ -366,14 +366,6 @@ internal fun ArticleQuizScreen(
                         shape = RoundedCornerShape(14.dp)
                     ) { Text("Opakovat jen chyby (${wrongWords.size})", fontWeight = FontWeight.Bold) }
                 }
-                if (wrongQuestions.isNotEmpty()) {
-                    Button(
-                        onClick = { repeatWrongQuestions() },
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
-                        shape = RoundedCornerShape(14.dp)
-                    ) { Text("Opakovat jen chyby (${wrongQuestions.size})", fontWeight = FontWeight.Bold) }
-                }
                 Button(
                     onClick = { restart() },
                     modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
@@ -559,6 +551,14 @@ internal fun VerbQuizScreen(
                             lineHeight = 21.sp
                         )
                     }
+                }
+                if (wrongQuestions.isNotEmpty()) {
+                    Button(
+                        onClick = { repeatWrongQuestions() },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+                        shape = RoundedCornerShape(14.dp)
+                    ) { Text("Opakovat jen chyby (${wrongQuestions.size})", fontWeight = FontWeight.Bold) }
                 }
                 Button(
                     onClick = { restart() },
