@@ -68,7 +68,7 @@ internal data class WordToolMode(
     val subtitle: String
 )
 
-private val wordToolModes = listOf(
+internal val wordToolModes = listOf(
     WordToolMode("words", "1. Překlad slov", "Vyber český význam německého výrazu."),
     WordToolMode("sentences", "2. Krátké věty", "Doplň správné slovo do jednoduché věty."),
     WordToolMode("challenge", "3. Náročnější použití", "Pochop výraz v delší větě a vyber celý český překlad.")
@@ -191,7 +191,7 @@ internal val wordToolGroups = listOf(
         "ihre§její (ženský rod, 1. pád)§Ihre Mutter lebt in Wien.§Její matka žije ve Vídni.",
         "ihre§její (množné číslo, 1. pád)§Ihre Freunde kommen morgen.§Její přátelé přijedou zítra.",
         "unser§náš (mužský rod, 1. pád)§Unser Lehrer spricht langsam.§Náš učitel mluví pomalu.",
-        "unsere§náše (ženský rod, 1. pád)§Unsere Wohnung ist hell.§Náš byt je světlý.",
+        "unsere§naše (ženský rod, 1. pád)§Unsere Schule ist groß.§Naše škola je velká.",
         "euer§váš (mužský rod, 1. pád)§Euer Hund ist freundlich.§Váš pes je přátelský.",
         "Ihre§Vaše (zdvořilé oslovení, 4. pád)§Ich habe Ihre Tasche gefunden.§Našel/Našla jsem Vaši tašku."
     ),
@@ -254,21 +254,35 @@ private fun arabicNumeral(germanNumber: String): String = when (germanNumber) {
     else -> germanNumber
 }
 
-private fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): List<WordToolQuestion> {
+private fun displayedWordToolAnswer(item: WordToolItem, modeId: String): String = when (modeId) {
+    "words" -> item.czech
+    "sentences" -> item.german
+    else -> item.sentenceCzech
+}
+
+internal fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): List<WordToolQuestion> {
     val source = group.items
     return source.shuffled().map { item ->
-        val options = (
-            listOf(item) +
-                source.filter { it.german != item.german }
-                    .distinctBy { it.german }
-                    .shuffled()
-                    .take(3)
-            ).shuffled()
+        val correctAnswerKey = displayedWordToolAnswer(item, mode.id).trim().lowercase()
+        val distractors = source.shuffled()
+            .filter { it.german != item.german }
+            .distinctBy { displayedWordToolAnswer(it, mode.id).trim().lowercase() }
+            .filter { displayedWordToolAnswer(it, mode.id).trim().lowercase() != correctAnswerKey }
+            .take(3)
+        val options = (listOf(item) + distractors).shuffled()
+        check(options.size == 4) { "Expected exactly four unique choices for ${group.id}/${mode.id}/${item.german}" }
+        check(options.map { displayedWordToolAnswer(it, mode.id).trim().lowercase() }.toSet().size == 4) {
+            "Duplicate answer choice for ${group.id}/${mode.id}/${item.german}"
+        }
         when (mode.id) {
             "words" -> {
                 val choices = options.map { it.czech }
                 WordToolQuestion(
-                    prompt = "Co znamená německý výraz „${item.german}“?",
+                    prompt = if (group.id == "possessives") {
+                        "Jaký význam má tvar „${item.german}“ v této větě?\n${item.sentenceGerman}"
+                    } else {
+                        "Co znamená německý výraz „${item.german}“?"
+                    },
                     choices = choices,
                     correctIndex = choices.indexOf(item.czech),
                     fullGerman = item.german,
@@ -285,10 +299,13 @@ private fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Lis
                 val sentenceWithBlank = pattern.replaceFirst(item.sentenceGerman, "_____")
                 val choices = options.map { it.german }
                 val numeral = arabicNumeral(item.german)
-                val sentencePrompt = if (group.id == "numbers") {
-                    "Jak se německy řekne číslo $numeral?\n$sentenceWithBlank"
-                } else {
-                    "Vyber výraz, který správně doplní chybějící místo ve větě:\n$sentenceWithBlank"
+                val sentencePrompt = when {
+                    group.id == "numbers" ->
+                        "Jak se německy řekne číslo $numeral?\n$sentenceWithBlank"
+                    group.id == "possessives" ->
+                        "Doplň správný tvar podle věty a českého významu:\n$sentenceWithBlank\nČesky: ${item.sentenceCzech}"
+                    else ->
+                        "Vyber výraz, který správně doplní chybějící místo ve větě:\n$sentenceWithBlank"
                 }
                 WordToolQuestion(
                     prompt = sentencePrompt,
@@ -329,6 +346,8 @@ internal fun WordToolsScreen(
     var selectedAnswer by remember { mutableStateOf<Int?>(null) }
     var score by remember { mutableStateOf(0) }
     var finished by remember { mutableStateOf(false) }
+    var wrongQuestions by remember { mutableStateOf<List<WordToolQuestion>>(emptyList()) }
+    var isErrorReview by remember { mutableStateOf(false) }
 
     fun startMode(mode: WordToolMode) {
         val group = selectedGroup ?: return
@@ -338,6 +357,19 @@ internal fun WordToolsScreen(
         selectedAnswer = null
         score = 0
         finished = false
+        wrongQuestions = emptyList()
+        isErrorReview = false
+    }
+
+    fun repeatWrongQuestions() {
+        if (wrongQuestions.isEmpty()) return
+        questions = wrongQuestions.shuffled()
+        wrongQuestions = emptyList()
+        questionIndex = 0
+        selectedAnswer = null
+        score = 0
+        finished = false
+        isErrorReview = true
     }
 
     fun goBackOneLevel() {
@@ -472,13 +504,26 @@ internal fun WordToolsScreen(
                                 verticalArrangement = Arrangement.spacedBy(10.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Text("Sada dokončena", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Bold)
+                                Text(if (isErrorReview) "Opakování chyb dokončeno" else "Sada dokončena", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Bold)
                                 Text("$score z ${questions.size} správně", color = Gold, fontSize = 28.sp, fontWeight = FontWeight.Bold)
                                 Text(
-                                    "Výborně. Při opakování se otázky zamíchají a můžeš si znovu procvičit celé věty.",
+                                    if (isErrorReview) {
+                                        if (wrongQuestions.isEmpty()) "Skvělé! V tomto kole už nezůstala žádná chybná odpověď."
+                                        else "Některé odpovědi ještě nejsou správně. Můžeš je zopakovat znovu."
+                                    } else {
+                                        "Při opakování se otázky zamíchají a můžeš si znovu procvičit celé věty."
+                                    },
                                     color = Color(0xFFE0EAE5), fontSize = 14.sp, lineHeight = 21.sp
                                 )
                             }
+                        }
+                        if (wrongQuestions.isNotEmpty()) {
+                            Button(
+                                onClick = { repeatWrongQuestions() },
+                                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+                                shape = RoundedCornerShape(14.dp)
+                            ) { Text("Opakovat jen chyby (${wrongQuestions.size})", fontWeight = FontWeight.Bold) }
                         }
                         Button(
                             onClick = { startMode(mode) },
@@ -518,7 +563,11 @@ internal fun WordToolsScreen(
                                 onClick = {
                                     if (selectedAnswer == null) {
                                         selectedAnswer = index
-                                        if (index == question.correctIndex) score += 1
+                                        if (index == question.correctIndex) {
+                                            score += 1
+                                        } else {
+                                            wrongQuestions = wrongQuestions + question
+                                        }
                                     }
                                 },
                                 modifier = Modifier.fillMaxWidth(),
@@ -557,9 +606,11 @@ internal fun WordToolsScreen(
                                         questionIndex += 1
                                         selectedAnswer = null
                                     } else {
-                                        CourseResultStore.save(context, "wordtools_${group.id}_${mode.id}", score, questions.size)
-                                        CourseResultStore.save(context, "wordtools_${group.id}", score, questions.size)
-                                        onComplete(score, questions.size, "wordtools_${group.id}_${mode.id}")
+                                        if (!isErrorReview) {
+                                            CourseResultStore.save(context, "wordtools_${group.id}_${mode.id}", score, questions.size)
+                                            CourseResultStore.save(context, "wordtools_${group.id}", score, questions.size)
+                                            onComplete(score, questions.size, "wordtools_${group.id}_${mode.id}")
+                                        }
                                         finished = true
                                     }
                                 },
