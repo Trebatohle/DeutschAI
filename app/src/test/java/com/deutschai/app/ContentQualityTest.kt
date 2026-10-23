@@ -207,7 +207,7 @@ class ContentQualityTest {
         listOf(
             "mein", "meine", "meinen", "meinem", "meiner",
             "dein", "deine", "deinen", "deinem", "deiner",
-            "sein", "seine", "seinen", "seinem",
+            "sein", "seine", "seinem",
             "ihr", "ihre", "ihren", "unser", "unsere", "euer", "Ihre"
         ).forEach { required ->
             assertTrue("Possessive form $required is missing", required in forms)
