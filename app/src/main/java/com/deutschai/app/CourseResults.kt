@@ -61,15 +61,19 @@ internal object LearningProgressStore {
         // The old total-session counter included failed exercises and conversations,
         // so it cannot truthfully be reused for the new perfect-session counter.
         if (!prefs.getBoolean(MIGRATION_DONE, false)) {
-            resultKeys().forEach { key ->
-                if (CourseResultStore.load(appContext, key)?.isPerfect == true) {
-                    successfulIds.add(key)
-                }
+            val legacyPerfectResults = resultKeys().filter { key ->
+                CourseResultStore.load(appContext, key)?.isPerfect == true
             }
-            prefs.edit()
+            successfulIds.addAll(legacyPerfectResults)
+            val migration = prefs.edit()
                 .putStringSet(SUCCESSFUL_ACTIVITY_IDS, successfulIds)
                 .putBoolean(MIGRATION_DONE, true)
-                .apply()
+            // The old generic session counter included failed attempts and unscored
+            // activities. Seed the new counter only from saved results known to be perfect.
+            if (!prefs.contains(SUCCESSFUL_SESSIONS)) {
+                migration.putInt(SUCCESSFUL_SESSIONS, legacyPerfectResults.size)
+            }
+            migration.apply()
         }
 
         return LearningProgressSnapshot(
