@@ -158,6 +158,37 @@ internal object LearningReviewStore {
     }
 }
 
+internal fun LessonQuestion.toReviewQuestion(
+    id: String,
+    sourceKind: String,
+    sourceTitle: String
+): ReviewQuestion = ReviewQuestion(
+    id = id,
+    sourceKind = sourceKind,
+    sourceTitle = sourceTitle,
+    prompt = prompt,
+    choices = choices,
+    correctIndex = correctIndex,
+    explanation = explanation,
+    germanSentence = germanSentence,
+    translation = translation
+)
+
+internal fun WordToolQuestion.toReviewQuestion(
+    group: WordToolGroup,
+    mode: WordToolMode
+): ReviewQuestion = ReviewQuestion(
+    id = id,
+    sourceKind = "wordtools",
+    sourceTitle = "${group.title} · ${mode.title}",
+    prompt = prompt,
+    choices = choices,
+    correctIndex = correctIndex,
+    explanation = explanation,
+    germanSentence = fullGerman,
+    translation = fullCzech
+)
+
 internal fun stableReviewId(vararg parts: String): String {
     val input = parts.joinToString(separator = "\u0000")
     val digest = MessageDigest.getInstance("SHA-256").digest(input.toByteArray(Charsets.UTF_8))
