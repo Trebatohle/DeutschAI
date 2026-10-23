@@ -287,7 +287,7 @@ internal fun VerbCategoryLibraryScreen(
 internal fun ArticleQuizScreen(
     category: ArticleCategory,
     onBack: () -> Unit,
-    onComplete: (Int) -> Unit
+    onComplete: (score: Int, total: Int) -> Unit
 ) {
     val context = LocalContext.current
     var words by remember(category.id) { mutableStateOf(category.words.shuffled()) }
@@ -423,7 +423,7 @@ internal fun ArticleQuizScreen(
                                 selectedArticle = null
                             } else {
                                 CourseResultStore.save(context, "articles_${category.id}", score, total)
-                                onComplete(score)
+                                onComplete(score, total)
                                 finished = true
                             }
                         },
@@ -443,7 +443,7 @@ internal fun ArticleQuizScreen(
 internal fun VerbQuizScreen(
     topic: VerbPracticeLesson,
     onBack: () -> Unit,
-    onComplete: (Int) -> Unit
+    onComplete: (score: Int, total: Int) -> Unit
 ) {
     val context = LocalContext.current
     var questions by remember(topic.id) { mutableStateOf(buildVerbQuestions(topic).shuffled()) }
@@ -590,7 +590,7 @@ internal fun VerbQuizScreen(
                                 selectedAnswer = null
                             } else {
                                 CourseResultStore.save(context, "verbs_${topic.id}", score, questions.size)
-                                onComplete(score)
+                                onComplete(score, questions.size)
                                 finished = true
                             }
                         },
