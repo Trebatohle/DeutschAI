@@ -414,6 +414,32 @@ internal fun WordToolsScreen(
                 selectedMode == null && selectedGroup != null -> {
                     Text(selectedGroup!!.title, color = Ink, fontSize = 27.sp, fontWeight = FontWeight.Bold)
                     Text(selectedGroup!!.subtitle, color = Muted, fontSize = 14.sp, lineHeight = 21.sp)
+                    if (selectedGroup!!.id == "possessives") {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(18.dp),
+                            colors = CardDefaults.cardColors(containerColor = Mint)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(7.dp)
+                            ) {
+                                Text("Rychlý přehled koncovek", color = Forest, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                Text("1. pád · kdo/co", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text("mein Vater · meine Mutter · mein Kind · meine Freunde", color = Ink, fontSize = 14.sp, lineHeight = 20.sp)
+                                Text("4. pád · koho/co", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text("meinen Vater · meine Mutter · mein Kind · meine Freunde", color = Ink, fontSize = 14.sp, lineHeight = 20.sp)
+                                Text("3. pád · komu/čemu", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text("meinem Vater · meiner Mutter · meinem Kind · meinen Freunden", color = Ink, fontSize = 14.sp, lineHeight = 20.sp)
+                                Text(
+                                    "Nejdřív určuj pád a rod/číslo podstatného jména. Podle nich vybereš koncovku přivlastňovacího zájmena.",
+                                    color = Forest,
+                                    fontSize = 13.sp,
+                                    lineHeight = 19.sp
+                                )
+                            }
+                        }
+                    }
                     wordToolModes.forEach { mode ->
                         Card(
                             onClick = { startMode(mode) },
