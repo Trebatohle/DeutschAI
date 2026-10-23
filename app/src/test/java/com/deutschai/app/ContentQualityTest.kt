@@ -34,6 +34,25 @@ class ContentQualityTest {
     }
 
     @Test
+    fun everyReadingStoryExceedsOneThousandWordsAndHasNoRepeatedParagraphs() {
+        readingArticles.forEach { article ->
+            assertTrue(
+                "${article.id} has only ${article.wordCount} words",
+                article.wordCount > 1000
+            )
+            val paragraphs = article.body.trim()
+                .split(Regex("\\n\\s*\\n"))
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+            assertEquals(
+                "${article.id} contains a duplicated paragraph",
+                paragraphs.size,
+                paragraphs.toSet().size
+            )
+        }
+    }
+
+    @Test
     fun additionalStoriesDoNotRepeatTheirOwnParagraphs() {
         additionalStories.forEach { article ->
             val paragraphs = article.body.trim()
