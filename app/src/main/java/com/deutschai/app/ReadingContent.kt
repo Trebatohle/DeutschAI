@@ -91,6 +91,7 @@ private val coreGermanGlossary = mapOf(
     "offenbar" to "zjevně", "vermutlich" to "pravděpodobně", "vielleicht" to "možná", "kaum" to "sotva",
     "mindestens" to "nejméně", "höchstens" to "nejvýše", "ungefähr" to "přibližně", "circa" to "asi",
     "Tisch" to "stůl", "Tische" to "stoly", "Tischen" to "stolech",
+    "Tabelle" to "tabulka", "Tabellen" to "tabulky",
     "die Zeit" to "čas", "der Tag" to "den", "die Woche" to "týden", "der Monat" to "měsíc",
     "das Jahr" to "rok", "die Stunde" to "hodina", "die Minute" to "minuta", "der Morgen" to "ráno",
     "der Abend" to "večer", "die Nacht" to "noc", "die Arbeit" to "práce", "der Beruf" to "povolání",
