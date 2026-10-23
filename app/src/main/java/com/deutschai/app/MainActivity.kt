@@ -135,6 +135,53 @@ private fun BeatriceHome() {
     var selectedPhraseReviewLevel by remember { mutableStateOf<String?>(null) }
     var selectedListeningLevel by remember { mutableStateOf<String?>(null) }
     var selectedTab by remember { mutableStateOf("Učení") }
+    var lastActivityType by remember(preferences) {
+        mutableStateOf(preferences.getString("last_activity_type", "") ?: "")
+    }
+    var lastActivityId by remember(preferences) {
+        mutableStateOf(preferences.getString("last_activity_id", "") ?: "")
+    }
+    var lastActivityTitle by remember(preferences) {
+        mutableStateOf(preferences.getString("last_activity_title", "") ?: "")
+    }
+
+    fun saveLastActivity(type: String, id: String, title: String) {
+        lastActivityType = type
+        lastActivityId = id
+        lastActivityTitle = title
+        preferences.edit()
+            .putString("last_activity_type", type)
+            .putString("last_activity_id", id)
+            .putString("last_activity_title", title)
+            .apply()
+    }
+
+    fun continueLastActivity() {
+        when (lastActivityType) {
+            "lesson" -> {
+                val item = lessons.firstOrNull { it.id == lastActivityId }
+                if (item != null) selectedLesson = item else showLearningHub = true
+            }
+            "listening" -> selectedListeningLevel = lastActivityId
+            "phrase-review" -> selectedPhraseReviewLevel = lastActivityId
+            "reading" -> {
+                val item = readingArticles.firstOrNull { it.id == lastActivityId }
+                if (item != null) selectedReadingArticle = item else showLearningHub = true
+            }
+            "dialogue" -> showConversation = true
+            "word-tools" -> showWordTools = true
+            "article-quiz" -> {
+                val item = articleCategories.firstOrNull { it.id == lastActivityId }
+                if (item != null) selectedArticleCategory = item else showLearningHub = true
+            }
+            "verb-quiz" -> {
+                val item = (verbPracticeTopics + advancedVerbPracticeTopics)
+                    .firstOrNull { it.id == lastActivityId }
+                if (item != null) selectedVerbTopic = item else showLearningHub = true
+            }
+            else -> showLearningHub = true
+        }
+    }
 
     fun recordSession() {
         completedSessions += 1
@@ -176,6 +223,7 @@ private fun BeatriceHome() {
         ReadingLibraryScreen(
             onBack = { showReadingLibrary = false; showLearningHub = true },
             onSelectArticle = { article ->
+                saveLastActivity("reading", article.id, article.title)
                 selectedReadingArticle = article
                 showReadingLibrary = false
             }
@@ -205,6 +253,7 @@ private fun BeatriceHome() {
         ArticleCategoryLibraryScreen(
             onBack = { showArticleCategories = false; showLearningHub = true },
             onSelectCategory = { category ->
+                saveLastActivity("article-quiz", category.id, category.title)
                 selectedArticleCategory = category
                 showArticleCategories = false
             }
@@ -216,6 +265,7 @@ private fun BeatriceHome() {
         VerbCategoryLibraryScreen(
             onBack = { showVerbCategories = false; showLearningHub = true },
             onSelectTopic = { topic ->
+                saveLastActivity("verb-quiz", topic.id, topic.title)
                 selectedVerbTopic = topic
                 showVerbCategories = false
             }
@@ -229,9 +279,17 @@ private fun BeatriceHome() {
             onCourses = { showLearningHub = false; showLessonLibrary = true },
             onArticles = { showLearningHub = false; showArticleCategories = true },
             onVerbs = { showLearningHub = false; showVerbCategories = true },
-            onDialogues = { showLearningHub = false; showConversation = true },
+            onDialogues = {
+                saveLastActivity("dialogue", "dialogue", "Řízené dialogy s Beatrice")
+                showLearningHub = false
+                showConversation = true
+            },
             onReading = { showLearningHub = false; showReadingLibrary = true },
-            onWordTools = { showLearningHub = false; showWordTools = true }
+            onWordTools = {
+                saveLastActivity("word-tools", "word-tools", "Slovní nástroje")
+                showLearningHub = false
+                showWordTools = true
+            }
         )
         return
     }
@@ -265,14 +323,17 @@ private fun BeatriceHome() {
         LessonLibraryScreen(
             onBack = { showLessonLibrary = false; showLearningHub = true },
             onSelectLesson = { lesson ->
+                saveLastActivity("lesson", lesson.id, lesson.title)
                 selectedLesson = lesson
                 showLessonLibrary = false
             },
             onSelectPhraseReview = { level ->
+                saveLastActivity("phrase-review", level, "Opakování frází $level")
                 selectedPhraseReviewLevel = level
                 showLessonLibrary = false
             },
             onSelectListening = { level ->
+                saveLastActivity("listening", level, "Poslech a porozumění $level")
                 selectedListeningLevel = level
                 showLessonLibrary = false
             }
@@ -356,16 +417,48 @@ private fun BeatriceHome() {
                         fontSize = 14.sp,
                         lineHeight = 21.sp
                     )
-                    Button(
-                        onClick = { showLearningHub = true },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Gold,
-                            contentColor = Ink
-                        ),
-                        shape = RoundedCornerShape(14.dp)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Vybrat lekci", fontWeight = FontWeight.Bold)
+                        Button(
+                            onClick = { showLearningHub = true },
+                            modifier = Modifier.weight(1f).heightIn(min = 50.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Gold,
+                                contentColor = Ink
+                            ),
+                            shape = RoundedCornerShape(14.dp)
+                        ) {
+                            Text("Vybrat lekci", fontWeight = FontWeight.Bold, maxLines = 1)
+                        }
+                        Button(
+                            onClick = { continueLastActivity() },
+                            enabled = lastActivityType.isNotBlank(),
+                            modifier = Modifier.weight(1f).heightIn(min = 50.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.White,
+                                contentColor = Forest,
+                                disabledContainerColor = Color(0xFF31584F),
+                                disabledContentColor = Color(0xFFB9CDC4)
+                            ),
+                            shape = RoundedCornerShape(14.dp)
+                        ) {
+                            Text("Pokračovat", fontWeight = FontWeight.Bold, maxLines = 1)
+                        }
                     }
+                    Text(
+                        text = if (lastActivityTitle.isNotBlank()) {
+                            "Naposledy: $lastActivityTitle"
+                        } else {
+                            "Poslední aktivita se uloží automaticky."
+                        },
+                        color = Color(0xFFC7DFD3),
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp,
+                        maxLines = 2
+                    )
                 }
             }
 
@@ -436,7 +529,10 @@ private fun BeatriceHome() {
                 icon = { Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = Forest) },
                 title = "Řízené dialogy s Beatrice",
                 subtitle = "Tři doporučené odpovědi, překlad a navazující rozhovor",
-                onClick = { showConversation = true }
+                onClick = {
+                    saveLastActivity("dialogue", "dialogue", "Řízené dialogy s Beatrice")
+                    showConversation = true
+                }
             )
             FeatureCard(
                 icon = { Icon(Icons.Default.School, contentDescription = null, tint = Forest) },
