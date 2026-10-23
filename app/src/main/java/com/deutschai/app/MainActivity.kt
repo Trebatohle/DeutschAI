@@ -24,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.filled.MenuBook
@@ -117,8 +118,11 @@ private fun BeatriceHome() {
     var progressStats by remember(preferences) {
         mutableStateOf(LearningProgressStore.load(context))
     }
+    var habitStats by remember(preferences) { mutableStateOf(StudyHabitStore.load(context)) }
+    var pendingReviewCount by remember(preferences) { mutableStateOf(LearningReviewStore.pendingCount(context)) }
 
     var showConversation by remember { mutableStateOf(false) }
+    var showDailyTraining by remember { mutableStateOf(false) }
     var showWordTools by remember { mutableStateOf(false) }
     var showLearningHub by remember { mutableStateOf(false) }
     var showLessonLibrary by remember { mutableStateOf(false) }
@@ -166,6 +170,7 @@ private fun BeatriceHome() {
                 if (item != null) selectedReadingArticle = item else showLearningHub = true
             }
             "dialogue" -> showConversation = true
+            "daily-training" -> showDailyTraining = true
             "word-tools" -> showWordTools = true
             "article-quiz" -> {
                 val item = articleCategories.firstOrNull { it.id == lastActivityId }
@@ -182,11 +187,24 @@ private fun BeatriceHome() {
 
     fun recordScore(score: Int, total: Int, activityKey: String) {
         if (total <= 0) return
+        habitStats = StudyHabitStore.recordSession(context)
+        pendingReviewCount = LearningReviewStore.pendingCount(context)
         progressStats = if (score == total) {
             LearningProgressStore.recordPerfectSession(context, activityKey)
         } else {
             LearningProgressStore.load(context)
         }
+    }
+
+    if (showDailyTraining) {
+        DailyTrainingScreen(
+            onBack = { showDailyTraining = false },
+            onComplete = { score, total ->
+                CourseResultStore.save(context, "daily_training", score, total)
+                recordScore(score, total, "daily_training")
+            }
+        )
+        return
     }
 
     if (showWordTools) {
@@ -510,9 +528,9 @@ private fun BeatriceHome() {
                 )
                 ProgressCard(
                     modifier = Modifier.weight(1f),
-                    title = "Dostupné",
-                    value = lessons.size.toString(),
-                    detail = "Offline lekce"
+                    title = "Týdenní cíl",
+                    value = "${habitStats.studyDaysInLastWeek}/5 dní",
+                    detail = "Série: ${habitStats.currentStreakDays} dní"
                 )
             }
 
@@ -523,6 +541,15 @@ private fun BeatriceHome() {
                 fontWeight = FontWeight.Bold
             )
 
+            FeatureCard(
+                icon = { Icon(Icons.Default.CalendarToday, contentDescription = null, tint = Forest) },
+                title = "Osobní denní trénink",
+                subtitle = "10 otázek podle tvých výsledků · ${pendingReviewCount} uložených chyb · offline",
+                onClick = {
+                    saveLastActivity("daily-training", "daily-training", "Osobní denní trénink")
+                    showDailyTraining = true
+                }
+            )
             FeatureCard(
                 icon = { Icon(Icons.Default.MenuBook, contentDescription = null, tint = Forest) },
                 title = "Knihovna učení",
@@ -934,18 +961,31 @@ private fun LessonScreen(
                                 onClick = {
                                     if (selectedAnswer == null) {
                                         selectedAnswer = index
-                                        if (index == question.correctIndex) {
-                                            score += 1
-                                        } else {
-                                            wrongQuestions = wrongQuestions + question
-                                            val sourceIndex = lesson.questions.indexOfFirst {
-                                                it.germanSentence == question.germanSentence &&
-                                                    it.translation == question.translation
-                                            }
-                                            if (sourceIndex >= 0) {
-                                                markPhraseNeedsReview(context, lesson.level, lesson.id, sourceIndex)
-                                            }
+                                        val sourceIndex = lesson.questions.indexOfFirst {
+                                        it.germanSentence == question.germanSentence &&
+                                            it.translation == question.translation
+                                    }
+                                    if (sourceIndex >= 0) {
+                                        val reviewQuestion = question.toReviewQuestion(
+                                            id = stableReviewId("sentence", lesson.id, sourceIndex.toString()),
+                                            sourceKind = "sentences",
+                                            sourceTitle = lesson.title
+                                        )
+                                        LearningReviewStore.recordAnswer(
+                                            context = context,
+                                            question = reviewQuestion,
+                                            wasCorrect = index == question.correctIndex,
+                                            isMistakeReview = isErrorReview
+                                        )
+                                    }
+                                    if (index == question.correctIndex) {
+                                        score += 1
+                                    } else {
+                                        wrongQuestions = wrongQuestions + question
+                                        if (sourceIndex >= 0) {
+                                            markPhraseNeedsReview(context, lesson.level, lesson.id, sourceIndex)
                                         }
+                                    }
                                     }
                                 },
                                 modifier = Modifier.fillMaxWidth(),
