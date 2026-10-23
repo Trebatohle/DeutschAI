@@ -491,7 +491,7 @@ private fun BeatriceHome() {
                     modifier = Modifier.weight(1f),
                     title = "Úspěšně dokončeno",
                     value = progressStats.successfullyCompletedActivities.toString(),
-                    detail = "Sady se 100 %"
+                    detail = null
                 )
             }
 
@@ -501,9 +501,9 @@ private fun BeatriceHome() {
             ) {
                 ProgressCard(
                     modifier = Modifier.weight(1f),
-                    title = "Úspěšná sezení",
-                    value = progressStats.successfulSessions.toString(),
-                    detail = "100 % správně"
+                    title = "Procvičené sady",
+                    value = progressStats.practicedActivities.toString(),
+                    detail = "Alespoň jeden pokus"
                 )
                 ProgressCard(
                     modifier = Modifier.weight(1f),
@@ -763,6 +763,8 @@ private fun LessonScreen(
     var selectedAnswer by remember(lesson.id) { mutableStateOf<Int?>(null) }
     var score by remember(lesson.id) { mutableStateOf(0) }
     var finished by remember(lesson.id) { mutableStateOf(false) }
+    var wrongQuestions by remember(lesson.id) { mutableStateOf<List<LessonQuestion>>(emptyList()) }
+    var isErrorReview by remember(lesson.id) { mutableStateOf(false) }
 
     fun restartLesson() {
         questions = lesson.questions.shuffled()
@@ -770,6 +772,19 @@ private fun LessonScreen(
         selectedAnswer = null
         score = 0
         finished = false
+        wrongQuestions = emptyList()
+        isErrorReview = false
+    }
+
+    fun repeatWrongQuestions() {
+        if (wrongQuestions.isEmpty()) return
+        questions = wrongQuestions.shuffled()
+        wrongQuestions = emptyList()
+        questionIndex = 0
+        selectedAnswer = null
+        score = 0
+        finished = false
+        isErrorReview = true
     }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
@@ -811,7 +826,7 @@ private fun LessonScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Icon(Icons.Default.School, contentDescription = null, tint = Gold, modifier = Modifier.size(48.dp))
-                        Text("Lekce dokončena!", color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                        Text(if (isErrorReview) "Opakování chyb dokončeno" else "Lekce dokončena!", color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Bold)
                         Text(
                             score.toString() + " z " + questions.size + " správně",
                             color = Gold,
@@ -820,6 +835,8 @@ private fun LessonScreen(
                         )
                         Text(
                             text = when {
+                                isErrorReview && wrongQuestions.isEmpty() -> "Skvělé! V tomto kole už nezůstala žádná chybná odpověď."
+                                isErrorReview -> "Některé odpovědi stále potřebují procvičit. Můžeš je zopakovat znovu."
                                 score == questions.size -> "Výborně! Všechny odpovědi jsou správně."
                                 score >= (questions.size * 0.6).toInt() -> "Dobrá práce. Krátké opakování ti pomůže zapamatovat si zbytek."
                                 else -> "Každý začátek se počítá. Zkus si lekci zopakovat."
@@ -828,6 +845,16 @@ private fun LessonScreen(
                             fontSize = 14.sp,
                             lineHeight = 21.sp
                         )
+                    }
+                }
+                if (wrongQuestions.isNotEmpty()) {
+                    Button(
+                        onClick = { repeatWrongQuestions() },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Text("Opakovat jen chyby (${wrongQuestions.size})", fontWeight = FontWeight.Bold)
                     }
                 }
                 Button(
@@ -907,6 +934,7 @@ private fun LessonScreen(
                                         if (index == question.correctIndex) {
                                             score += 1
                                         } else {
+                                            wrongQuestions = wrongQuestions + question
                                             val sourceIndex = lesson.questions.indexOfFirst {
                                                 it.germanSentence == question.germanSentence &&
                                                     it.translation == question.translation
@@ -967,8 +995,10 @@ private fun LessonScreen(
                                 questionIndex += 1
                                 selectedAnswer = null
                             } else {
-                                CourseResultStore.save(context, "sentence_${lesson.id}", score, questions.size)
-                                onComplete(score, questions.size)
+                                if (!isErrorReview) {
+                                    CourseResultStore.save(context, "sentence_${lesson.id}", score, questions.size)
+                                    onComplete(score, questions.size)
+                                }
                                 finished = true
                             }
                         },
@@ -1338,7 +1368,7 @@ private fun ProgressCard(
     modifier: Modifier = Modifier,
     title: String,
     value: String,
-    detail: String
+    detail: String?
 ) {
     Card(
         modifier = modifier,
@@ -1351,7 +1381,7 @@ private fun ProgressCard(
         ) {
             Text(title, color = Muted, fontSize = 13.sp)
             Text(value, color = Forest, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-            Text(detail, color = Muted, fontSize = 12.sp)
+            if (!detail.isNullOrBlank()) Text(detail, color = Muted, fontSize = 12.sp)
         }
     }
 }
