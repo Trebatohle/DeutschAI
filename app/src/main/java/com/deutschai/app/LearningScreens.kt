@@ -89,9 +89,9 @@ internal fun LearningHubScreen(
             )
             LearningCard(
                 icon = { Icon(Icons.Default.Translate, contentDescription = null, tint = Forest) },
-                title = "Číslovky, předložky, spojky a příslovce",
-                subtitle = "Každá oblast má překlad slov, krátké věty a náročnější použití v kontextu.",
-                detail = "4 oblasti · 3 úrovně procvičení",
+                title = "Číslovky, předložky, spojky, příslovce a přivlastňovací zájmena",
+                subtitle = "Každá oblast má překlad, krátké věty a náročnější použití v kontextu.",
+                detail = "${wordToolGroups.size} oblastí · 3 úrovně procvičení",
                 onClick = onWordTools
             )
             LearningCard(
