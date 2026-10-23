@@ -280,6 +280,35 @@ class ContentQualityTest {
     }
 
     @Test
+    fun offlineDailyTrainingPoolIsLargeUniqueAndEveryQuestionHasOneCorrectChoice() {
+        val pool = buildDailyTrainingPool()
+        assertTrue("The daily pool should reuse a broad amount of bundled content", pool.size >= 100)
+        val ids = pool.map { it.id }
+        assertEquals("Daily training IDs must be unique", ids.size, ids.toSet().size)
+
+        pool.forEach { question ->
+            assertTrue("Question ${question.id} has no prompt", question.prompt.isNotBlank())
+            assertTrue("Question ${question.id} has too few answers", question.choices.size >= 3)
+            assertTrue(
+                "Question ${question.id} must have a valid correct answer",
+                question.correctIndex in question.choices.indices
+            )
+            val normalizedChoices = question.choices.map { it.trim().lowercase() }
+            assertEquals(
+                "Question ${question.id} contains a duplicate displayed answer",
+                normalizedChoices.size,
+                normalizedChoices.toSet().size
+            )
+            assertTrue("Question ${question.id} has no source kind", question.sourceKind.isNotBlank())
+        }
+        assertEquals(
+            "Stable review IDs should not change between daily-trainer builds",
+            stableReviewId("sentence", "first_steps", "0"),
+            stableReviewId("sentence", "first_steps", "0")
+        )
+    }
+
+    @Test
     fun wellKnownDictionaryMeaningsAreNotOverriddenByMachineTranslation() {
         val article = ReadingArticle(
             id = "test",
