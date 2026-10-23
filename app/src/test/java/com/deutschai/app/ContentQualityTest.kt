@@ -184,6 +184,46 @@ class ContentQualityTest {
     }
 
     @Test
+    fun wordToolGroupsContainTwentyFiveCompletePracticeItems() {
+        assertEquals("Five grammar and vocabulary areas are expected", 5, wordToolGroups.size)
+        val ids = wordToolGroups.map { it.id }
+        assertEquals("Word-tool group IDs must be unique", ids.size, ids.toSet().size)
+
+        wordToolGroups.forEach { group ->
+            assertEquals("${group.id} should contain 25 items", 25, group.items.size)
+            group.items.forEachIndexed { index, item ->
+                assertTrue("${group.id} item ${index} has no German expression", item.german.isNotBlank())
+                assertTrue("${group.id} item ${index} has no Czech meaning", item.czech.isNotBlank())
+                assertTrue("${group.id} item ${index} has no German example", item.sentenceGerman.isNotBlank())
+                assertTrue("${group.id} item ${index} has no Czech example", item.sentenceCzech.isNotBlank())
+            }
+        }
+    }
+
+    @Test
+    fun possessivePronounPracticeCoversCoreFormsAndGrammaticalCases() {
+        val group = wordToolGroups.single { it.id == "possessives" }
+        val forms = group.items.map { it.german }.toSet()
+        listOf(
+            "mein", "meine", "meinen", "meinem", "meiner",
+            "dein", "deine", "deinen", "deinem", "deiner",
+            "sein", "seine", "seinen", "seinem",
+            "ihr", "ihre", "ihren", "unser", "unsere", "euer", "Ihre"
+        ).forEach { required ->
+            assertTrue("Possessive form $required is missing", required in forms)
+        }
+        assertTrue(group.subtitle.contains("rod", ignoreCase = true))
+        assertTrue(group.subtitle.contains("pád", ignoreCase = true))
+        assertTrue(group.subtitle.contains("čísla", ignoreCase = true))
+        group.items.forEach { item ->
+            assertTrue(
+                "Example for ${item.german} should include the form it teaches",
+                item.sentenceGerman.contains(item.german, ignoreCase = true)
+            )
+        }
+    }
+
+    @Test
     fun wellKnownDictionaryMeaningsAreNotOverriddenByMachineTranslation() {
         val article = ReadingArticle(
             id = "test",
