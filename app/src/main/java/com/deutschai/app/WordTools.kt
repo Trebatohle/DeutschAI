@@ -296,7 +296,7 @@ private fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Lis
                     correctIndex = choices.indexOf(item.german),
                     fullGerman = item.sentenceGerman,
                     fullCzech = item.sentenceCzech,
-                    explanation = if (group.id == "possessives") "Tvar „${item.german}“ odpovídá rodu, číslu a pádu podstatného jména ve větě." else "Výraz „${item.german}“ zde znamená „${item.czech}“.
+                    explanation = if (group.id == "possessives") "Tvar „${item.german}“ odpovídá rodu, číslu a pádu podstatného jména ve větě." else "Výraz „${item.german}“ zde znamená „${item.czech}“."
                 )
             }
             else -> {
