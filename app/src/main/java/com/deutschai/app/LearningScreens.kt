@@ -675,7 +675,7 @@ internal fun VerbQuizScreen(
 }
 
 
-private fun buildVerbQuestions(lesson: VerbPracticeLesson): List<LessonQuestion> =
+internal fun buildVerbQuestions(lesson: VerbPracticeLesson): List<LessonQuestion> =
     if (lesson.id.startsWith("advanced_")) createAdvancedVerbQuestions(lesson)
     else createVerbQuestions(lesson)
 
