@@ -54,6 +54,7 @@ internal data class WordToolGroup(
 )
 
 internal data class WordToolQuestion(
+    val id: String,
     val prompt: String,
     val choices: List<String>,
     val correctIndex: Int,
@@ -278,6 +279,7 @@ internal fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Li
             "words" -> {
                 val choices = options.map { it.czech }
                 WordToolQuestion(
+                    id = stableReviewId("wordtools", group.id, mode.id, item.german, item.sentenceGerman),
                     prompt = if (group.id == "possessives") {
                         "Jaký význam má tvar „${item.german}“ v této větě?\n${item.sentenceGerman}"
                     } else {
@@ -308,6 +310,7 @@ internal fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Li
                         "Vyber výraz, který správně doplní chybějící místo ve větě:\n$sentenceWithBlank"
                 }
                 WordToolQuestion(
+                    id = stableReviewId("wordtools", group.id, mode.id, item.german, item.sentenceGerman),
                     prompt = sentencePrompt,
                     choices = choices,
                     correctIndex = choices.indexOf(item.german),
@@ -321,6 +324,7 @@ internal fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Li
                 val czech = item.sentenceCzech
                 val choices = options.map { it.sentenceCzech }
                 WordToolQuestion(
+                    id = stableReviewId("wordtools", group.id, mode.id, item.german, item.sentenceGerman),
                     prompt = "Vyber správný český překlad celé věty:\n" + german,
                     choices = choices,
                     correctIndex = choices.indexOf(czech),
