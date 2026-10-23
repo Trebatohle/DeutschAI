@@ -181,8 +181,11 @@ private fun BeatriceHome() {
     }
 
     fun recordScore(score: Int, total: Int, activityKey: String) {
-        if (total > 0 && score == total) {
-            progressStats = LearningProgressStore.recordPerfectSession(context, activityKey)
+        if (total <= 0) return
+        progressStats = if (score == total) {
+            LearningProgressStore.recordPerfectSession(context, activityKey)
+        } else {
+            LearningProgressStore.load(context)
         }
     }
 
