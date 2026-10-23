@@ -185,7 +185,7 @@ internal val wordToolGroups = listOf(
         "deiner§tvé (ženský rod, 3. pád)§Ich helfe deiner Schwester.§Pomáhám tvé sestře.",
         "sein§jeho (mužský rod, 1. pád)§Sein Bruder arbeitet heute.§Jeho bratr dnes pracuje.",
         "seine§jeho (ženský rod, 1. pád)§Seine Schwester kommt später.§Jeho sestra přijde později.",
-        "seinen§svého (mužský rod, 4. pád)§Er besucht seinen Großvater.§Navštíví svého dědečka.",
+        "ihr§její (mužský rod, 1. pád)§Das ist ihr Bruder.§To je její bratr.",
         "seinem§svému (mužský rod, 3. pád)§Er hilft seinem Vater.§Pomáhá svému otci.",
         "ihr§její (mužský rod, 1. pád)§Ihr Vater lebt in Berlin.§Její otec žije v Berlíně.",
         "ihre§její (ženský rod, 1. pád)§Ihre Mutter lebt in Wien.§Její matka žije ve Vídni.",
