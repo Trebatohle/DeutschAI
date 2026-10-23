@@ -10,15 +10,19 @@ internal fun decodeReadingBody(encoded: String): String {
     return GZIPInputStream(ByteArrayInputStream(compressed)).bufferedReader(Charsets.UTF_8).use { it.readText() }
 }
 
-internal fun buildAdvancedReadingBody(seed: String, extension: List<String>, offset: Int = 0): String {
-    val parts = mutableListOf(seed.trim())
-    var words = parts[0].split(Regex("\\s+")).size
-    var index = offset
-    while (words < 1000) {
-        val paragraph = extension[index % extension.size]
-        parts += paragraph
-        words += paragraph.split(Regex("\\s+")).size
-        index++
+internal fun buildAdvancedReadingBody(seed: String, extension: List<String>): String {
+    val seedText = seed.trim()
+    val paragraphs = extension.map { it.trim() }.filter { it.isNotEmpty() }
+    require(seedText.isNotEmpty()) { "Reading story seed must not be empty." }
+    require(paragraphs.isNotEmpty()) { "Reading story continuation must not be empty." }
+    require(paragraphs.size == paragraphs.toSet().size) {
+        "Reading story continuation contains duplicate paragraphs."
     }
-    return parts.joinToString("\n\n")
+
+    val body = (listOf(seedText) + paragraphs).joinToString("\n\n")
+    val wordCount = body.split(Regex("\\s+")).count { it.isNotBlank() }
+    require(wordCount > 1000) {
+        "Reading story must exceed 1,000 words, but contains $wordCount."
+    }
+    return body
 }
