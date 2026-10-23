@@ -802,7 +802,7 @@ private val a1SentenceCourseCatalog = listOf(
         "Řekneš, že máš rezervaci pro dva.§Ich habe einen Tisch für zwei Personen reserviert.§Mám rezervovaný stůl pro dvě osoby.",
         "Požádáš o jídlo s sebou.§Kann ich das bitte zum Mitnehmen bekommen?§Mohu to prosím dostat s sebou?",
         "Řekneš, že už jsi sytý.§Danke, ich bin schon satt.§Děkuji, už jsem sytý.",
-        "Pochválíš dezert.§Der Kuchen ist wirklich lecker.§Dort je opravdu výborný.",
+        "Pochválíš dezert.§Der Kuchen ist wirklich lecker.§Ten dort je opravdu výborný.",
         "Rozloučíš se a poděkuješ za jídlo.§Vielen Dank, es hat sehr gut geschmeckt.§Moc děkuji, velmi mi chutnalo."
     ),
     sentenceCourse("shopping", "Nakupování", "Ceny, velikosti, placení a reklamace",
@@ -894,7 +894,7 @@ private val a1SentenceCourseCatalog = listOf(
         "Zeptáš se na něčí koníček.§Was machst du gern in deiner Freizeit?§Co rád děláš ve volném čase?",
         "Řekneš, že o víkendu běháš.§Am Wochenende gehe ich joggen.§O víkendu chodím běhat.",
         "Oznámíš, že hraješ na kytaru.§Ich spiele Gitarre.§Hraji na kytaru.",
-        "Pozveš kamaráda na procházku.§Möchtest du mit mir spazieren gehen?§Chceš se se mnou jít projít?",
+        "Pozveš kamaráda na procházku.§Möchtest du mit mir spazieren gehen?§Chceš se mnou jít na procházku?",
         "Řekneš, že dnes raději zůstaneš doma.§Heute bleibe ich lieber zu Hause.§Dnes raději zůstanu doma.",
         "Zeptáš se na oblíbený film.§Welchen Film magst du am liebsten?§Který film máš nejraději?",
         "Povíš, že rád cestuješ.§Ich reise sehr gern.§Velmi rád cestuji.",
