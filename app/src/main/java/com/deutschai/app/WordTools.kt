@@ -257,7 +257,6 @@ private fun arabicNumeral(germanNumber: String): String = when (germanNumber) {
 private fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): List<WordToolQuestion> {
     val source = group.items
     return source.shuffled().map { item ->
-        val index = source.indexOf(item)
         val options = (
             listOf(item) +
                 source.filter { it.german != item.german }
@@ -318,7 +317,10 @@ private fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Lis
 }
 
 @Composable
-internal fun WordToolsScreen(onBack: () -> Unit) {
+internal fun WordToolsScreen(
+    onBack: () -> Unit,
+    onComplete: (score: Int, total: Int, activityKey: String) -> Unit
+) {
     val context = LocalContext.current
     var selectedGroup by remember { mutableStateOf<WordToolGroup?>(null) }
     var selectedMode by remember { mutableStateOf<WordToolMode?>(null) }
@@ -531,6 +533,7 @@ internal fun WordToolsScreen(onBack: () -> Unit) {
                                     } else {
                                         CourseResultStore.save(context, "wordtools_${group.id}_${mode.id}", score, questions.size)
                                         CourseResultStore.save(context, "wordtools_${group.id}", score, questions.size)
+                                        onComplete(score, questions.size, "wordtools_${group.id}_${mode.id}")
                                         finished = true
                                     }
                                 },
