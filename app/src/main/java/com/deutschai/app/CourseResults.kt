@@ -36,6 +36,80 @@ internal object CourseResultStore {
     }
 }
 
+internal data class LearningProgressSnapshot(
+    val successfullyCompletedActivities: Int,
+    val successfulSessions: Int
+)
+
+/**
+ * Counts only quiz attempts with a perfect score. Activity totals count each unique
+ * course/category/mode once, while successfulSessions counts every 100% attempt.
+ */
+internal object LearningProgressStore {
+    private const val PREFS = "deutschai_progress"
+    private const val SUCCESSFUL_ACTIVITY_IDS = "successful_activity_ids"
+    private const val SUCCESSFUL_SESSIONS = "successful_sessions"
+    private const val MIGRATION_DONE = "perfect_activity_results_migrated_v1"
+
+    fun load(context: Context): LearningProgressSnapshot {
+        val appContext = context.applicationContext
+        val prefs = appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val successfulIds = (prefs.getStringSet(SUCCESSFUL_ACTIVITY_IDS, emptySet()) ?: emptySet())
+            .toMutableSet()
+
+        // Migrate known perfect latest results from the existing per-course result store.
+        // The old total-session counter included failed exercises and conversations,
+        // so it cannot truthfully be reused for the new perfect-session counter.
+        if (!prefs.getBoolean(MIGRATION_DONE, false)) {
+            resultKeys().forEach { key ->
+                if (CourseResultStore.load(appContext, key)?.isPerfect == true) {
+                    successfulIds.add(key)
+                }
+            }
+            prefs.edit()
+                .putStringSet(SUCCESSFUL_ACTIVITY_IDS, successfulIds)
+                .putBoolean(MIGRATION_DONE, true)
+                .apply()
+        }
+
+        return LearningProgressSnapshot(
+            successfullyCompletedActivities = successfulIds.size,
+            successfulSessions = prefs.getInt(SUCCESSFUL_SESSIONS, 0)
+        )
+    }
+
+    fun recordPerfectSession(context: Context, activityKey: String): LearningProgressSnapshot {
+        require(activityKey.isNotBlank()) { "Activity key must not be blank." }
+        val appContext = context.applicationContext
+        // Ensure legacy perfect results are migrated before adding this result.
+        load(appContext)
+        val prefs = appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val successfulIds = (prefs.getStringSet(SUCCESSFUL_ACTIVITY_IDS, emptySet()) ?: emptySet())
+            .toMutableSet()
+        successfulIds.add(activityKey)
+        val sessions = prefs.getInt(SUCCESSFUL_SESSIONS, 0) + 1
+        prefs.edit()
+            .putStringSet(SUCCESSFUL_ACTIVITY_IDS, successfulIds)
+            .putInt(SUCCESSFUL_SESSIONS, sessions)
+            .apply()
+
+        return LearningProgressSnapshot(
+            successfullyCompletedActivities = successfulIds.size,
+            successfulSessions = sessions
+        )
+    }
+
+    private fun resultKeys(): List<String> =
+        sentenceCourseCatalog.map { "sentence_${it.id}" } +
+            articleCategories.map { "articles_${it.id}" } +
+            (verbPracticeTopics + advancedVerbPracticeTopics).map { "verbs_${it.id}" } +
+            wordToolGroups.flatMap { group ->
+                listOf("words", "sentences", "challenge").map { mode ->
+                    "wordtools_${group.id}_$mode"
+                }
+            }
+}
+
 @Composable
 internal fun LatestResultLine(result: CourseResult?) {
     if (result != null) {
