@@ -90,6 +90,7 @@ private val coreGermanGlossary = mapOf(
     "plötzlich" to "náhle", "zunächst" to "nejprve", "schließlich" to "nakonec", "tatsächlich" to "skutečně",
     "offenbar" to "zjevně", "vermutlich" to "pravděpodobně", "vielleicht" to "možná", "kaum" to "sotva",
     "mindestens" to "nejméně", "höchstens" to "nejvýše", "ungefähr" to "přibližně", "circa" to "asi",
+    "Tisch" to "stůl", "Tische" to "stoly", "Tischen" to "stolech",
     "die Zeit" to "čas", "der Tag" to "den", "die Woche" to "týden", "der Monat" to "měsíc",
     "das Jahr" to "rok", "die Stunde" to "hodina", "die Minute" to "minuta", "der Morgen" to "ráno",
     "der Abend" to "večer", "die Nacht" to "noc", "die Arbeit" to "práce", "der Beruf" to "povolání",
@@ -164,9 +165,26 @@ internal fun lookupReadingWordTranslation(article: ReadingArticle, rawWord: Stri
         normalized.replace("ä", "ae").replace("ö", "oe").replace("ü", "ue").replace("ß", "ss")
     )
 
+    fun normalizedDictionaryKey(key: String): String {
+        val parts = key.trim().split(Regex("\\s+"))
+        val articles = setOf("der", "die", "das", "den", "dem", "des", "ein", "eine", "einen", "einem", "einer", "eines")
+        return if (parts.size > 1 && parts.first().lowercase() in articles) {
+            parts.drop(1).joinToString(" ").lowercase()
+        } else {
+            key.trim().lowercase()
+        }
+    }
+
+    fun findDictionaryMeaning(dictionary: Map<String, String>, candidate: String): String? =
+        dictionary.entries.firstOrNull { (key, _) ->
+            normalizedDictionaryKey(key).equals(candidate, ignoreCase = true)
+        }?.value
+
     for (candidate in candidates) {
         article.glossary.entries.firstOrNull { it.key.equals(candidate, ignoreCase = true) }?.value?.let { return it }
+        findDictionaryMeaning(article.glossary, candidate)?.let { return it }
         coreGermanGlossary.entries.firstOrNull { it.key.equals(candidate, ignoreCase = true) }?.value?.let { return it }
+        findDictionaryMeaning(coreGermanGlossary, candidate)?.let { return it }
     }
     return null
 }
