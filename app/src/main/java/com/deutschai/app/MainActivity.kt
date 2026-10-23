@@ -220,9 +220,8 @@ private fun BeatriceHome() {
     if (showConversation) {
         GuidedDialogueScreen(
             onBack = { showConversation = false },
-            // Dialogues are conversation practice, not scored quizzes; they do not
-            // count toward the metric for sessions with 100% correct answers.
-            onComplete = {}
+            // A completed dialogue counts as a study day, but not as a scored quiz session.
+            onComplete = { habitStats = StudyHabitStore.recordSession(context) }
         )
         return
     }
@@ -1084,6 +1083,7 @@ private fun GuidedDialogueScreen(
     var completionRecorded by remember { mutableStateOf(false) }
     var lines by remember { mutableStateOf(emptyList<GuidedDialogueLine>()) }
     var isTransitioning by remember { mutableStateOf(false) }
+    var spokenAttempt by remember { mutableStateOf("") }
 
     fun startTopic(topic: GuidedDialogueTopic) {
         isTransitioning = false
@@ -1092,6 +1092,7 @@ private fun GuidedDialogueScreen(
         completed = false
         completionRecorded = false
         lines = emptyList()
+        spokenAttempt = ""
     }
 
     fun resetToTopics() {
@@ -1101,6 +1102,7 @@ private fun GuidedDialogueScreen(
         completed = false
         completionRecorded = false
         lines = emptyList()
+        spokenAttempt = ""
     }
 
     fun chooseOption(option: GuidedDialogueOption) {
@@ -1110,6 +1112,7 @@ private fun GuidedDialogueScreen(
         lines = lines +
             GuidedDialogueLine(option.german, option.czech, learner = true) +
             GuidedDialogueLine(option.replyGerman, option.replyCzech, learner = false)
+        spokenAttempt = ""
         isTransitioning = true
     }
 
@@ -1126,6 +1129,7 @@ private fun GuidedDialogueScreen(
                     }
                 } else {
                     turnIndex += 1
+                    spokenAttempt = ""
                 }
             }
             isTransitioning = false
@@ -1370,6 +1374,11 @@ private fun GuidedDialogueScreen(
                         Text("Vyber odpověď a přečti ji nahlas", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                     }
                     if (!isTransitioning) {
+                    Text("Zkus nejdřív odpovědět vlastními slovy:", color = Ink, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    OfflineGermanSpeechInput(onRecognized = { spokenAttempt = it })
+                    if (spokenAttempt.isNotBlank()) {
+                        Text("Dobrá práce s mluvením. Teď porovnej svou větu s možnostmi níže a vyber nejbližší odpověď.", color = Forest, fontSize = 13.sp, lineHeight = 19.sp)
+                    }
                     turn.options.forEachIndexed { index, option ->
                         Card(
                             onClick = { chooseOption(option) },
