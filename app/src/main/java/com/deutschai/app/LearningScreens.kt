@@ -411,7 +411,25 @@ internal fun ArticleQuizScreen(
                         onClick = {
                             if (selectedArticle == null) {
                                 selectedArticle = article
-                                if (article == word.article) {
+                                val correct = article == word.article
+                                val reviewQuestion = ReviewQuestion(
+                                    id = stableReviewId("articles", category.id, word.word.lowercase()),
+                                    sourceKind = "articles",
+                                    sourceTitle = category.title,
+                                    prompt = "Jaký člen patří ke slovu „${word.word}“? Česky: ${word.czech}",
+                                    choices = choices,
+                                    correctIndex = choices.indexOf(word.article),
+                                    explanation = "${word.article} ${word.word} = ${word.czech}. Uč se podstatné jméno vždy společně se členem.",
+                                    germanSentence = "${word.article} ${word.word}",
+                                    translation = word.czech
+                                )
+                                LearningReviewStore.recordAnswer(
+                                    context = context,
+                                    question = reviewQuestion,
+                                    wasCorrect = correct,
+                                    isMistakeReview = isErrorReview
+                                )
+                                if (correct) {
                                     score += 1
                                 } else {
                                     wrongWords = wrongWords + word
@@ -605,7 +623,19 @@ internal fun VerbQuizScreen(
                         onClick = {
                             if (selectedAnswer == null) {
                                 selectedAnswer = index
-                                if (index == question.correctIndex) {
+                                val correct = index == question.correctIndex
+                                val reviewQuestion = question.toReviewQuestion(
+                                    id = stableReviewId("verbs", topic.id, question.prompt, question.germanSentence, question.translation),
+                                    sourceKind = "verbs",
+                                    sourceTitle = topic.title
+                                )
+                                LearningReviewStore.recordAnswer(
+                                    context = context,
+                                    question = reviewQuestion,
+                                    wasCorrect = correct,
+                                    isMistakeReview = isErrorReview
+                                )
+                                if (correct) {
                                     score += 1
                                 } else {
                                     wrongQuestions = wrongQuestions + question
