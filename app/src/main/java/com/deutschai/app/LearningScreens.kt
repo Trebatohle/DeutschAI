@@ -295,6 +295,8 @@ internal fun ArticleQuizScreen(
     var selectedArticle by remember(category.id) { mutableStateOf<String?>(null) }
     var score by remember(category.id) { mutableStateOf(0) }
     var finished by remember(category.id) { mutableStateOf(false) }
+    var wrongWords by remember(category.id) { mutableStateOf<List<ArticleWord>>(emptyList()) }
+    var isErrorReview by remember(category.id) { mutableStateOf(false) }
     val choices = listOf("der", "die", "das")
     val total = words.size.coerceAtMost(25)
 
@@ -304,6 +306,19 @@ internal fun ArticleQuizScreen(
         selectedArticle = null
         score = 0
         finished = false
+        wrongWords = emptyList()
+        isErrorReview = false
+    }
+
+    fun repeatWrongWords() {
+        if (wrongWords.isEmpty()) return
+        words = wrongWords.shuffled()
+        wrongWords = emptyList()
+        questionIndex = 0
+        selectedArticle = null
+        score = 0
+        finished = false
+        isErrorReview = true
     }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
@@ -328,15 +343,36 @@ internal fun ArticleQuizScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Icon(Icons.Default.Translate, contentDescription = null, tint = Gold, modifier = Modifier.size(44.dp))
-                        Text("Sada dokončena", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                        Text(if (isErrorReview) "Opakování chyb dokončeno" else "Sada dokončena", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                         Text("$score z $total správně", color = Gold, fontSize = 28.sp, fontWeight = FontWeight.Bold)
                         Text(
-                            "U každého slova si zapamatuj celý tvar se členem, například „der Tisch“.",
+                            if (isErrorReview) {
+                                if (wrongWords.isEmpty()) "Skvělé! V tomto kole už nezůstalo žádné chybné slovo."
+                                else "Zbývající chyby můžeš procvičit ještě jednou."
+                            } else {
+                                "U každého slova si zapamatuj celý tvar se členem, například „der Tisch“."
+                            },
                             color = Color(0xFFE0EAE5),
                             fontSize = 14.sp,
                             lineHeight = 21.sp
                         )
                     }
+                }
+                if (wrongWords.isNotEmpty()) {
+                    Button(
+                        onClick = { repeatWrongWords() },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+                        shape = RoundedCornerShape(14.dp)
+                    ) { Text("Opakovat jen chyby (${wrongWords.size})", fontWeight = FontWeight.Bold) }
+                }
+                if (wrongQuestions.isNotEmpty()) {
+                    Button(
+                        onClick = { repeatWrongQuestions() },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+                        shape = RoundedCornerShape(14.dp)
+                    ) { Text("Opakovat jen chyby (${wrongQuestions.size})", fontWeight = FontWeight.Bold) }
                 }
                 Button(
                     onClick = { restart() },
@@ -383,7 +419,11 @@ internal fun ArticleQuizScreen(
                         onClick = {
                             if (selectedArticle == null) {
                                 selectedArticle = article
-                                if (article == word.article) score += 1
+                                if (article == word.article) {
+                                    score += 1
+                                } else {
+                                    wrongWords = wrongWords + word
+                                }
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
@@ -422,8 +462,10 @@ internal fun ArticleQuizScreen(
                                 questionIndex += 1
                                 selectedArticle = null
                             } else {
-                                CourseResultStore.save(context, "articles_${category.id}", score, total)
-                                onComplete(score, total)
+                                if (!isErrorReview) {
+                                    CourseResultStore.save(context, "articles_${category.id}", score, total)
+                                    onComplete(score, total)
+                                }
                                 finished = true
                             }
                         },
@@ -451,6 +493,8 @@ internal fun VerbQuizScreen(
     var selectedAnswer by remember(topic.id) { mutableStateOf<Int?>(null) }
     var score by remember(topic.id) { mutableStateOf(0) }
     var finished by remember(topic.id) { mutableStateOf(false) }
+    var wrongQuestions by remember(topic.id) { mutableStateOf<List<LessonQuestion>>(emptyList()) }
+    var isErrorReview by remember(topic.id) { mutableStateOf(false) }
 
     fun restart() {
         questions = buildVerbQuestions(topic).shuffled()
@@ -458,6 +502,19 @@ internal fun VerbQuizScreen(
         selectedAnswer = null
         score = 0
         finished = false
+        wrongQuestions = emptyList()
+        isErrorReview = false
+    }
+
+    fun repeatWrongQuestions() {
+        if (wrongQuestions.isEmpty()) return
+        questions = wrongQuestions.shuffled()
+        wrongQuestions = emptyList()
+        questionIndex = 0
+        selectedAnswer = null
+        score = 0
+        finished = false
+        isErrorReview = true
     }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
@@ -488,10 +545,15 @@ internal fun VerbQuizScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("Slovesná sada dokončena", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Bold)
+                        Text(if (isErrorReview) "Opakování chyb dokončeno" else "Slovesná sada dokončena", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Bold)
                         Text("$score z ${questions.size} správně", color = Gold, fontSize = 28.sp, fontWeight = FontWeight.Bold)
                         Text(
-                            "Procvičil/a jsi pět důležitých sloves v různých větách. Říkej si nahlas celé německé věty i jejich český význam.",
+                            if (isErrorReview) {
+                                if (wrongQuestions.isEmpty()) "Skvělé! V tomto kole už nezůstala žádná chybná odpověď."
+                                else "Některé odpovědi stále potřebují procvičit. Můžeš je zopakovat znovu."
+                            } else {
+                                "Procvičil/a jsi pět důležitých sloves v různých větách. Říkej si nahlas celé německé věty i jejich český význam."
+                            },
                             color = Color(0xFFE0EAE5),
                             fontSize = 14.sp,
                             lineHeight = 21.sp
@@ -543,7 +605,11 @@ internal fun VerbQuizScreen(
                         onClick = {
                             if (selectedAnswer == null) {
                                 selectedAnswer = index
-                                if (index == question.correctIndex) score += 1
+                                if (index == question.correctIndex) {
+                                    score += 1
+                                } else {
+                                    wrongQuestions = wrongQuestions + question
+                                }
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
@@ -589,8 +655,10 @@ internal fun VerbQuizScreen(
                                 questionIndex += 1
                                 selectedAnswer = null
                             } else {
-                                CourseResultStore.save(context, "verbs_${topic.id}", score, questions.size)
-                                onComplete(score, questions.size)
+                                if (!isErrorReview) {
+                                    CourseResultStore.save(context, "verbs_${topic.id}", score, questions.size)
+                                    onComplete(score, questions.size)
+                                }
                                 finished = true
                             }
                         },
