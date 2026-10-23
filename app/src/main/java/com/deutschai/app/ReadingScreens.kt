@@ -34,13 +34,11 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.window.Popup
@@ -63,19 +61,6 @@ internal fun ReadingLibraryScreen(
 ) {
     var selectedLevel by remember { mutableStateOf("A1") }
     val articles = readingArticles.filter { it.level == selectedLevel }
-    val context = LocalContext.current
-    var translationModelReady by remember { mutableStateOf(false) }
-    var translationModelStatus by remember { mutableStateOf("Při prvním použití připravíme offline překladový slovník.") }
-    LaunchedEffect(Unit) {
-        OfflineWordTranslator.prepare(context.applicationContext) { ready ->
-            translationModelReady = ready
-            translationModelStatus = if (ready) {
-                "Offline slovník je připraven. Významy slov se pak zobrazí i bez internetu."
-            } else {
-                "Pro automatický překlad neznámých slov otevři knihovnu na Wi-Fi; model se stáhne jednou (přibližně 30 MB)."
-            }
-        }
-    }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
@@ -98,14 +83,14 @@ internal fun ReadingLibraryScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = if (translationModelReady) Mint else Color.White)
+                colors = CardDefaults.cardColors(containerColor = Mint)
             ) {
                 Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Přibalený offline slovníček", color = Forest, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     Text(
-                        if (translationModelReady) "Offline překlady připraveny" else "Příprava překladů",
-                        color = Forest, fontWeight = FontWeight.Bold, fontSize = 14.sp
+                        "Všechny překlady se hledají v datech této aplikace. Žádné překladové modely se nestahují; pokud slovo ve slovníčku chybí, aplikace ti to oznámí.",
+                        color = Muted, fontSize = 12.sp, lineHeight = 18.sp
                     )
-                    Text(translationModelStatus, color = Muted, fontSize = 12.sp, lineHeight = 18.sp)
                 }
             }
             Row(
@@ -209,12 +194,9 @@ internal fun ReadingArticleScreen(
     article: ReadingArticle,
     onBack: () -> Unit
 ) {
-    val context = LocalContext.current
     val density = LocalDensity.current
     var textLayout by remember(article.id) { mutableStateOf<TextLayoutResult?>(null) }
     var pressedMeaning by remember(article.id) { mutableStateOf<Pair<String, String>?>(null) }
-    var activePressedWord by remember(article.id) { mutableStateOf<String?>(null) }
-    var pressToken by remember(article.id) { mutableStateOf(0) }
     var popupOffset by remember(article.id) { mutableStateOf(IntOffset.Zero) }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
@@ -277,8 +259,6 @@ internal fun ReadingArticleScreen(
                                         try {
                                             awaitRelease()
                                         } finally {
-                                            pressToken += 1
-                                            activePressedWord = null
                                             pressedMeaning = null
                                         }
                                     },
@@ -298,9 +278,6 @@ internal fun ReadingArticleScreen(
                                             while (wordEnd < body.length && body[wordEnd].isLetterOrDigit()) wordEnd++
                                             val word = body.substring(wordStart, wordEnd)
                                             val bounds = layout.getBoundingBox(wordStart)
-                                            val newToken = pressToken + 1
-                                            pressToken = newToken
-                                            activePressedWord = word
                                             val maxX = (containerWidthPx - popupWidthPx).roundToInt().coerceAtLeast(0)
                                             val x = (textInsetPx + bounds.center.x - popupWidthPx / 2f)
                                                 .roundToInt().coerceIn(0, maxX)
@@ -308,16 +285,10 @@ internal fun ReadingArticleScreen(
                                             popupOffset = IntOffset(x, y)
 
                                             val knownMeaning = lookupReadingWordTranslation(article, word)
-                                            pressedMeaning = word to (knownMeaning ?: "Připravuji offline překlad…")
-                                            if (knownMeaning == null) {
-                                                OfflineWordTranslator.translate(context.applicationContext, word) { translated ->
-                                                    if (pressToken == newToken && activePressedWord == word) {
-                                                        pressedMeaning = word to (
-                                                            translated ?: "Překlad teď není dostupný. Zkontroluj Wi-Fi v knihovně čtení a zkus slovo podržet znovu."
-                                                        )
-                                                    }
-                                                }
-                                            }
+                                            pressedMeaning = word to (
+                                                knownMeaning
+                                                    ?: "Toto slovo zatím není v přibaleném offline slovníčku. Aplikace nestahuje další překladová data."
+                                            )
                                         }
                                     }
                                 )
@@ -370,7 +341,7 @@ internal fun ReadingArticleScreen(
 
             if (pressedMeaning == null) {
                 Text(
-                    "Tip: u neznámého slova podrž prst. Při prvním použití se překladový model připraví přes Wi-Fi; potom funguje offline.",
+                    "Tip: podrž prst na slovu. Překlad je dostupný z přibaleného slovníčku; neznámá slova se neodesílají do online překladače.",
                     color = Muted,
                     fontSize = 12.sp,
                     lineHeight = 18.sp
