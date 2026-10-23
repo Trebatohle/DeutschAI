@@ -78,6 +78,8 @@ class ContentQualityTest {
         )
 
         assertEquals("stůl", lookupReadingWordTranslation(sample, "Tisch"))
+        assertEquals("tabulka", lookupReadingWordTranslation(sample, "Tabelle"))
+        assertEquals("tabulky", lookupReadingWordTranslation(sample, "Tabellen"))
         assertEquals("stoly", lookupReadingWordTranslation(sample, "Tische"))
         assertEquals("stolech", lookupReadingWordTranslation(sample, "Tischen"))
     }
@@ -162,6 +164,23 @@ class ContentQualityTest {
                 }
             }
         }
+    }
+
+    @Test
+    fun cakeAndTableTranslationsRemainDistinctAndCorrect() {
+        val translatedItems = sentenceCourseCatalog.flatMap { it.items }
+        assertTrue(
+            translatedItems.any {
+                it.german == "Der Kuchen ist wirklich lecker." &&
+                    it.czech == "Ten dort je opravdu výborný."
+            }
+        )
+        assertFalse(
+            translatedItems.any {
+                it.german == "Der Kuchen ist wirklich lecker." &&
+                    it.czech == "Dort je opravdu výborný."
+            }
+        )
     }
 
     @Test
