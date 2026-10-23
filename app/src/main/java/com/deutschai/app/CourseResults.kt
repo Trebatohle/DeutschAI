@@ -38,7 +38,8 @@ internal object CourseResultStore {
 
 internal data class LearningProgressSnapshot(
     val successfullyCompletedActivities: Int,
-    val successfulSessions: Int
+    val successfulSessions: Int,
+    val practicedActivities: Int
 )
 
 /**
@@ -78,7 +79,8 @@ internal object LearningProgressStore {
 
         return LearningProgressSnapshot(
             successfullyCompletedActivities = successfulIds.size,
-            successfulSessions = prefs.getInt(SUCCESSFUL_SESSIONS, 0)
+            successfulSessions = prefs.getInt(SUCCESSFUL_SESSIONS, 0),
+            practicedActivities = resultKeys().count { CourseResultStore.load(appContext, it) != null }
         )
     }
 
@@ -99,7 +101,8 @@ internal object LearningProgressStore {
 
         return LearningProgressSnapshot(
             successfullyCompletedActivities = successfulIds.size,
-            successfulSessions = sessions
+            successfulSessions = sessions,
+            practicedActivities = resultKeys().count { CourseResultStore.load(appContext, it) != null }
         )
     }
 
