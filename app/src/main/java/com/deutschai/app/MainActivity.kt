@@ -114,11 +114,8 @@ private fun BeatriceHome() {
     val preferences = remember(context) {
         context.getSharedPreferences("deutschai_progress", Context.MODE_PRIVATE)
     }
-    var completedSessions by remember(preferences) {
-        mutableStateOf(preferences.getInt("completed_sessions", 0))
-    }
-    var bestScore by remember(preferences) {
-        mutableStateOf(preferences.getInt("best_score", 0))
+    var progressStats by remember(preferences) {
+        mutableStateOf(LearningProgressStore.load(context))
     }
 
     var showConversation by remember { mutableStateOf(false) }
@@ -183,22 +180,18 @@ private fun BeatriceHome() {
         }
     }
 
-    fun recordSession() {
-        completedSessions += 1
-        preferences.edit().putInt("completed_sessions", completedSessions).apply()
-    }
-
-    fun recordScore(score: Int) {
-        recordSession()
-        if (score > bestScore) {
-            bestScore = score
-            preferences.edit().putInt("best_score", bestScore).apply()
+    fun recordScore(score: Int, total: Int, activityKey: String) {
+        if (total > 0 && score == total) {
+            progressStats = LearningProgressStore.recordPerfectSession(context, activityKey)
         }
     }
 
     if (showWordTools) {
         WordToolsScreen(
-            onBack = { showWordTools = false; showLearningHub = true }
+            onBack = { showWordTools = false; showLearningHub = true },
+            onComplete = { score, total, activityKey ->
+                recordScore(score, total, activityKey)
+            }
         )
         return
     }
@@ -206,7 +199,9 @@ private fun BeatriceHome() {
     if (showConversation) {
         GuidedDialogueScreen(
             onBack = { showConversation = false },
-            onComplete = { recordSession() }
+            // Dialogues are conversation practice, not scored quizzes; they do not
+            // count toward the metric for sessions with 100% correct answers.
+            onComplete = {}
         )
         return
     }
@@ -235,7 +230,9 @@ private fun BeatriceHome() {
         ArticleQuizScreen(
             category = selectedArticleCategory!!,
             onBack = { selectedArticleCategory = null; showArticleCategories = true },
-            onComplete = { score -> recordScore(score) }
+            onComplete = { score, total ->
+                recordScore(score, total, "articles_${selectedArticleCategory!!.id}")
+            }
         )
         return
     }
@@ -244,7 +241,9 @@ private fun BeatriceHome() {
         VerbQuizScreen(
             topic = selectedVerbTopic!!,
             onBack = { selectedVerbTopic = null; showVerbCategories = true },
-            onComplete = { score -> recordScore(score) }
+            onComplete = { score, total ->
+                recordScore(score, total, "verbs_${selectedVerbTopic!!.id}")
+            }
         )
         return
     }
@@ -314,7 +313,9 @@ private fun BeatriceHome() {
         LessonScreen(
             lesson = selectedLesson!!,
             onBack = { selectedLesson = null; showLessonLibrary = true },
-            onComplete = { score, _ -> recordScore(score) }
+            onComplete = { score, total ->
+                recordScore(score, total, "sentence_${selectedLesson!!.id}")
+            }
         )
         return
     }
@@ -488,9 +489,9 @@ private fun BeatriceHome() {
                 )
                 ProgressCard(
                     modifier = Modifier.weight(1f),
-                    title = "Dokončeno",
-                    value = completedSessions.toString(),
-                    detail = "Výukových sezení"
+                    title = "Úspěšně dokončeno",
+                    value = progressStats.successfullyCompletedActivities.toString(),
+                    detail = "Sady se 100 %"
                 )
             }
 
@@ -500,9 +501,9 @@ private fun BeatriceHome() {
             ) {
                 ProgressCard(
                     modifier = Modifier.weight(1f),
-                    title = "Nejlepší skóre",
-                    value = bestScore.toString() + "/25",
-                    detail = "Správných odpovědí"
+                    title = "Úspěšná sezení",
+                    value = progressStats.successfulSessions.toString(),
+                    detail = "100 % správně"
                 )
                 ProgressCard(
                     modifier = Modifier.weight(1f),
@@ -559,8 +560,9 @@ private fun BeatriceHome() {
                             text = if (selectedTab == "Konverzace") {
                                 "Tuto část připravíme jako další. Kvízy a vysvětlení fungují offline."
                             } else {
-                                "Dokončená výuková sezení: " + completedSessions +
-                                    "\nNejlepší výsledek: " + bestScore + "/5" +
+                                "Úspěšně dokončeno: " + progressStats.successfullyCompletedActivities +
+                                    "\nÚspěšně dokončená výuková sezení: " + progressStats.successfulSessions +
+                                    "\nPočítají se jen výsledky se 100 % správných odpovědí." +
                                     "\nVýsledky zůstávají uložené v tomto telefonu."
                             },
                             color = Forest,
