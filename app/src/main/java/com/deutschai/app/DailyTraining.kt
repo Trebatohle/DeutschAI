@@ -180,14 +180,14 @@ internal fun DailyTrainingScreen(
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Button(
                     onClick = onBack,
-                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Zpět")
                     Text("Zpět")
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("DEUTSCHAI", color = Forest, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
+                    Text("DEUTSCHAI", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
                     Text("Osobní denní trénink", color = Muted, fontSize = 13.sp)
                 }
             }
@@ -221,7 +221,7 @@ internal fun DailyTrainingScreen(
                     Button(
                         onClick = { startMistakeReview() },
                         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+                        colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
                         shape = RoundedCornerShape(14.dp)
                     ) { Text("Opakovat jen chyby (${wrongQuestions.size})", fontWeight = FontWeight.Bold) }
                 }
@@ -234,11 +234,11 @@ internal fun DailyTrainingScreen(
                 Button(
                     onClick = onBack,
                     modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
                     shape = RoundedCornerShape(14.dp)
                 ) { Text("Zpět na úvodní obrazovku", fontWeight = FontWeight.Bold) }
             } else if (question != null) {
-                Text("10 OTÁZEK · VLASTNÍ TEMPO", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                Text("10 OTÁZEK · VLASTNÍ TEMPO", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                 Text("Otázka ${questionIndex + 1} z ${questions.size}", color = Ink, fontSize = 25.sp, fontWeight = FontWeight.Bold)
                 LinearProgressIndicator(
                     progress = { (questionIndex + 1).toFloat() / questions.size.toFloat() },
@@ -250,7 +250,7 @@ internal fun DailyTrainingScreen(
                     colors = CardDefaults.cardColors(containerColor = Mint)
                 ) {
                     Column(modifier = Modifier.padding(17.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                        Text(question.sourceTitle, color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(question.sourceTitle, color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         Text(question.prompt, color = Ink, fontSize = 20.sp, lineHeight = 28.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
@@ -295,15 +295,15 @@ internal fun DailyTrainingScreen(
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                             Text(
                                 if (selectedAnswer == question.correctIndex) "Správně! Gut gemacht!" else "Správná odpověď: ${question.choices[question.correctIndex]}",
-                                color = Forest, fontWeight = FontWeight.Bold, fontSize = 16.sp
+                                color = ForestText, fontWeight = FontWeight.Bold, fontSize = 16.sp
                             )
                             if (question.germanSentence.isNotBlank()) {
-                                Text("Celá věta:", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text("Celá věta:", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 Text(question.germanSentence, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, lineHeight = 23.sp)
                                 GermanAudioControls(player = speaker, text = question.germanSentence)
                             }
                             if (question.translation.isNotBlank()) {
-                                Text("Česky:", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text("Česky:", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 Text(question.translation, color = Ink, fontSize = 15.sp, lineHeight = 22.sp)
                             }
                             Text(question.explanation, color = Muted, fontSize = 13.sp, lineHeight = 19.sp)

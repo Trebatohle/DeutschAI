@@ -123,14 +123,14 @@ internal fun ListeningPracticeScreen(level: String, onBack: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Button(
                     onClick = onBack,
-                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Zpět")
                     Text("Zpět")
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("DEUTSCHAI", color = Forest, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
+                    Text("DEUTSCHAI", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
                     Text("Poslech a porozumění · $level", color = Muted, fontSize = 13.sp)
                 }
             }
@@ -171,13 +171,13 @@ internal fun ListeningPracticeScreen(level: String, onBack: () -> Unit) {
                 Button(
                     onClick = onBack,
                     modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
                     shape = RoundedCornerShape(14.dp)
                 ) { Text("Zpět ke kurzům", fontWeight = FontWeight.Bold) }
             } else if (question != null) {
                 Text(
                     "OTÁZKA ${questionIndex + 1} Z ${questions.size}",
-                    color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp
+                    color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp
                 )
                 LinearProgressIndicator(
                     progress = { (questionIndex + 1).toFloat() / questions.size.coerceAtLeast(1).toFloat() },
@@ -186,12 +186,12 @@ internal fun ListeningPracticeScreen(level: String, onBack: () -> Unit) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = CardSurface)
                 ) {
                     Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                            Icon(Icons.Default.VolumeUp, contentDescription = null, tint = Forest)
-                            Text(question.source.courseTitle, color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Icon(Icons.Default.VolumeUp, contentDescription = null, tint = ForestText)
+                            Text(question.source.courseTitle, color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                         Text("Co znamená věta, kterou uslyšíš?", color = Ink, fontSize = 20.sp, lineHeight = 28.sp, fontWeight = FontWeight.SemiBold)
                         GermanAudioControls(
@@ -257,7 +257,7 @@ internal fun ListeningPracticeScreen(level: String, onBack: () -> Unit) {
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(
                                 if (selectedAnswer == question.correctIndex) "Správně! Gut gemacht!" else "Správný význam:",
-                                color = Forest, fontWeight = FontWeight.Bold, fontSize = 16.sp
+                                color = ForestText, fontWeight = FontWeight.Bold, fontSize = 16.sp
                             )
                             Text(question.source.item.german, color = Ink, fontSize = 19.sp, lineHeight = 27.sp, fontWeight = FontWeight.Bold)
                             GermanAudioControls(
@@ -320,7 +320,7 @@ internal fun ListeningPracticeScreen(level: String, onBack: () -> Unit) {
                         }
                     }
                     if (ratingSaved) {
-                        Text("Uloženo do chytrého opakování ✓", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        Text("Uloženo do chytrého opakování ✓", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                     }
                     Button(
                         onClick = {

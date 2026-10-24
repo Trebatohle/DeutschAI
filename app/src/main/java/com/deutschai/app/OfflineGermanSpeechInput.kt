@@ -191,7 +191,7 @@ internal fun OfflineGermanSpeechInput(
             },
             enabled = onDeviceAvailable && !isListening,
             modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+            colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
             shape = RoundedCornerShape(12.dp)
         ) {
             Icon(Icons.Default.Mic, contentDescription = null)
@@ -202,10 +202,10 @@ internal fun OfflineGermanSpeechInput(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = CardSurface)
             ) {
                 Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("ROZPOZNANÁ ODPOVĚĎ", color = Forest, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                    Text("ROZPOZNANÁ ODPOVĚĎ", color = ForestText, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     Text(transcript, color = Ink, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, lineHeight = 22.sp)
                 }
             }

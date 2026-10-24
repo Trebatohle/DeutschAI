@@ -74,42 +74,42 @@ internal fun LearningHubScreen(
                 lineHeight = 21.sp
             )
             LearningCard(
-                icon = { Icon(Icons.Default.MenuBook, contentDescription = null, tint = Forest) },
+                icon = { Icon(Icons.Default.MenuBook, contentDescription = null, tint = ForestText) },
                 title = "Kurzy A1–B2",
                 subtitle = "Čtyři úrovně podle náročnosti, tematické lekce a samostatné chytré opakování frází v každé úrovni.",
                 detail = sentenceCourseCatalog.size.toString() + " kurzů · 25 otázek v každém",
                 onClick = onCourses
             )
             LearningCard(
-                icon = { Icon(Icons.Default.Book, contentDescription = null, tint = Forest) },
+                icon = { Icon(Icons.Default.Book, contentDescription = null, tint = ForestText) },
                 title = "Členy a podstatná jména",
                 subtitle = "Vyber si slovní téma: bydlení, jídlo, práce, cestování a další.",
                 detail = articleCategories.size.toString() + " tematických sad · 25 slov v každé",
                 onClick = onArticles
             )
             LearningCard(
-                icon = { Icon(Icons.Default.Translate, contentDescription = null, tint = Forest) },
+                icon = { Icon(Icons.Default.Translate, contentDescription = null, tint = ForestText) },
                 title = "Slovní druhy a gramatika",
                 subtitle = "Číslovky, předložky, spojky, příslovce i přivlastňovací zájmena.",
                 detail = "${wordToolGroups.size} oblastí · 3 způsoby procvičení",
                 onClick = onWordTools
             )
             LearningCard(
-                icon = { Icon(Icons.Default.School, contentDescription = null, tint = Forest) },
+                icon = { Icon(Icons.Default.School, contentDescription = null, tint = ForestText) },
                 title = "Důležitá slovesa",
                 subtitle = "Procvič si časování ve větách, ne jen izolované tvary.",
                 detail = verbPracticeTopics.size.toString() + " lekcí · 25 smíšených otázek v každé",
                 onClick = onVerbs
             )
             LearningCard(
-                icon = { Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = Forest) },
+                icon = { Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = ForestText) },
                 title = "Řízené dialogy",
                 subtitle = "Tři doporučené odpovědi, vždy s českým překladem a navazující replikou.",
                 detail = guidedDialogueTopics.size.toString() + " dialogy v první sadě",
                 onClick = onDialogues
             )
             LearningCard(
-                icon = { Icon(Icons.Default.Book, contentDescription = null, tint = Forest) },
+                icon = { Icon(Icons.Default.Book, contentDescription = null, tint = ForestText) },
                 title = "Čtení v němčině",
                 subtitle = "Dlouhé příběhy podle úrovně A1–C2; podrž slovo a zobrazíš český význam.",
                 detail = readingArticles.size.toString() + " příběhů · A1 až C2",
@@ -124,10 +124,10 @@ internal fun LearningHubScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Text("Postupně rozšiřovaná knihovna", color = Forest, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("Postupně rozšiřovaná knihovna", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     Text(
                         "Aplikace je nyní postavená na jasných scénářích a strukturovaných otázkách místo volné AI konverzace. Další dialogy a slovní sady budeme přidávat jako ověřený obsah.",
-                        color = Forest,
+                        color = ForestText,
                         fontSize = 13.sp,
                         lineHeight = 20.sp
                     )
@@ -165,7 +165,7 @@ internal fun ArticleCategoryLibraryScreen(
                     onClick = { onSelectCategory(category) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = CardSurface)
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
@@ -176,12 +176,12 @@ internal fun ArticleCategoryLibraryScreen(
                             modifier = Modifier.size(42.dp).background(Mint, RoundedCornerShape(13.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text((index + 1).toString(), color = Forest, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Text((index + 1).toString(), color = ForestText, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                         }
                         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(category.title, color = Ink, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                             Text(category.subtitle, color = Muted, fontSize = 13.sp, lineHeight = 18.sp)
-                            Text("25 otázek · A1", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text("25 otázek · A1", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             LatestResultLine(CourseResultStore.load(context, "articles_${category.id}"))
                         }
                     }
@@ -234,14 +234,14 @@ internal fun VerbCategoryLibraryScreen(
 
             if (selectedPart == null) {
                 LearningCard(
-                    icon = { Icon(Icons.Default.Verified, contentDescription = null, tint = Forest) },
+                    icon = { Icon(Icons.Default.Verified, contentDescription = null, tint = ForestText) },
                     title = "1. Základní procvičování",
                     subtitle = "Nauč se tvary pěti důležitých sloves v různých větách.",
                     detail = verbPracticeTopics.size.toString() + " lekcí · 25 otázek v každé",
                     onClick = { selectedPart = "basic" }
                 )
                 LearningCard(
-                    icon = { Icon(Icons.Default.School, contentDescription = null, tint = Forest) },
+                    icon = { Icon(Icons.Default.School, contentDescription = null, tint = ForestText) },
                     title = "2. Pokročilé procvičování",
                     subtitle = "Rozlišuj významy pěti sloves a vybírej správný tvar ze čtyř různých sloves.",
                     detail = verbPracticeTopics.size.toString() + " lekcí · 25 otázek v každé",
@@ -254,7 +254,7 @@ internal fun VerbCategoryLibraryScreen(
                         onClick = { onSelectTopic(topic) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(18.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                        colors = CardDefaults.cardColors(containerColor = CardSurface)
                     ) {
                         Row(
                             modifier = Modifier.padding(16.dp),
@@ -265,14 +265,14 @@ internal fun VerbCategoryLibraryScreen(
                                 modifier = Modifier.size(42.dp).background(Mint, RoundedCornerShape(13.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text((index + 1).toString(), color = Forest, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                Text((index + 1).toString(), color = ForestText, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                             }
                             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Text(topic.title, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
                                 Text(topic.subtitle, color = Muted, fontSize = 13.sp, lineHeight = 18.sp)
                                 val verbNames = topic.verbIds.mapNotNull { id -> verbDefinitions.find { it.id == id }?.infinitive }
-                                Text(verbNames.joinToString(" · "), color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                                Text("25 otázek · stejných 5 sloves v sadě", color = Forest, fontSize = 12.sp)
+                                Text(verbNames.joinToString(" · "), color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text("25 otázek · stejných 5 sloves v sadě", color = ForestText, fontSize = 12.sp)
                                 LatestResultLine(CourseResultStore.load(context, "verbs_${topic.id}"))
                             }
                         }
@@ -362,7 +362,7 @@ internal fun ArticleQuizScreen(
                     Button(
                         onClick = { repeatWrongWords() },
                         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+                        colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
                         shape = RoundedCornerShape(14.dp)
                     ) { Text("Opakovat jen chyby (${wrongWords.size})", fontWeight = FontWeight.Bold) }
                 }
@@ -375,12 +375,12 @@ internal fun ArticleQuizScreen(
                 Button(
                     onClick = onBack,
                     modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
                     shape = RoundedCornerShape(14.dp)
                 ) { Text("Vybrat jiné téma", fontWeight = FontWeight.Bold) }
             } else {
                 val word = words[questionIndex]
-                Text("OTÁZKA ${questionIndex + 1} Z $total", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                Text("OTÁZKA ${questionIndex + 1} Z $total", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                 LinearProgressIndicator(
                     progress = { (questionIndex + 1).toFloat() / total.toFloat() },
                     modifier = Modifier.fillMaxWidth()
@@ -389,13 +389,13 @@ internal fun ArticleQuizScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(22.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = CardSurface)
                 ) {
                     Column(
                         modifier = Modifier.padding(22.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("___ ${word.word}", color = Forest, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                        Text("___ ${word.word}", color = ForestText, fontSize = 28.sp, fontWeight = FontWeight.Bold)
                         Text(word.czech, color = Muted, fontSize = 17.sp)
                         Text("Vyber: der, die nebo das.", color = Muted, fontSize = 13.sp)
                     }
@@ -458,7 +458,7 @@ internal fun ArticleQuizScreen(
                         Column(modifier = Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                             Text(
                                 if (selectedArticle == word.article) "Správně! Gut gemacht!" else "Správný člen je „${word.article}“.",
-                                color = Forest,
+                                color = ForestText,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp
                             )
@@ -540,7 +540,7 @@ internal fun VerbQuizScreen(
             Text(topic.subtitle, color = Muted, fontSize = 14.sp, lineHeight = 20.sp)
             Text(
                 "Slovesa: " + topic.verbIds.mapNotNull { id -> verbDefinitions.find { it.id == id }?.infinitive }.joinToString(" · "),
-                color = Forest,
+                color = ForestText,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -574,7 +574,7 @@ internal fun VerbQuizScreen(
                     Button(
                         onClick = { repeatWrongQuestions() },
                         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+                        colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
                         shape = RoundedCornerShape(14.dp)
                     ) { Text("Opakovat jen chyby (${wrongQuestions.size})", fontWeight = FontWeight.Bold) }
                 }
@@ -587,12 +587,12 @@ internal fun VerbQuizScreen(
                 Button(
                     onClick = onBack,
                     modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
                     shape = RoundedCornerShape(14.dp)
                 ) { Text("Vybrat jinou sadu", fontWeight = FontWeight.Bold) }
             } else {
                 val question = questions[questionIndex]
-                Text("OTÁZKA ${questionIndex + 1} Z ${questions.size}", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                Text("OTÁZKA ${questionIndex + 1} Z ${questions.size}", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                 LinearProgressIndicator(
                     progress = { (questionIndex + 1).toFloat() / questions.size.toFloat() },
                     modifier = Modifier.fillMaxWidth()
@@ -600,7 +600,7 @@ internal fun VerbQuizScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(22.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = CardSurface)
                 ) {
                     Column(modifier = Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
@@ -664,16 +664,16 @@ internal fun VerbQuizScreen(
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                             Text(
                                 if (selectedAnswer == question.correctIndex) "Správně! Gut gemacht!" else "Správná odpověď: ${question.choices[question.correctIndex]}",
-                                color = Forest,
+                                color = ForestText,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp
                             )
                             if (question.germanSentence.isNotBlank()) {
-                                Text("Celá věta:", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text("Celá věta:", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 Text(question.germanSentence, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, lineHeight = 23.sp)
                             }
                             if (question.translation.isNotBlank()) {
-                                Text("Česky:", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text("Česky:", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 Text(question.translation, color = Ink, fontSize = 15.sp, lineHeight = 22.sp)
                             }
                             Text(question.explanation, color = Ink, fontSize = 14.sp, lineHeight = 21.sp)
@@ -780,7 +780,7 @@ private fun ScreenHeader(title: String, onBack: () -> Unit) {
     ) {
         Button(
             onClick = onBack,
-            colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+            colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier.heightIn(min = 52.dp)
         ) {
@@ -788,7 +788,7 @@ private fun ScreenHeader(title: String, onBack: () -> Unit) {
             Text("Zpět")
         }
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text("DEUTSCHAI", color = Forest, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
+            Text("DEUTSCHAI", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
             Text(title, color = Muted, fontSize = 13.sp)
         }
     }
@@ -806,7 +806,7 @@ private fun LearningCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = CardSurface)
     ) {
         Row(
             modifier = Modifier.padding(17.dp),
@@ -820,7 +820,7 @@ private fun LearningCard(
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Text(title, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
                 Text(subtitle, color = Muted, fontSize = 13.sp, lineHeight = 19.sp)
-                Text(detail, color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(detail, color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

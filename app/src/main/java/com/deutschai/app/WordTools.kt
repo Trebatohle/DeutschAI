@@ -398,14 +398,14 @@ internal fun WordToolsScreen(
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Button(
                     onClick = { goBackOneLevel() },
-                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Zpět")
                     Text("Zpět")
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("DEUTSCHAI", color = Forest, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
+                    Text("DEUTSCHAI", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
                     Text(
                         selectedMode?.title ?: selectedGroup?.title ?: "Další slovní druhy",
                         color = Muted,
@@ -426,7 +426,7 @@ internal fun WordToolsScreen(
                             onClick = { selectedGroup = group },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(20.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White)
+                            colors = CardDefaults.cardColors(containerColor = CardSurface)
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth().padding(18.dp),
@@ -436,11 +436,11 @@ internal fun WordToolsScreen(
                                 Box(
                                     modifier = Modifier.size(46.dp).background(Mint, RoundedCornerShape(14.dp)),
                                     contentAlignment = Alignment.Center
-                                ) { Icon(Icons.Default.Translate, contentDescription = null, tint = Forest) }
+                                ) { Icon(Icons.Default.Translate, contentDescription = null, tint = ForestText) }
                                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                     Text(group.title, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
                                     Text(group.subtitle, color = Muted, fontSize = 13.sp, lineHeight = 18.sp)
-                                    Text("25 výrazů · 3 způsoby procvičení", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text("25 výrazů · 3 způsoby procvičení", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                     LatestResultLine(CourseResultStore.load(context, "wordtools_${group.id}"))
                                 }
                             }
@@ -460,16 +460,16 @@ internal fun WordToolsScreen(
                                 modifier = Modifier.padding(16.dp),
                                 verticalArrangement = Arrangement.spacedBy(7.dp)
                             ) {
-                                Text("Rychlý přehled koncovek", color = Forest, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                                Text("1. pád · kdo/co", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text("Rychlý přehled koncovek", color = ForestText, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                Text("1. pád · kdo/co", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 Text("mein Vater · meine Mutter · mein Kind · meine Freunde", color = Ink, fontSize = 14.sp, lineHeight = 20.sp)
-                                Text("4. pád · koho/co", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text("4. pád · koho/co", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 Text("meinen Vater · meine Mutter · mein Kind · meine Freunde", color = Ink, fontSize = 14.sp, lineHeight = 20.sp)
-                                Text("3. pád · komu/čemu", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text("3. pád · komu/čemu", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 Text("meinem Vater · meiner Mutter · meinem Kind · meinen Freunden", color = Ink, fontSize = 14.sp, lineHeight = 20.sp)
                                 Text(
                                     "Nejdřív určuj pád a rod/číslo podstatného jména. Podle nich vybereš koncovku přivlastňovacího zájmena.",
-                                    color = Forest,
+                                    color = ForestText,
                                     fontSize = 13.sp,
                                     lineHeight = 19.sp
                                 )
@@ -481,12 +481,12 @@ internal fun WordToolsScreen(
                             onClick = { startMode(mode) },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(18.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White)
+                            colors = CardDefaults.cardColors(containerColor = CardSurface)
                         ) {
                             Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text(mode.title, color = Forest, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                                Text(mode.title, color = ForestText, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                                 Text(mode.subtitle, color = Muted, fontSize = 13.sp, lineHeight = 19.sp)
-                                Text("25 otázek", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                Text("25 otázek", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                                 LatestResultLine(CourseResultStore.load(context, "wordtools_${selectedGroup!!.id}_${mode.id}"))
                             }
                         }
@@ -525,7 +525,7 @@ internal fun WordToolsScreen(
                             Button(
                                 onClick = { repeatWrongQuestions() },
                                 modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+                                colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
                                 shape = RoundedCornerShape(14.dp)
                             ) { Text("Opakovat jen chyby (${wrongQuestions.size})", fontWeight = FontWeight.Bold) }
                         }
@@ -538,11 +538,11 @@ internal fun WordToolsScreen(
                         Button(
                             onClick = { selectedMode = null; selectedAnswer = null; finished = false },
                             modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+                            colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
                             shape = RoundedCornerShape(14.dp)
                         ) { Text("Vybrat jiný způsob procvičení", fontWeight = FontWeight.Bold) }
                     } else if (question != null) {
-                        Text("OTÁZKA ${questionIndex + 1} Z ${questions.size}", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                        Text("OTÁZKA ${questionIndex + 1} Z ${questions.size}", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                         LinearProgressIndicator(
                             progress = { (questionIndex + 1).toFloat() / questions.size.toFloat() },
                             modifier = Modifier.fillMaxWidth()
@@ -550,7 +550,7 @@ internal fun WordToolsScreen(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(22.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White)
+                            colors = CardDefaults.cardColors(containerColor = CardSurface)
                         ) {
                             Column(modifier = Modifier.padding(21.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text(question.prompt, color = Ink, fontSize = 20.sp, lineHeight = 29.sp, fontWeight = FontWeight.SemiBold)
@@ -602,11 +602,11 @@ internal fun WordToolsScreen(
                                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                                     Text(
                                         if (selectedAnswer == question.correctIndex) "Správně! Gut gemacht!" else "Správná odpověď: ${question.choices[question.correctIndex]}",
-                                        color = Forest, fontWeight = FontWeight.Bold, fontSize = 16.sp
+                                        color = ForestText, fontWeight = FontWeight.Bold, fontSize = 16.sp
                                     )
-                                    Text("Celá německá věta:", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text("Celá německá věta:", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                     Text(question.fullGerman, color = Ink, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, lineHeight = 23.sp)
-                                    Text("Český překlad:", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text("Český překlad:", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                     Text(question.fullCzech, color = Ink, fontSize = 15.sp, lineHeight = 22.sp)
                                     Text(question.explanation, color = Muted, fontSize = 13.sp, lineHeight = 19.sp)
                                 }

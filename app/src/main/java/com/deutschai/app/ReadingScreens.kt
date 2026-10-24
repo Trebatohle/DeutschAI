@@ -103,7 +103,7 @@ internal fun ReadingLibraryScreen(
                 Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
                         if (translationModelReady) "Offline překlady připraveny" else "Příprava offline překladů",
-                        color = Forest, fontWeight = FontWeight.Bold, fontSize = 14.sp
+                        color = ForestText, fontWeight = FontWeight.Bold, fontSize = 14.sp
                     )
                     Text(translationModelStatus, color = Muted, fontSize = 12.sp, lineHeight = 18.sp)
                 }
@@ -137,12 +137,12 @@ internal fun ReadingLibraryScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Icon(Icons.Default.TouchApp, contentDescription = null, tint = Forest, modifier = Modifier.size(26.dp))
+                    Icon(Icons.Default.TouchApp, contentDescription = null, tint = ForestText, modifier = Modifier.size(26.dp))
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Slovníček pod prstem", color = Forest, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Text("Slovníček pod prstem", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                         Text(
                             "Překlady jsou dostupné offline. U méně běžného slova, které ještě ve slovníčku není, to aplikace výslovně oznámí.",
-                            color = Forest,
+                            color = ForestText,
                             fontSize = 12.sp,
                             lineHeight = 18.sp
                         )
@@ -151,7 +151,7 @@ internal fun ReadingLibraryScreen(
             }
             Text(
                 "Úroveň $selectedLevel · ${articles.size} příběhy",
-                color = Forest,
+                color = ForestText,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -160,7 +160,7 @@ internal fun ReadingLibraryScreen(
                     onClick = { onSelectArticle(article) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = CardSurface)
                 ) {
                     Row(
                         modifier = Modifier.padding(17.dp),
@@ -171,14 +171,14 @@ internal fun ReadingLibraryScreen(
                             modifier = Modifier.size(44.dp).background(Mint, RoundedCornerShape(14.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text((index + 1).toString(), color = Forest, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Text((index + 1).toString(), color = ForestText, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                         }
                         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                             Text(article.title, color = Ink, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, lineHeight = 22.sp)
                             Text(article.subtitle, color = Muted, fontSize = 13.sp, lineHeight = 19.sp)
                             Text(
                                 article.wordCount.toString() + " slov · " + article.level,
-                                color = Forest,
+                                color = ForestText,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -230,10 +230,10 @@ internal fun ReadingArticleScreen(
             Text(article.title, color = Ink, fontSize = 27.sp, lineHeight = 33.sp, fontWeight = FontWeight.Bold)
             Text(article.subtitle, color = Muted, fontSize = 14.sp, lineHeight = 20.sp)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Icon(Icons.Default.MenuBook, contentDescription = null, tint = Forest, modifier = Modifier.size(19.dp))
+                Icon(Icons.Default.MenuBook, contentDescription = null, tint = ForestText, modifier = Modifier.size(19.dp))
                 Text(
                     article.wordCount.toString() + " slov · " + article.level,
-                    color = Forest,
+                    color = ForestText,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -241,10 +241,10 @@ internal fun ReadingArticleScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = CardSurface)
             ) {
                 Column(modifier = Modifier.padding(17.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Lies auf Deutsch", color = Forest, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                    Text("Lies auf Deutsch", color = ForestText, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     Text(
                         "Čti příběh pouze v němčině. Podrž prst přímo na slovu; jeho překlad se objeví nad ním a po puštění zmizí.",
                         color = Muted,
@@ -264,7 +264,7 @@ internal fun ReadingArticleScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = CardSurface)
                 ) {
                     Text(
                         text = article.body,
@@ -352,7 +352,7 @@ internal fun ReadingArticleScreen(
                             ) {
                                 Text(
                                     pressedMeaning!!.first,
-                                    color = Forest,
+                                    color = ForestText,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -397,7 +397,7 @@ private fun ReadingHeader(title: String, onBack: () -> Unit) {
     ) {
         Button(
             onClick = onBack,
-            colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+            colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier.heightIn(min = 50.dp)
         ) {
@@ -405,7 +405,7 @@ private fun ReadingHeader(title: String, onBack: () -> Unit) {
             Text("Zpět")
         }
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text("DEUTSCHAI", color = Forest, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
+            Text("DEUTSCHAI", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
             Text(title, color = Muted, fontSize = 13.sp)
         }
     }

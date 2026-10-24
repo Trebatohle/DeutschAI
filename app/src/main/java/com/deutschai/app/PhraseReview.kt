@@ -170,14 +170,14 @@ internal fun PhraseReviewScreen(level: String, onBack: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Button(
                     onClick = onBack,
-                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
+                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Zpět")
                     Text("Zpět")
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("DEUTSCHAI", color = Forest, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
+                    Text("DEUTSCHAI", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
                     Text("Chytré opakování · $level", color = Muted, fontSize = 13.sp)
                 }
             }
@@ -189,7 +189,7 @@ internal fun PhraseReviewScreen(level: String, onBack: () -> Unit) {
             )
 
             if (current != null) {
-                Text("SADA ${index + 1} / ${session.size}  ·  ${cards.size} FRÁZÍ V KURZU", color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text("SADA ${index + 1} / ${session.size}  ·  ${cards.size} FRÁZÍ V KURZU", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 LinearProgressIndicator(
                     progress = { (index + 1).toFloat() / session.size.coerceAtLeast(1).toFloat() },
                     modifier = Modifier.fillMaxWidth()
@@ -197,21 +197,21 @@ internal fun PhraseReviewScreen(level: String, onBack: () -> Unit) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = CardSurface)
                 ) {
                     Column(modifier = Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                            Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = Forest)
-                            Text(current.courseTitle, color = Forest, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = ForestText)
+                            Text(current.courseTitle, color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                         Text("Jak bys to řekl/a německy?", color = Muted, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                         Text(current.prompt, color = Ink, fontSize = 21.sp, lineHeight = 29.sp, fontWeight = FontWeight.SemiBold)
                         if (revealed) {
                             Spacer(Modifier.heightIn(min = 2.dp))
-                            Text("NĚMECKY", color = Forest, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                            Text("NĚMECKY", color = ForestText, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                             Text(current.german, color = Ink, fontSize = 20.sp, lineHeight = 28.sp, fontWeight = FontWeight.Bold)
                             GermanAudioControls(player = speaker, text = current.german)
-                            Text("ČESKY", color = Forest, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                            Text("ČESKY", color = ForestText, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                             Text(current.czech, color = Muted, fontSize = 15.sp, lineHeight = 22.sp)
                         }
                     }
@@ -268,7 +268,7 @@ internal fun PhraseReviewScreen(level: String, onBack: () -> Unit) {
                     Column(modifier = Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(
                             if (cards.isEmpty()) "Tato úroveň zatím nemá fráze." else "Tato sada je hotová!",
-                            color = Forest, fontSize = 22.sp, fontWeight = FontWeight.Bold
+                            color = ForestText, fontSize = 22.sp, fontWeight = FontWeight.Bold
                         )
                         Text(
                             when {
@@ -278,9 +278,9 @@ internal fun PhraseReviewScreen(level: String, onBack: () -> Unit) {
                                     SimpleDateFormat("dd.MM. 'v' HH:mm", Locale.getDefault()).format(Date(nextDueAt)) + "."
                                 else -> "Výborně! V této úrovni zatím není další fráze k opakování."
                             },
-                            color = Forest, fontSize = 14.sp, lineHeight = 21.sp
+                            color = ForestText, fontSize = 14.sp, lineHeight = 21.sp
                         )
-                        Text("V této sadě zopakováno: $completed", color = Forest, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        Text("V této sadě zopakováno: $completed", color = ForestText, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
                 if (remainingDue > 0) {
