@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -297,14 +298,15 @@ internal fun ListeningPracticeScreen(level: String, onBack: () -> Unit) {
                                     },
                                     enabled = !ratingSaved,
                                     modifier = Modifier.weight(1f).heightIn(min = 58.dp),
+                                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 7.dp),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = when (rating) {
                                             PhraseRating.AGAIN -> Incorrect
                                             PhraseRating.HARD -> RatingHard
-                                            PhraseRating.GOOD -> Mint
+                                            PhraseRating.GOOD -> RatingGood
                                             PhraseRating.EASY -> RatingEasy
                                         },
-                                        contentColor = Ink
+                                        contentColor = if (rating == PhraseRating.EASY && IsDarkTheme) ActionText else Ink
                                     ),
                                     shape = RoundedCornerShape(12.dp)
                                 ) {
@@ -312,7 +314,13 @@ internal fun ListeningPracticeScreen(level: String, onBack: () -> Unit) {
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         verticalArrangement = Arrangement.spacedBy(2.dp)
                                     ) {
-                                        Text(labels.first, fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 2)
+                                        Text(
+                                            labels.first,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = if (rating == PhraseRating.HARD) 10.sp else 12.sp,
+                                            maxLines = 1,
+                                            softWrap = false
+                                        )
                                         Text(labels.second, fontSize = 10.sp, maxLines = 1)
                                     }
                                 }

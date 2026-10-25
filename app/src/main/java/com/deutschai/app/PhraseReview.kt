@@ -247,10 +247,10 @@ internal fun PhraseReviewScreen(level: String, onBack: () -> Unit) {
                                 containerColor = when (rating) {
                                     PhraseRating.AGAIN -> Incorrect
                                     PhraseRating.HARD -> RatingHard
-                                    PhraseRating.GOOD -> Mint
+                                    PhraseRating.GOOD -> RatingGood
                                     PhraseRating.EASY -> RatingEasy
                                 },
-                                contentColor = Ink
+                                contentColor = if (rating == PhraseRating.EASY && IsDarkTheme) ActionText else Ink
                             ),
                             shape = RoundedCornerShape(13.dp)
                         ) {
