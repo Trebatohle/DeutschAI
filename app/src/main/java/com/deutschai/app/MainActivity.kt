@@ -544,7 +544,7 @@ private fun BeatriceHome() {
                                 modifier = Modifier.weight(1f),
                                 title = "Týdenní cíl",
                                 value = "${habitStats.studyDaysInLastWeek}/5",
-                                detail = "dní"
+                                detail = if (habitStats.studyDaysInLastWeek >= 5) "Cíl splněn ✓" else "dní z posledních 7"
                             )
                         }
 
