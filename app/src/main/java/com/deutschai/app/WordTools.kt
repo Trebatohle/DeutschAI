@@ -558,10 +558,10 @@ internal fun WordToolsScreen(
                         }
                         question.choices.forEachIndexed { index, choice ->
                             val bg = when {
-                                selectedAnswer == null -> Color.White
+                                selectedAnswer == null -> OptionSurface
                                 index == question.correctIndex -> Correct
                                 index == selectedAnswer -> Incorrect
-                                else -> Color.White
+                                else -> OptionSurface
                             }
                             Card(
                                 onClick = {
@@ -626,7 +626,7 @@ internal fun WordToolsScreen(
                                     }
                                 },
                                 modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Forest, contentColor = Color.White),
+                                colors = ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
                                 shape = RoundedCornerShape(14.dp)
                             ) {
                                 Text(if (questionIndex == questions.lastIndex) "Zobrazit výsledek" else "Další otázka", fontWeight = FontWeight.Bold)

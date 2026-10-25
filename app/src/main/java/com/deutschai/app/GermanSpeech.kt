@@ -221,7 +221,7 @@ internal fun GermanAudioControls(
                 enabled = player.status == GermanVoiceStatus.READY,
                 modifier = Modifier.weight(1f).heightIn(min = 48.dp),
                 contentPadding = PaddingValues(horizontal = 7.dp, vertical = 10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
+                colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text("Pomalu", fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 1, softWrap = false)
@@ -248,13 +248,13 @@ internal fun GermanAudioControls(
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
+                colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
                 shape = RoundedCornerShape(12.dp)
             ) { Text("Nainstalovat německý hlas", fontWeight = FontWeight.Bold) }
             Button(
                 onClick = { player.retry() },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFEFEDE7), contentColor = ForestText),
+                colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFEFEDE7), contentColor = Forest),
                 shape = RoundedCornerShape(12.dp)
             ) { Text("Znovu ověřit dostupný hlas", fontWeight = FontWeight.Bold) }
         }

@@ -207,10 +207,10 @@ internal fun ListeningPracticeScreen(level: String, onBack: () -> Unit) {
 
                 question.choices.forEachIndexed { index, choice ->
                     val choiceColor = when {
-                        selectedAnswer == null -> Color.White
+                        selectedAnswer == null -> OptionSurface
                         index == question.correctIndex -> Correct
                         selectedAnswer == index -> Incorrect
-                        else -> Color.White
+                        else -> OptionSurface
                     }
                     Card(
                         onClick = {
@@ -300,9 +300,9 @@ internal fun ListeningPracticeScreen(level: String, onBack: () -> Unit) {
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = when (rating) {
                                             PhraseRating.AGAIN -> Incorrect
-                                            PhraseRating.HARD -> Color(0xFFF5E9D4)
+                                            PhraseRating.HARD -> RatingHard
                                             PhraseRating.GOOD -> Mint
-                                            PhraseRating.EASY -> Color(0xFFD9EDE1)
+                                            PhraseRating.EASY -> RatingEasy
                                         },
                                         contentColor = Ink
                                     ),
@@ -333,7 +333,7 @@ internal fun ListeningPracticeScreen(level: String, onBack: () -> Unit) {
                         },
                         enabled = ratingSaved,
                         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Forest, contentColor = Color.White),
+                        colors = ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
                         shape = RoundedCornerShape(14.dp)
                     ) {
                         Text(

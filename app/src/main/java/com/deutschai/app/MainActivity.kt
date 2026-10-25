@@ -81,6 +81,12 @@ internal val Ink: Color get() = inkColorState.value
 internal val Muted: Color get() = mutedColorState.value
 internal val ForestText: Color get() = if (IsDarkTheme) Color(0xFF8CD7B0) else Forest
 internal val CardSurface: Color get() = if (IsDarkTheme) Color(0xFF1A2420) else Color.White
+internal val OptionSurface: Color get() = if (IsDarkTheme) Color(0xFF202B26) else Color.White
+internal val ActionColor: Color get() = if (IsDarkTheme) Color(0xFF8CD7B0) else Forest
+internal val ActionText: Color get() = if (IsDarkTheme) Color(0xFF10241B) else Color.White
+internal val GoldText = Color(0xFF1B2B23)
+internal val RatingHard: Color get() = if (IsDarkTheme) Color(0xFF59482D) else Color(0xFFF5E9D4)
+internal val RatingEasy: Color get() = if (IsDarkTheme) Color(0xFF294638) else Color(0xFFD9EDE1)
 internal val Gold = Color(0xFFE7B96A)
 internal val Correct: Color get() = correctColorState.value
 internal val Incorrect: Color get() = incorrectColorState.value
@@ -500,7 +506,7 @@ private fun BeatriceHome() {
                                             else showLearningHub = true
                                         },
                                         modifier = Modifier.weight(1f).heightIn(min = 50.dp),
-                                        colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = ForestText),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = GoldText),
                                         shape = RoundedCornerShape(14.dp)
                                     ) {
                                         Text("Pokračovat", fontWeight = FontWeight.Bold, maxLines = 1)
@@ -509,8 +515,8 @@ private fun BeatriceHome() {
                                         onClick = { showLearningHub = true },
                                         modifier = Modifier.weight(1f).heightIn(min = 50.dp),
                                         colors = ButtonDefaults.buttonColors(
-                                            containerColor = Color(0xFF31584F),
-                                            contentColor = Color.White
+                                            containerColor = OptionSurface,
+                                            contentColor = Ink
                                         ),
                                         shape = RoundedCornerShape(14.dp)
                                     ) {
@@ -634,14 +640,24 @@ private fun BeatriceHome() {
                             Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                 Text("Týdenní cíl", color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                    Text("Dny s učením", color = Muted, fontSize = 13.sp)
-                                    Text("${habitStats.studyDaysInLastWeek} z 5 dní", color = ForestText, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                    Text(if (habitStats.studyDaysInLastWeek >= 5) "Týdenní cíl splněn ✓" else "Dny s učením", color = Muted, fontSize = 13.sp)
+                                    Text(if (habitStats.studyDaysInLastWeek >= 5) "Výborně · 5/5 dní" else "${habitStats.studyDaysInLastWeek} z 5 dní", color = ForestText, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                                 }
                                 LinearProgressIndicator(
                                     progress = { (habitStats.studyDaysInLastWeek / 5f).coerceIn(0f, 1f) },
                                     modifier = Modifier.fillMaxWidth().height(7.dp),
                                     color = ForestText,
                                     trackColor = Mint
+                                )
+                                Text(
+                                    if (habitStats.studyDaysInLastWeek >= 5) {
+                                        "Cíl splněn! Pokračuj dál — série roste a cíl se průběžně obnovuje."
+                                    } else {
+                                        "Stačí se učit 5 dní z posledních 7. Dny nemusí být po sobě."
+                                    },
+                                    color = Muted,
+                                    fontSize = 12.sp,
+                                    lineHeight = 18.sp
                                 )
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                     Text("Aktuální série", color = Muted, fontSize = 13.sp)
@@ -1096,10 +1112,10 @@ private fun LessonScreen(
                         )
                         question.choices.forEachIndexed { index, choice ->
                             val choiceColor = when {
-                                selectedAnswer == null -> Cream
+                                selectedAnswer == null -> OptionSurface
                                 index == question.correctIndex -> Correct
                                 selectedAnswer == index -> Incorrect
-                                else -> Cream
+                                else -> OptionSurface
                             }
                             Card(
                                 onClick = {
@@ -1190,7 +1206,7 @@ private fun LessonScreen(
                             }
                         },
                         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Forest, contentColor = Color.White),
+                        colors = ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
                         shape = RoundedCornerShape(14.dp)
                     ) {
                         Text(

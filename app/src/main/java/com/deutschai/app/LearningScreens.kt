@@ -402,10 +402,10 @@ internal fun ArticleQuizScreen(
                 }
                 choices.forEach { article ->
                     val bg = when {
-                        selectedArticle == null -> Color.White
+                        selectedArticle == null -> OptionSurface
                         article == word.article -> Correct
                         article == selectedArticle -> Incorrect
-                        else -> Color.White
+                        else -> OptionSurface
                     }
                     Card(
                         onClick = {
@@ -480,7 +480,7 @@ internal fun ArticleQuizScreen(
                             }
                         },
                         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Forest, contentColor = Color.White),
+                        colors = ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
                         shape = RoundedCornerShape(14.dp)
                     ) {
                         Text(if (questionIndex == total - 1) "Zobrazit výsledek" else "Další slovo", fontWeight = FontWeight.Bold)
@@ -614,10 +614,10 @@ internal fun VerbQuizScreen(
                 }
                 question.choices.forEachIndexed { index, choice ->
                     val bg = when {
-                        selectedAnswer == null -> Color.White
+                        selectedAnswer == null -> OptionSurface
                         index == question.correctIndex -> Correct
                         index == selectedAnswer -> Incorrect
-                        else -> Color.White
+                        else -> OptionSurface
                     }
                     Card(
                         onClick = {
@@ -693,7 +693,7 @@ internal fun VerbQuizScreen(
                             }
                         },
                         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Forest, contentColor = Color.White),
+                        colors = ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
                         shape = RoundedCornerShape(14.dp)
                     ) {
                         Text(if (questionIndex == questions.lastIndex) "Zobrazit výsledek" else "Další otázka", fontWeight = FontWeight.Bold)

@@ -221,7 +221,7 @@ internal fun PhraseReviewScreen(level: String, onBack: () -> Unit) {
                     Button(
                         onClick = { revealed = true },
                         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Forest, contentColor = Color.White),
+                        colors = ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
                         shape = RoundedCornerShape(14.dp)
                     ) { Text("Zobrazit odpověď", fontWeight = FontWeight.Bold) }
                 } else {
@@ -244,9 +244,9 @@ internal fun PhraseReviewScreen(level: String, onBack: () -> Unit) {
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = when (rating) {
                                     PhraseRating.AGAIN -> Incorrect
-                                    PhraseRating.HARD -> Color(0xFFF5E9D4)
+                                    PhraseRating.HARD -> RatingHard
                                     PhraseRating.GOOD -> Mint
-                                    PhraseRating.EASY -> Color(0xFFD9EDE1)
+                                    PhraseRating.EASY -> RatingEasy
                                 },
                                 contentColor = Ink
                             ),
@@ -287,7 +287,7 @@ internal fun PhraseReviewScreen(level: String, onBack: () -> Unit) {
                     Button(
                         onClick = { startNextBatch() },
                         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Forest, contentColor = Color.White),
+                        colors = ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
                         shape = RoundedCornerShape(14.dp)
                     ) { Text("Pokračovat dalšími 25 frázemi", fontWeight = FontWeight.Bold) }
                 }

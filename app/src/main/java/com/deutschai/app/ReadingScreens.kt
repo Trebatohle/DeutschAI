@@ -98,7 +98,7 @@ internal fun ReadingLibraryScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = if (translationModelReady) Mint else Color.White)
+                colors = CardDefaults.cardColors(containerColor = if (translationModelReady) Mint else CardSurface)
             ) {
                 Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
@@ -117,8 +117,8 @@ internal fun ReadingLibraryScreen(
                         onClick = { selectedLevel = level },
                         modifier = Modifier.weight(1f).heightIn(min = 44.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (selectedLevel == level) Forest else Mint,
-                            contentColor = if (selectedLevel == level) Color.White else Forest
+                            containerColor = if (selectedLevel == level) ActionColor else Mint,
+                            contentColor = if (selectedLevel == level) ActionText else ForestText
                         ),
                         shape = RoundedCornerShape(12.dp),
                         contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp, vertical = 8.dp)
@@ -379,7 +379,7 @@ internal fun ReadingArticleScreen(
             Button(
                 onClick = onBack,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Forest, contentColor = Color.White),
+                colors = ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
                 shape = RoundedCornerShape(14.dp)
             ) {
                 Text("Zpět na knihovnu", fontWeight = FontWeight.Bold)
