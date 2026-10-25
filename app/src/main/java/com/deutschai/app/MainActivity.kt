@@ -663,6 +663,10 @@ private fun BeatriceHome() {
                                     Text("Aktuální série", color = Muted, fontSize = 13.sp)
                                     Text("${habitStats.currentStreakDays} dní", color = ForestText, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                                 }
+                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                    Text("Nejdelší série", color = Muted, fontSize = 13.sp)
+                                    Text("${habitStats.bestStreakDays} dní", color = ForestText, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                }
                             }
                         }
                         FeatureTile(

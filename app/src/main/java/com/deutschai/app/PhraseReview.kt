@@ -128,6 +128,8 @@ internal fun savePhraseRating(
         .putFloat("${phraseKey}_interval", intervalDays.toFloat())
         .putLong("${phraseKey}_due", now + (intervalDays * 24.0 * 60.0 * 60.0 * 1000.0).roundToInt())
         .apply()
+    // Rating a phrase counts as a real study day for the rolling weekly goal.
+    StudyHabitStore.recordSession(context)
 }
 
 @Composable
