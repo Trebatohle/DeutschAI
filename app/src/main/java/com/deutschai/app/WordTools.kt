@@ -112,7 +112,6 @@ internal val wordToolGroups = listOf(
         "hundert§sto§In diesem Buch sind hundert Seiten.§Tato kniha má sto stran.",
         "tausend§tisíc§Tausend Menschen besuchen das Fest.§Oslavu navštíví tisíc lidí."
     ),
-,
     wordToolGroup("ordinal-numbers", "Řadové číslovky", "První až dvacátý pátý; 25 otázek",
         "ersten§první§Am ersten Tag besuche ich einen neuen Kurs.§První den navštívím nový kurz.",
         "zweiten§druhý§Am zweiten Tag lerne ich neue Wörter.§Druhý den se učím nová slova.",
@@ -166,7 +165,7 @@ internal val wordToolGroups = listOf(
         "fünfzigmal§padesátkrát§Sie hat das Lied fünfzigmal gehört.§Píseň slyšela padesátkrát.",
         "hundertmal§stokrát§Ich habe dir das hundertmal gesagt.§Řekl jsem ti to stokrát.",
         "tausendmal§tisíckrát§Dieses Bild wurde tausendmal geteilt.§Tento obrázek byl sdílen tisíckrát."
-    )
+    ),
     wordToolGroup("prepositions", "Předložky", "Místo, směr, čas a vztahy",
         "an§na / u§Ich warte an der Haltestelle.§Čekám na zastávce.",
         "auf§na§Das Buch liegt auf dem Tisch.§Kniha leží na stole.",
