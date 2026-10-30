@@ -185,7 +185,7 @@ class ContentQualityTest {
 
     @Test
     fun wordToolGroupsContainTwentyFiveCompletePracticeItems() {
-        assertEquals("Five grammar and vocabulary areas are expected", 5, wordToolGroups.size)
+        assertEquals("Seven grammar and vocabulary areas are expected", 7, wordToolGroups.size)
         val ids = wordToolGroups.map { it.id }
         assertEquals("Word-tool group IDs must be unique", ids.size, ids.toSet().size)
 
