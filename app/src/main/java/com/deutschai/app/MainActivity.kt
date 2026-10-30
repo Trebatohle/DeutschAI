@@ -1297,7 +1297,6 @@ private fun LessonScreen(
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.Bold
                             )
-                            Text(question.explanation, color = Ink, fontSize = 14.sp, lineHeight = 21.sp)
                             if (question.germanSentence.isNotBlank()) {
                                 Text("Celá věta:", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 Text(question.germanSentence, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, lineHeight = 23.sp)
