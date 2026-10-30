@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -281,7 +282,7 @@ internal fun ListeningPracticeScreen(level: String, onBack: () -> Unit) {
                     val phraseKey = "${level}_${question.source.courseId}_${question.source.itemIndex}"
                     val ratings = listOf(
                         PhraseRating.AGAIN to ("Zatím ne" to "znovu za 10 min"),
-                        PhraseRating.HARD to ("Ještě si nejsem jistý/á" to "zítra"),
+                        PhraseRating.HARD to ("Ještě si nejsem jistý/á" to "Zopakovat zítra"),
                         PhraseRating.GOOD to ("Umím" to "za 1–3 dny"),
                         PhraseRating.EASY to ("Umím dobře" to "za 3–6 dní")
                     )
@@ -319,7 +320,8 @@ internal fun ListeningPracticeScreen(level: String, onBack: () -> Unit) {
                                             fontWeight = FontWeight.Bold,
                                             fontSize = if (rating == PhraseRating.HARD) 10.sp else 12.sp,
                                             maxLines = 1,
-                                            softWrap = false
+                                            softWrap = false,
+                                            overflow = TextOverflow.Clip
                                         )
                                         Text(labels.second, fontSize = 10.sp, maxLines = 1)
                                     }
