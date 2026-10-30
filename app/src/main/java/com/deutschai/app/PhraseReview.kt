@@ -3,7 +3,7 @@ package com.deutschai.app
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Column\nimport androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -234,29 +234,37 @@ internal fun PhraseReviewScreen(level: String, onBack: () -> Unit) {
                         PhraseRating.GOOD to ("Dobře" to "za 1–3 dny"),
                         PhraseRating.EASY to ("Snadné" to "za 3–6 dní")
                     )
-                    ratings.forEach { (rating, labels) ->
-                        Button(
-                            onClick = {
-                                savePhraseRating(context, current, rating)
-                                completed += 1
-                                index += 1
-                                revealed = false
-                            },
-                            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = when (rating) {
-                                    PhraseRating.AGAIN -> Incorrect
-                                    PhraseRating.HARD -> RatingHard
-                                    PhraseRating.GOOD -> RatingGood
-                                    PhraseRating.EASY -> RatingEasy
-                                },
-                                contentColor = if (rating == PhraseRating.EASY && IsDarkTheme) ActionText else Ink
-                            ),
-                            shape = RoundedCornerShape(13.dp)
+                    ratings.chunked(2).forEach { ratingRow ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(9.dp)
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(1.dp)) {
-                                Text(labels.first, fontWeight = FontWeight.Bold)
-                                Text(labels.second, fontSize = 11.sp)
+                            ratingRow.forEach { (rating, labels) ->
+                                Button(
+                                    onClick = {
+                                        savePhraseRating(context, current, rating)
+                                        completed += 1
+                                        index += 1
+                                        revealed = false
+                                    },
+                                    modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+                                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 8.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = when (rating) {
+                                            PhraseRating.AGAIN -> Incorrect
+                                            PhraseRating.HARD -> RatingHard
+                                            PhraseRating.GOOD -> RatingGood
+                                            PhraseRating.EASY -> RatingEasy
+                                        },
+                                        contentColor = if (rating == PhraseRating.EASY && IsDarkTheme) ActionText else Ink
+                                    ),
+                                    shape = RoundedCornerShape(13.dp)
+                                ) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                                        Text(labels.first, fontWeight = FontWeight.Bold)
+                                        Text(labels.second, fontSize = 11.sp)
+                                    }
+                                }
                             }
                         }
                     }
