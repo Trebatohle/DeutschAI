@@ -196,6 +196,9 @@ private fun BeatriceHome() {
     var showWordTools by remember { mutableStateOf(false) }
     var showLearningHub by remember { mutableStateOf(false) }
     var showLessonLibrary by remember { mutableStateOf(false) }
+    var lessonLibraryOpenedFromHub by remember { mutableStateOf(false) }
+    var readingLibraryOpenedFromHub by remember { mutableStateOf(false) }
+    var dialogueOpenedFromHub by remember { mutableStateOf(false) }
     var showArticleCategories by remember { mutableStateOf(false) }
     var selectedArticleCategory by remember { mutableStateOf<ArticleCategory?>(null) }
     var showVerbCategories by remember { mutableStateOf(false) }
@@ -289,7 +292,7 @@ private fun BeatriceHome() {
 
     if (showConversation) {
         GuidedDialogueScreen(
-            onBack = { showConversation = false },
+            onBack = { showConversation = false; showLearningHub = dialogueOpenedFromHub },
             // A completed dialogue counts as a study day, but not as a scored quiz session.
             onComplete = { habitStats = StudyHabitStore.recordSession(context) }
         )
@@ -306,7 +309,7 @@ private fun BeatriceHome() {
 
     if (showReadingLibrary) {
         ReadingLibraryScreen(
-            onBack = { showReadingLibrary = false; showLearningHub = true },
+            onBack = { showReadingLibrary = false; showLearningHub = readingLibraryOpenedFromHub },
             onSelectArticle = { article ->
                 saveLastActivity("reading", article.id, article.title)
                 selectedReadingArticle = article
@@ -365,15 +368,16 @@ private fun BeatriceHome() {
     if (showLearningHub) {
         LearningHubScreen(
             onBack = { showLearningHub = false },
-            onCourses = { showLearningHub = false; showLessonLibrary = true },
+            onCourses = { lessonLibraryOpenedFromHub = true; showLearningHub = false; showLessonLibrary = true },
             onArticles = { showLearningHub = false; showArticleCategories = true },
             onVerbs = { showLearningHub = false; showVerbCategories = true },
             onDialogues = {
                 saveLastActivity("dialogue", "dialogue", "Řízené dialogy s Beatrice")
+                dialogueOpenedFromHub = true
                 showLearningHub = false
                 showConversation = true
             },
-            onReading = { showLearningHub = false; showReadingLibrary = true },
+            onReading = { readingLibraryOpenedFromHub = true; showLearningHub = false; showReadingLibrary = true },
             onWordTools = {
                 saveLastActivity("word-tools", "word-tools", "Slovní nástroje")
                 showLearningHub = false
@@ -412,7 +416,7 @@ private fun BeatriceHome() {
 
     if (showLessonLibrary) {
         LessonLibraryScreen(
-            onBack = { showLessonLibrary = false; showLearningHub = true },
+            onBack = { showLessonLibrary = false; showLearningHub = lessonLibraryOpenedFromHub },
             onSelectLesson = { lesson ->
                 saveLastActivity("lesson", lesson.id, lesson.title)
                 selectedLesson = lesson
@@ -646,13 +650,13 @@ private fun BeatriceHome() {
                             icon = { Icon(Icons.Default.VolumeUp, contentDescription = null, tint = ForestText) },
                             title = "Poslech",
                             subtitle = "Poslech a porozumění A1–B2",
-                            onClick = { showLessonLibrary = true }
+                            onClick = { lessonLibraryOpenedFromHub = false; showLessonLibrary = true }
                         )
                         FeatureCard(
                             icon = { Icon(Icons.Default.MenuBook, contentDescription = null, tint = ForestText) },
                             title = "Čtení",
                             subtitle = "Příběhy a texty podle úrovně",
-                            onClick = { showReadingLibrary = true }
+                            onClick = { readingLibraryOpenedFromHub = false; showReadingLibrary = true }
                         )
                         FeatureCard(
                             icon = { Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = ForestText) },
@@ -660,6 +664,7 @@ private fun BeatriceHome() {
                             subtitle = "Konverzace s Beatrice",
                             onClick = {
                                 saveLastActivity("dialogue", "dialogue", "Řízené dialogy s Beatrice")
+                                dialogueOpenedFromHub = false
                                 showConversation = true
                             }
                         )
