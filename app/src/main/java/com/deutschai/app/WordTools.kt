@@ -112,6 +112,61 @@ internal val wordToolGroups = listOf(
         "hundert§sto§In diesem Buch sind hundert Seiten.§Tato kniha má sto stran.",
         "tausend§tisíc§Tausend Menschen besuchen das Fest.§Oslavu navštíví tisíc lidí."
     ),
+,
+    wordToolGroup("ordinal-numbers", "Řadové číslovky", "První až dvacátý pátý; 25 otázek",
+        "ersten§první§Am ersten Tag besuche ich einen neuen Kurs.§První den navštívím nový kurz.",
+        "zweiten§druhý§Am zweiten Tag lerne ich neue Wörter.§Druhý den se učím nová slova.",
+        "dritten§třetí§Am dritten Tag fahre ich nach Berlin.§Třetí den jedu do Berlína.",
+        "vierten§čtvrtý§Am vierten Tag habe ich einen Termin.§Čtvrtý den mám schůzku.",
+        "fünften§pátý§Am fünften Tag arbeite ich von zu Hause.§Pátý den pracuji z domova.",
+        "sechsten§šestý§Am sechsten Tag besuche ich meine Familie.§Šestý den navštívím rodinu.",
+        "siebten§sedmý§Am siebten Tag mache ich eine Pause.§Sedmý den si udělám přestávku.",
+        "achten§osmý§Am achten Tag beginnt ein neues Projekt.§Osmý den začíná nový projekt.",
+        "neunten§devátý§Am neunten Tag schreibe ich einen Test.§Devátý den píšu test.",
+        "zehnten§desátý§Am zehnten Tag endet der Sprachkurs.§Desátý den končí jazykový kurz.",
+        "elften§jedenáctý§Am elften Tag kommt ein wichtiger Brief.§Jedenáctý den přijde důležitý dopis.",
+        "zwölften§dvanáctý§Am zwölften Tag fahren wir ans Meer.§Dvanáctý den jedeme k moři.",
+        "dreizehnten§třináctý§Am dreizehnten Tag besichtigen wir ein Museum.§Třináctý den navštívíme muzeum.",
+        "vierzehnten§čtrnáctý§Am vierzehnten Tag kehre ich nach Hause zurück.§Čtrnáctý den se vrátím domů.",
+        "fünfzehnten§patnáctý§Am fünfzehnten Tag treffe ich meine Freunde.§Patnáctý den se setkám s přáteli.",
+        "sechzehnten§šestnáctý§Am sechzehnten Tag beginnt die nächste Etappe.§Šestnáctý den začíná další etapa.",
+        "siebzehnten§sedmnáctý§Am siebzehnten Tag kaufe ich ein neues Buch.§Sedmnáctý den si koupím novou knihu.",
+        "achtzehnten§osmnáctý§Am achtzehnten Tag besuchen wir unsere Nachbarn.§Osmnáctý den navštívíme sousedy.",
+        "neunzehnten§devatenáctý§Am neunzehnten Tag findet die Besprechung statt.§Devatenáctý den se koná porada.",
+        "zwanzigsten§dvacátý§Am zwanzigsten Tag bekomme ich die Ergebnisse.§Dvacátý den dostanu výsledky.",
+        "einundzwanzigsten§dvacátý první§Am einundzwanzigsten Tag beginnt mein Urlaub.§Dvacátý první den začíná moje dovolená.",
+        "zweiundzwanzigsten§dvacátý druhý§Am zweiundzwanzigsten Tag besuche ich einen Freund.§Dvacátý druhý den navštívím kamaráda.",
+        "dreiundzwanzigsten§dvacátý třetí§Am dreiundzwanzigsten Tag fahren wir mit dem Zug.§Dvacátý třetí den jedeme vlakem.",
+        "vierundzwanzigsten§dvacátý čtvrtý§Am vierundzwanzigsten Tag feiern wir ein Fest.§Dvacátý čtvrtý den slavíme.",
+        "fünfundzwanzigsten§dvacátý pátý§Am fünfundzwanzigsten Tag endet unsere Reise.§Dvacátý pátý den končí naše cesta."
+    ),
+    wordToolGroup("multiplicative-numbers", "Násobné číslovky", "Jednou, dvakrát, třikrát a další násobky; 25 otázek",
+        "einmal§jednou§Ich lese den Text einmal laut vor.§Přečtu text jednou nahlas.",
+        "zweimal§dvakrát§Ich höre mir die Aufnahme zweimal an.§Poslechnu si nahrávku dvakrát.",
+        "dreimal§třikrát§Sie ruft ihre Mutter dreimal pro Woche an.§Volá mamince třikrát týdně.",
+        "viermal§čtyřikrát§Wir treffen uns viermal im Monat.§Setkáváme se čtyřikrát měsíčně.",
+        "fünfmal§pětkrát§Er wiederholt das Wort fünfmal.§Opakuje to slovo pětkrát.",
+        "sechsmal§šestkrát§Der Bus fährt sechsmal am Tag.§Autobus jede šestkrát denně.",
+        "siebenmal§sedmkrát§Ich wiederhole die Übung siebenmal.§Opakuji cvičení sedmkrát.",
+        "achtmal§osmkrát§Die Maschine piept achtmal.§Stroj osmkrát zapípá.",
+        "neunmal§devětkrát§Sie hat neunmal versucht, ihn zu erreichen.§Devětkrát se ho pokusila zastihnout.",
+        "zehnmal§desetkrát§Bitte lies den Satz zehnmal.§Přečti prosím větu desetkrát.",
+        "elfmal§jedenáctkrát§Der Spieler hat elfmal getroffen.§Hráč skóroval jedenáctkrát.",
+        "zwölfmal§dvanáctkrát§Die Uhr schlägt zwölfmal.§Hodiny odbijí dvanáctkrát.",
+        "dreizehnmal§třináctkrát§Ich habe dreizehnmal dieselbe Frage gehört.§Stejnou otázku jsem slyšel třináctkrát.",
+        "vierzehnmal§čtrnáctkrát§Sie kontrolliert die Liste vierzehnmal.§Kontroluje seznam čtrnáctkrát.",
+        "fünfzehnmal§patnáctkrát§Der Trainer wiederholt die Übung fünfzehnmal.§Trenér opakuje cvičení patnáctkrát.",
+        "sechzehnmal§šestnáctkrát§Wir haben sechzehnmal angerufen.§Volali jsme šestnáctkrát.",
+        "siebzehnmal§sedmnáctkrát§Das Wort kommt siebzehnmal im Text vor.§Toto slovo se v textu vyskytuje sedmnáctkrát.",
+        "achtzehnmal§osmnáctkrát§Er hat achtzehnmal nachgefragt.§Osmnáctkrát se doptával.",
+        "neunzehnmal§devatenáctkrát§Die Datei wurde neunzehnmal geöffnet.§Soubor byl otevřen devatenáctkrát.",
+        "zwanzigmal§dvacetkrát§Ich habe die Regel zwanzigmal erklärt.§Pravidlo jsem vysvětlil dvacetkrát.",
+        "dreißigmal§třicetkrát§Der Name steht dreißigmal auf der Liste.§Jméno je na seznamu třicetkrát.",
+        "vierzigmal§čtyřicetkrát§Die Frage wurde vierzigmal gestellt.§Otázka byla položena čtyřicetkrát.",
+        "fünfzigmal§padesátkrát§Sie hat das Lied fünfzigmal gehört.§Píseň slyšela padesátkrát.",
+        "hundertmal§stokrát§Ich habe dir das hundertmal gesagt.§Řekl jsem ti to stokrát.",
+        "tausendmal§tisíckrát§Dieses Bild wurde tausendmal geteilt.§Tento obrázek byl sdílen tisíckrát."
+    )
     wordToolGroup("prepositions", "Předložky", "Místo, směr, čas a vztahy",
         "an§na / u§Ich warte an der Haltestelle.§Čekám na zastávce.",
         "auf§na§Das Buch liegt auf dem Tisch.§Kniha leží na stole.",
@@ -304,6 +359,10 @@ internal fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Li
                 val sentencePrompt = when {
                     group.id == "numbers" ->
                         "Jak se německy řekne číslo $numeral?\n$sentenceWithBlank"
+                    group.id == "ordinal-numbers" ->
+                        "Jak se německy řekne řadová číslovka „${item.czech}“?\n$sentenceWithBlank"
+                    group.id == "multiplicative-numbers" ->
+                        "Jak se německy řekne „${item.czech}“?\n$sentenceWithBlank"
                     group.id == "possessives" ->
                         "Doplň správný tvar podle věty a českého významu:\n$sentenceWithBlank\nČesky: ${item.sentenceCzech}"
                     else ->
