@@ -144,7 +144,7 @@ class MainActivity : ComponentActivity() {
         }
 
         val appearance = getSharedPreferences("beatrice_appearance", Context.MODE_PRIVATE)
-        applyBeatriceTheme(appearance.getBoolean("dark_mode", true))
+        applyBeatriceTheme(appearance.getBoolean("dark_mode", false))
 
         setContent {
             val appColors = if (IsDarkTheme) {
@@ -1559,7 +1559,7 @@ private fun GuidedDialogueScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(18.dp),
-                        colors = CardDefaults.cardColors(containerColor = if (line.learner) Forest else Color.White)
+                        colors = CardDefaults.cardColors(containerColor = if (line.learner) Forest else CardSurface)
                     ) {
                         Column(
                             modifier = Modifier.padding(14.dp),
