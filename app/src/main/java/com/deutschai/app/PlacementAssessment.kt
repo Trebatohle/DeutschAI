@@ -142,16 +142,14 @@ internal fun evaluatePlacementAssessment(
     }
 
     // A level is considered passed when the student gets at least 4 of its 6 questions right.
+    // Report the highest consecutive CEFR band passed, not an isolated higher score.
     var estimated = "A1"
-    levels.forEach { level ->
-        if (levelResults.getValue(level).accuracyPercent >= 66) estimated = level
-        else return@forEach
-    }
-    // The result is the highest consecutive CEFR band passed, not just the highest isolated score.
-    val firstFailed = levels.firstOrNull { level -> levelResults.getValue(level).accuracyPercent < 66 }
-    if (firstFailed != null) {
-        val index = levels.indexOf(firstFailed)
-        estimated = levels[(index - 1).coerceAtLeast(0)]
+    for (level in levels) {
+        if (levelResults.getValue(level).accuracyPercent >= 66) {
+            estimated = level
+        } else {
+            break
+        }
     }
 
     return PlacementAssessmentReport(
