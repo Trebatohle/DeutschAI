@@ -479,7 +479,7 @@ internal fun WordToolsScreen(
                         "Vyber oblast a pak způsob procvičení. Každá sada má 25 promíchaných otázek.",
                         color = Muted, fontSize = 14.sp, lineHeight = 21.sp
                     )
-                    wordToolGroups.forEach { group ->
+                    wordToolGroups.filterNot { it.id in numberWordToolGroupIds }.forEach { group ->
                         Card(
                             onClick = { selectedGroup = group },
                             modifier = Modifier.fillMaxWidth(),
