@@ -31,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -239,6 +240,7 @@ internal fun NumberPracticeScreen(
     onBack: () -> Unit,
     onComplete: (score: Int, total: Int, activityKey: String) -> Unit
 ) {
+    val context = LocalContext.current
     var selectedSet by remember { mutableStateOf<String?>(null) }
     var questions by remember { mutableStateOf<List<NumberPracticeQuestion>>(emptyList()) }
     var questionIndex by remember { mutableStateOf(0) }
@@ -379,7 +381,23 @@ internal fun NumberPracticeScreen(
                         onClick = {
                             if (selectedAnswer == null) {
                                 selectedAnswer = index
-                                if (index == question.correctIndex) score += 1
+                                val correct = index == question.correctIndex
+                                LearningReviewStore.recordAnswer(
+                                    context = context,
+                                    question = ReviewQuestion(
+                                        id = question.id,
+                                        sourceKind = "numbers",
+                                        sourceTitle = title,
+                                        prompt = question.prompt,
+                                        choices = question.choices,
+                                        correctIndex = question.correctIndex,
+                                        explanation = question.explanation,
+                                        germanSentence = question.fullGerman,
+                                        translation = question.fullCzech
+                                    ),
+                                    wasCorrect = correct
+                                )
+                                if (correct) score += 1
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
