@@ -34,9 +34,9 @@ class LearningAssessmentTest {
     @Test
     fun offlinePlacementAssessmentContainsSixQuestionsAtEveryLevel() {
         val questions = buildPlacementAssessmentQuestions(kotlin.random.Random(2026))
-        assertEquals(24, questions.size)
+        assertEquals(36, questions.size)
         assertEquals(24, questions.map { it.id }.toSet().size)
-        val expectedLevels = setOf("A1", "A2", "B1", "B2")
+        val expectedLevels = setOf("A1", "A2", "B1", "B2", "C1", "C2")
         assertEquals(expectedLevels, questions.map { it.level }.toSet())
         expectedLevels.forEach { level ->
             assertEquals(6, questions.count { it.level == level })
@@ -63,9 +63,9 @@ class LearningAssessmentTest {
         val report = evaluatePlacementAssessment(questions, answers, nowMillis = 1234L)
         assertEquals("A2", report.estimatedLevel)
         assertEquals(12, report.correctAnswers)
-        assertEquals(24, report.totalQuestions)
+        assertEquals(36, report.totalQuestions)
         assertEquals(1234L, report.assessedAtMillis)
-        assertEquals(4, report.levelResults.size)
+        assertEquals(6, report.levelResults.size)
         assertEquals(2, report.skillResults.size)
     }
 }
