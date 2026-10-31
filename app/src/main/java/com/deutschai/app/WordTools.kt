@@ -398,6 +398,7 @@ internal fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Li
 @Composable
 internal fun WordToolsScreen(
     onBack: () -> Unit,
+    onNumbers: () -> Unit,
     onComplete: (score: Int, total: Int, activityKey: String) -> Unit
 ) {
     val context = LocalContext.current
@@ -465,7 +466,7 @@ internal fun WordToolsScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text("DEUTSCHAI", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
                     Text(
-                        selectedMode?.title ?: selectedGroup?.title ?: "Další slovní druhy",
+                        selectedMode?.title ?: selectedGroup?.title ?: "Slovní druhy a gramatika",
                         color = Muted,
                         fontSize = 13.sp
                     )
@@ -479,6 +480,33 @@ internal fun WordToolsScreen(
                         "Vyber oblast a pak způsob procvičení. Každá sada má 25 promíchaných otázek.",
                         color = Muted, fontSize = 14.sp, lineHeight = 21.sp
                     )
+                    Card(
+                        onClick = onNumbers,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = Mint)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(18.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(14.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier.size(46.dp).background(Forest, RoundedCornerShape(14.dp)),
+                                contentAlignment = Alignment.Center
+                            ) { Icon(Icons.Default.Translate, contentDescription = null, tint = Color.White) }
+                            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text("Číslovky", color = ForestText, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                                Text(
+                                    "Základní, řadové a násobné číslovky v samostatných sadách i ve smíšeném drilu.",
+                                    color = Muted,
+                                    fontSize = 13.sp,
+                                    lineHeight = 18.sp
+                                )
+                                Text("3 samostatné sady · 25 otázek ve smíšeném drilu", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
                     wordToolGroups.filterNot { it.id in numberWordToolGroupIds }.forEach { group ->
                         Card(
                             onClick = { selectedGroup = group },
