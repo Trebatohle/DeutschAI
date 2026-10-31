@@ -56,11 +56,11 @@ private data class PhraseReviewCard(
 
 internal enum class PhraseRating { AGAIN, HARD, GOOD, EASY }
 
-private fun phraseReviewCards(level: String): List<PhraseReviewCard> =
-    sentenceCourseCatalog.filter { it.level == level }.flatMap { course ->
+private fun allPhraseReviewCards(): List<PhraseReviewCard> =
+    sentenceCourseCatalog.flatMap { course ->
         course.items.mapIndexed { index, item ->
             PhraseReviewCard(
-                id = "${level}_${course.id}_${index}",
+                id = "${course.level}_${course.id}_${index}",
                 courseTitle = course.title,
                 prompt = item.prompt,
                 german = item.german,
@@ -69,14 +69,37 @@ private fun phraseReviewCards(level: String): List<PhraseReviewCard> =
         }
     }
 
+private fun phraseReviewCards(level: String): List<PhraseReviewCard> =
+    allPhraseReviewCards().filter { it.id.startsWith("${level}_") }
+
+private fun phraseReviewQuestion(card: PhraseReviewCard): ReviewQuestion = ReviewQuestion(
+    id = stableReviewId("phrases", card.id),
+    sourceKind = "phrases",
+    sourceTitle = card.courseTitle,
+    prompt = "Jak bys řekl/a německy: ${card.prompt}",
+    choices = listOf(card.german, "Ještě si nevzpomínám"),
+    correctIndex = 0,
+    explanation = "${card.german} = ${card.czech}",
+    germanSentence = card.german,
+    translation = card.czech
+)
+
 private fun duePhraseCards(
     context: Context,
     cards: List<PhraseReviewCard>,
     now: Long = System.currentTimeMillis()
 ): List<PhraseReviewCard> {
     val prefs = context.getSharedPreferences(PHRASE_REVIEW_PREFS, Context.MODE_PRIVATE)
+    val tracked = LearningReviewStore.all(context)
+        .filter { it.question.sourceKind == "phrases" }
+        .associateBy { it.question.id }
     return cards.filter { card ->
-        !prefs.contains("${card.id}_due") || prefs.getLong("${card.id}_due", 0L) <= now
+        val entry = tracked[stableReviewId("phrases", card.id)]
+        when {
+            entry != null -> entry.dueAtMillis <= now
+            !prefs.contains("${card.id}_due") -> true
+            else -> prefs.getLong("${card.id}_due", 0L) <= now
+        }
     }
 }
 
@@ -129,6 +152,17 @@ internal fun savePhraseRating(
         .putFloat("${phraseKey}_interval", intervalDays.toFloat())
         .putLong("${phraseKey}_due", now + (intervalDays * 24.0 * 60.0 * 60.0 * 1000.0).roundToInt())
         .apply()
+
+    // Keep phrase recall inside the same cross-app memory as grammar, vocabulary and listening.
+    val card = allPhraseReviewCards().firstOrNull { it.id == phraseKey }
+    if (card != null) {
+        LearningReviewStore.recordRecall(
+            context = context,
+            question = phraseReviewQuestion(card),
+            remembered = rating != PhraseRating.AGAIN,
+            nowMillis = now
+        )
+    }
     // Rating a phrase counts as a real study day for the rolling weekly goal.
     StudyHabitStore.recordSession(context)
 }
@@ -157,11 +191,9 @@ internal fun PhraseReviewScreen(level: String, onBack: () -> Unit) {
 
     val current = session.getOrNull(index)
     val remainingDue = duePhraseCards(context, cards).size
-    val nextDueAt = cards.mapNotNull { card ->
-        val prefs = context.getSharedPreferences(PHRASE_REVIEW_PREFS, Context.MODE_PRIVATE)
-        val key = "${card.id}_due"
-        if (prefs.contains(key)) prefs.getLong(key, 0L).takeIf { it > System.currentTimeMillis() } else null
-    }.minOrNull()
+    val nextDueAt = LearningReviewStore.all(context)
+        .filter { it.question.sourceKind == "phrases" && it.dueAtMillis > System.currentTimeMillis() }
+        .minOfOrNull { it.dueAtMillis }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
