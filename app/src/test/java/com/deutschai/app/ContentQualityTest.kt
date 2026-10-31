@@ -13,6 +13,59 @@ class ContentQualityTest {
         readingArticlesB2Extra
 
     @Test
+    fun readingNotebookQuestionsIncludeSavedWordAndOriginalSentence() {
+        val item = ReadingNotebookWord(
+            id = "reader-test-1",
+            word = "entscheiden",
+            meaning = "rozhodnout",
+            exampleGerman = "Sie muss heute entscheiden.",
+            sourceTitle = "Ein neuer Anfang",
+            sourceLevel = "B1",
+            savedAtMillis = 123L
+        )
+
+        val questions = buildPersonalNotebookQuestions(
+            catalogEntries = emptyList(),
+            readingEntries = listOf(item),
+            count = 10,
+            random = kotlin.random.Random(19)
+        )
+
+        assertEquals(1, questions.size)
+        val question = questions.single()
+        assertTrue(question.prompt.contains("entscheiden"))
+        assertEquals(4, question.choices.size)
+        assertEquals(4, question.choices.toSet().size)
+        assertEquals("rozhodnout", question.choices[question.correctIndex])
+        assertEquals("Sie muss heute entscheiden.", question.germanSentence)
+        assertTrue(question.explanation.contains("Ein neuer Anfang"))
+    }
+
+    @Test
+    fun readingNotebookWordsAreSortedAlphabeticallyAndMeaningIsStoredSeparately() {
+        val words = listOf(
+            ReadingNotebookWord("2", "zuerst", "nejprve", "Zuerst essen wir.", "Text", "A2", 2L),
+            ReadingNotebookWord("1", "ankommen", "dorazit", "Wir kommen an.", "Text", "A2", 1L)
+        )
+
+        val result = filterReadingNotebookWords(words)
+
+        assertEquals(listOf("ankommen", "zuerst"), result.map { it.word })
+        assertEquals("dorazit", result.first().meaning)
+    }
+
+    @Test
+    fun readingExampleSentenceReturnsTheSentenceContainingTheSelectedWord() {
+        val article = readingArticles.first()
+        val word = article.body.split(Regex("\\s+")).first { it.length > 4 }
+            .trim(',', '.', '!', '?', ';', ':', '„', '“', '"', '(', ')')
+        val sentence = readingExampleSentence(article, word)
+
+        assertTrue(sentence.isNotBlank())
+        assertTrue(sentence.contains(word, ignoreCase = true))
+    }
+
+    @Test
     fun personalVocabularyNotebookFiltersAndSortsOnlySavedEntries() {
         val sample = vocabularyCatalog.take(12)
         val savedIds = sample.filterIndexed { index, _ -> index % 3 == 0 }.map { it.id }.toSet()
