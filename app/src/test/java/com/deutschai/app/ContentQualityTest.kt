@@ -236,7 +236,7 @@ class ContentQualityTest {
 
     @Test
     fun branchingDialogueScenariosHaveValidGraphsAndMoreThanOnePossibleRoute() {
-        assertEquals(2, branchingGuidedDialogueTopics.size)
+        assertEquals(6, branchingGuidedDialogueTopics.size)
         branchingGuidedDialogueTopics.forEach { topic ->
             assertTrue(
                 "${topic.id} has graph errors: ${branchingDialogueValidationErrors(topic)}",
@@ -250,6 +250,22 @@ class ContentQualityTest {
                 assertEquals(3, node.options.size)
                 assertEquals(1, node.options.count { it.quality == DialogueAnswerQuality.RECOMMENDED })
             }
+        }
+    }
+
+    @Test
+    fun additionalBranchingScenariosCoverWorkTravelComplaintsAndPhoneCalls() {
+        val expectedIds = setOf(
+            "team_meeting_b1",
+            "train_travel_b1",
+            "customer_complaint_b1",
+            "phone_appointment_a2"
+        )
+        assertEquals(expectedIds, additionalBranchingDialogueTopics.map { it.id }.toSet())
+        additionalBranchingDialogueTopics.forEach { topic ->
+            assertTrue("\${topic.id} should expose more than two routes", branchingDialoguePaths(topic).size > 2)
+            assertTrue("\${topic.id} should have at least five situations", topic.nodes.size >= 5)
+            assertTrue(topic.subtitle.contains(topic.level))
         }
     }
 
