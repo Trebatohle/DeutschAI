@@ -265,6 +265,12 @@ private fun BeatriceHome() {
         }
     }
 
+    fun refreshLearningMetrics() {
+        habitStats = StudyHabitStore.load(context)
+        pendingReviewCount = LearningReviewStore.pendingCount(context)
+        progressStats = LearningProgressStore.load(context)
+    }
+
     fun recordScore(score: Int, total: Int, activityKey: String) {
         if (total <= 0) return
         habitStats = StudyHabitStore.recordSession(context)
@@ -289,6 +295,7 @@ private fun BeatriceHome() {
             onBack = { showPlacementAssessment = false; showLearningOverview = true },
             onComplete = {
                 habitStats = StudyHabitStore.recordSession(context)
+                pendingReviewCount = LearningReviewStore.pendingCount(context)
                 progressStats = LearningProgressStore.load(context)
             }
         )
@@ -339,7 +346,11 @@ private fun BeatriceHome() {
     if (selectedReadingArticle != null) {
         ReadingArticleScreen(
             article = selectedReadingArticle!!,
-            onBack = { selectedReadingArticle = null; showReadingLibrary = true }
+            onBack = {
+                selectedReadingArticle = null
+                showReadingLibrary = true
+                refreshLearningMetrics()
+            }
         )
         return
     }
@@ -447,7 +458,11 @@ private fun BeatriceHome() {
     if (selectedPhraseReviewLevel != null) {
         PhraseReviewScreen(
             level = selectedPhraseReviewLevel!!,
-            onBack = { selectedPhraseReviewLevel = null; showLessonLibrary = true }
+            onBack = {
+                selectedPhraseReviewLevel = null
+                showLessonLibrary = true
+                refreshLearningMetrics()
+            }
         )
         return
     }
