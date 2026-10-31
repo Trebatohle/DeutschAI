@@ -15,39 +15,45 @@ internal data class ReadingComprehensionQuestion(
  * selected story. Distractors are genuine sentences from other bundled stories, so
  * each question has exactly one statement that belongs to the current text.
  */
-internal fun buildReadingComprehensionQuestions(article: ReadingArticle): List<ReadingComprehensionQuestion> {
-    fun sentences(text: String): List<String> = text
-        .replace("\n", " ")
-        .split(Regex("(?<=[.!?])\\s+"))
-        .map { it.trim().replace(Regex("\\s+"), " ") }
-        .filter { sentence ->
-            val words = sentence.split(Regex("\\s+")).filter { it.isNotBlank() }
-            words.size in 7..28 &&
-                (sentence.endsWith(".") || sentence.endsWith("!") || sentence.endsWith("?"))
-        }
-        .distinctBy { it.lowercase() }
+private fun extractReadingSentences(text: String): List<String> = text
+    .replace("\n", " ")
+    .split(Regex("(?<=[.!?])\\s+"))
+    .map { it.trim().replace(Regex("\\s+"), " ") }
+    .filter { sentence ->
+        val words = sentence.split(Regex("\\s+")).filter { it.isNotBlank() }
+        words.size in 7..28 &&
+            (sentence.endsWith(".") || sentence.endsWith("!") || sentence.endsWith("?"))
+    }
+    .distinctBy { it.lowercase() }
 
-    val sourceSentences = sentences(article.body)
+// Parse the bundled library once; quizzes and the placement test reuse the same offline stories.
+private val readingSentencesByArticle: Map<String, List<String>> by lazy(LazyThreadSafetyMode.PUBLICATION) {
+    readingArticles.associate { article -> article.id to extractReadingSentences(article.body) }
+}
+
+/**
+ * Builds five offline comprehension checks from statements that really occur in the
+ * selected story. Distractors are genuine sentences from other bundled stories, so
+ * each question has exactly one statement that belongs to the current text.
+ */
+internal fun buildReadingComprehensionQuestions(article: ReadingArticle): List<ReadingComprehensionQuestion> {
+    val sourceSentences = readingSentencesByArticle[article.id] ?: extractReadingSentences(article.body)
     require(sourceSentences.size >= 5) { "Reading article ${article.id} needs at least five usable sentences." }
 
     val sameLevelDistractors = readingArticles
         .filter { it.id != article.id && it.level == article.level }
-        .flatMap { sentences(it.body) }
+        .flatMap { readingSentencesByArticle[it.id].orEmpty() }
     val otherLevelDistractors = readingArticles
         .filter { it.id != article.id && it.level != article.level }
-        .flatMap { sentences(it.body) }
+        .flatMap { readingSentencesByArticle[it.id].orEmpty() }
 
     val targetSentenceKeys = sourceSentences.map { it.lowercase() }.toSet()
     val safeSameLevelDistractors = sameLevelDistractors
-        .filterNot { article.body.contains(it, ignoreCase = true) }
         .filterNot { it.lowercase() in targetSentenceKeys }
         .distinctBy { it.lowercase() }
+    val sameLevelKeys = safeSameLevelDistractors.map { it.lowercase() }.toSet()
     val safeOtherLevelDistractors = otherLevelDistractors
-        .filterNot { article.body.contains(it, ignoreCase = true) }
-        .filterNot { it.lowercase() in targetSentenceKeys }
-        .filterNot { candidate ->
-            safeSameLevelDistractors.any { it.equals(candidate, ignoreCase = true) }
-        }
+        .filterNot { it.lowercase() in targetSentenceKeys || it.lowercase() in sameLevelKeys }
         .distinctBy { it.lowercase() }
 
     val facets = listOf(
