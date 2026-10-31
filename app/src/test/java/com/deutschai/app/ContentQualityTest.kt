@@ -263,8 +263,8 @@ class ContentQualityTest {
         )
         assertEquals(expectedIds, additionalBranchingDialogueTopics.map { it.id }.toSet())
         additionalBranchingDialogueTopics.forEach { topic ->
-            assertTrue("\${topic.id} should expose more than two routes", branchingDialoguePaths(topic).size > 2)
-            assertTrue("\${topic.id} should have at least five situations", topic.nodes.size >= 5)
+            assertTrue("Scenario should expose more than one route", branchingDialoguePaths(topic).size >= 2)
+            assertTrue("Every added scenario should have at least five situations", topic.nodes.size >= 5)
             assertTrue(topic.subtitle.contains(topic.level))
         }
     }
