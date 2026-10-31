@@ -409,15 +409,14 @@ private fun BeatriceHome() {
     }
 
     if (showSavedVocabularyPractice) {
-        VocabularyPracticeScreen(
+        PersonalNotebookPracticeScreen(
             onBack = {
                 showSavedVocabularyPractice = false
                 showVocabularyNotebook = true
             },
             onComplete = { score, total ->
                 recordScore(score, total, "saved_vocabulary")
-            },
-            entryPool = VocabularyNotebookStore.entries(context)
+            }
         )
         return
     }
