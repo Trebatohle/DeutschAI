@@ -113,7 +113,16 @@ internal object LearningReviewStore {
         question: ReviewQuestion,
         remembered: Boolean,
         nowMillis: Long = System.currentTimeMillis()
-    ) = recordAnswer(context, question, remembered, isMistakeReview = false, nowMillis = nowMillis)
+    ) {
+        recordAnswer(context, question, remembered, isMistakeReview = false, nowMillis = nowMillis)
+        if (!remembered) {
+            // "Again" in phrase review is shown again after ten minutes, not immediately.
+            val entries = readEntries(context)
+            val previous = entries[question.id] ?: return
+            entries[question.id] = previous.copy(dueAtMillis = nowMillis + 10L * 60L * 1000L)
+            writeEntries(context, entries.values.take(MAX_ITEMS))
+        }
+    }
 
     fun skillStats(context: Context): List<LearningSkillStats> =
         all(context).groupBy { it.question.sourceKind }
