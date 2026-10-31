@@ -351,7 +351,23 @@ internal fun VocabularyPracticeScreen(
                         onClick = {
                             if (selectedAnswer == null) {
                                 selectedAnswer = index
-                                if (index == currentQuestion.correctIndex) score += 1
+                                val correct = index == currentQuestion.correctIndex
+                                LearningReviewStore.recordAnswer(
+                                    context = context,
+                                    question = ReviewQuestion(
+                                        id = stableReviewId("vocabulary", currentQuestion.entry.id),
+                                        sourceKind = "vocabulary",
+                                        sourceTitle = "Slovní zásoba",
+                                        prompt = currentQuestion.germanText,
+                                        choices = currentQuestion.choices,
+                                        correctIndex = currentQuestion.correctIndex,
+                                        explanation = "Správný význam: ${currentQuestion.correctCzech}",
+                                        germanSentence = currentQuestion.germanText,
+                                        translation = currentQuestion.correctCzech
+                                    ),
+                                    wasCorrect = correct
+                                )
+                                if (correct) score += 1
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
