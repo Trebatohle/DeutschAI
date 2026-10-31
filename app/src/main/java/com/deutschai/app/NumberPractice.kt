@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.random.Random
 
 internal val numberWordToolGroupIds = setOf("numbers", "ordinal-numbers", "multiplicative-numbers")
 
@@ -161,15 +162,21 @@ private fun kindLabel(kind: String): String = when (kind) {
     else -> "násobná číslovka"
 }
 
-internal fun buildMixedNumberDrillQuestions(): List<NumberPracticeQuestion> {
+internal fun buildMixedNumberDrillQuestions(random: Random = Random.Default): List<NumberPracticeQuestion> {
     val seeds = allDrillSeeds()
-    check(seeds.size == 100) { "The mixed number drill must contain exactly 100 questions." }
+    check(seeds.size == 100) { "The mixed number question pool must contain exactly 100 questions." }
 
     val kinds = listOf("basic", "ordinal", "multiplicative")
     val optionsByKind = seeds.groupBy { it.kind }
         .mapValues { (_, rows) -> rows.map { it.answer }.distinct() }
 
-    return seeds.shuffled().map { seed ->
+    val selectedSeeds = listOf(
+        seeds.filter { it.kind == "basic" }.shuffled(random).take(9),
+        seeds.filter { it.kind == "ordinal" }.shuffled(random).take(8),
+        seeds.filter { it.kind == "multiplicative" }.shuffled(random).take(8)
+    ).flatten().shuffled(random)
+
+    return selectedSeeds.map { seed ->
         // Every question offers exactly one answer of each grammatical number type.
         // The correct answer is the one whose type matches the sentence being tested.
         val choicesWithKinds = kinds.map { optionKind ->
@@ -182,7 +189,7 @@ internal fun buildMixedNumberDrillQuestions(): List<NumberPracticeQuestion> {
                     .first()
             }
             option to optionKind
-        }.shuffled()
+        }.shuffled(random)
 
         val choices = choicesWithKinds.map { it.first }
         val choiceKinds = choicesWithKinds.map { it.second }
@@ -193,7 +200,7 @@ internal fun buildMixedNumberDrillQuestions(): List<NumberPracticeQuestion> {
         NumberPracticeQuestion(
             id = seed.id,
             kind = seed.kind,
-            prompt = "Doplň správnou číslovku do věty. V nabídce je vždy jedna základní, jedna řadová a jedna násobná číslovka:\n${seed.sentence}",
+            prompt = "Doplň správnou číslovku:\n${seed.sentence}",
             choices = choices,
             choiceKinds = choiceKinds,
             correctIndex = choices.indexOf(seed.answer),
@@ -316,7 +323,7 @@ internal fun NumberPracticeScreen(
                 NumberCategoryCard(
                     "4", "Smíšený dril",
                     "Krátké věty, ve kterých se střídají všechny tři druhy číslovek.",
-                    "100 náhodně seřazených otázek", highlighted = true
+                    "25 náhodných otázek z připravené banky", highlighted = true
                 ) { startSet("mixed") }
             } else if (finished) {
                 Card(
