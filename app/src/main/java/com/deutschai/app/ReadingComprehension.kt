@@ -44,6 +44,9 @@ internal fun buildReadingComprehensionQuestions(article: ReadingArticle): List<R
     val safeOtherLevelDistractors = otherLevelDistractors
         .filterNot { article.body.contains(it, ignoreCase = true) }
         .filterNot { it.lowercase() in targetSentenceKeys }
+        .filterNot { candidate ->
+            safeSameLevelDistractors.any { it.equals(candidate, ignoreCase = true) }
+        }
         .distinctBy { it.lowercase() }
 
     val facets = listOf(
