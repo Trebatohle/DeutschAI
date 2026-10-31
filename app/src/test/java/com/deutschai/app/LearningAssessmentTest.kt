@@ -35,7 +35,7 @@ class LearningAssessmentTest {
     fun offlinePlacementAssessmentContainsSixQuestionsAtEveryLevel() {
         val questions = buildPlacementAssessmentQuestions(kotlin.random.Random(2026))
         assertEquals(36, questions.size)
-        assertEquals(24, questions.map { it.id }.toSet().size)
+        assertEquals(36, questions.map { it.id }.toSet().size)
         val expectedLevels = setOf("A1", "A2", "B1", "B2", "C1", "C2")
         assertEquals(expectedLevels, questions.map { it.level }.toSet())
         expectedLevels.forEach { level ->
