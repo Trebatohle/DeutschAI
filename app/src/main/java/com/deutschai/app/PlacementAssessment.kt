@@ -300,6 +300,27 @@ internal fun PlacementAssessmentScreen(
                         Text(skill, color = Ink, fontSize = 14.sp)
                         Text("${value.accuracyPercent} %", color = ForestText, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     }
+                    LinearProgressIndicator(progress = { value.accuracyPercent / 100f }, modifier = Modifier.fillMaxWidth())
+                }
+                val incorrectQuestions = questions.filter { answers[it.id] != it.correctIndex }
+                Text("Co si ještě procvičit", color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                if (incorrectQuestions.isEmpty()) {
+                    Text("Výborně! V tomto testu jsi neztratil/a žádnou odpověď.", color = ForestText, fontSize = 13.sp)
+                } else {
+                    incorrectQuestions.forEach { item ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(15.dp),
+                            colors = CardDefaults.cardColors(containerColor = CardSurface)
+                        ) {
+                            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                Text("${item.level} · ${item.skill}", color = ForestText, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text(item.prompt, color = Ink, fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.SemiBold)
+                                Text("Správná odpověď: ${item.choices[item.correctIndex]}", color = ForestText, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                Text(item.explanation, color = Muted, fontSize = 12.sp, lineHeight = 17.sp)
+                            }
+                        }
+                    }
                 }
                 Button(
                     onClick = { restart() },
@@ -344,11 +365,12 @@ internal fun PlacementAssessmentScreen(
                     }
                 }
                 if (selected != null) {
-                    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(17.dp), colors = CardDefaults.cardColors(containerColor = if (selected == current.correctIndex) Correct else Incorrect)) {
-                        Column(modifier = Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text(if (selected == current.correctIndex) "Správně!" else "Správná odpověď: ${current.choices[current.correctIndex]}", color = ForestText, fontWeight = FontWeight.Bold)
-                            Text(current.explanation, color = Ink, fontSize = 13.sp, lineHeight = 19.sp)
-                        }
+                    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(17.dp), colors = CardDefaults.cardColors(containerColor = Mint)) {
+                        Text(
+                            "Odpověď zaznamenána. Správná řešení a vysvětlení se zobrazí až po dokončení celého testu.",
+                            modifier = Modifier.padding(15.dp),
+                            color = ForestText, fontSize = 13.sp, lineHeight = 19.sp
+                        )
                     }
                     Button(
                         onClick = {
