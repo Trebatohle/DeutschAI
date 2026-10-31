@@ -107,7 +107,7 @@ internal object LearningProgressStore {
     }
 
     private fun resultKeys(): List<String> =
-        listOf("daily_training") +
+        listOf("daily_training", "vocabulary_learning") +
             sentenceCourseCatalog.map { "sentence_${it.id}" } +
             articleCategories.map { "articles_${it.id}" } +
             (verbPracticeTopics + advancedVerbPracticeTopics).map { "verbs_${it.id}" } +
