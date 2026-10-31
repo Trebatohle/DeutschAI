@@ -186,6 +186,16 @@ private fun BeatriceHome() {
     val preferences = remember(context) {
         context.getSharedPreferences("deutschai_progress", Context.MODE_PRIVATE)
     }
+    val onboardingPreferences = remember(context) {
+        context.getSharedPreferences("deutschai_onboarding", Context.MODE_PRIVATE)
+    }
+    var showPlacementWelcome by remember(onboardingPreferences) {
+        mutableStateOf(
+            !onboardingPreferences.getBoolean("placement_choice_made_v1", false) &&
+                PlacementAssessmentStore.load(context) == null
+        )
+    }
+    var placementStartedFromWelcome by remember { mutableStateOf(false) }
     var progressStats by remember(preferences) {
         mutableStateOf(LearningProgressStore.load(context))
     }
@@ -282,6 +292,22 @@ private fun BeatriceHome() {
         }
     }
 
+    if (showPlacementWelcome) {
+        PlacementWelcomeScreen(
+            onStart = {
+                onboardingPreferences.edit().putBoolean("placement_choice_made_v1", true).apply()
+                showPlacementWelcome = false
+                placementStartedFromWelcome = true
+                showPlacementAssessment = true
+            },
+            onSkip = {
+                onboardingPreferences.edit().putBoolean("placement_choice_made_v1", true).apply()
+                showPlacementWelcome = false
+            }
+        )
+        return
+    }
+
     if (showLearningOverview) {
         LearningOverviewScreen(
             onBack = { showLearningOverview = false; selectedTab = "Pokroky" },
@@ -292,8 +318,17 @@ private fun BeatriceHome() {
 
     if (showPlacementAssessment) {
         PlacementAssessmentScreen(
-            onBack = { showPlacementAssessment = false; showLearningOverview = true },
+            onBack = {
+                showPlacementAssessment = false
+                if (placementStartedFromWelcome) {
+                    placementStartedFromWelcome = false
+                    selectedTab = "Domů"
+                } else {
+                    showLearningOverview = true
+                }
+            },
             onComplete = {
+                placementStartedFromWelcome = false
                 habitStats = StudyHabitStore.recordSession(context)
                 pendingReviewCount = LearningReviewStore.pendingCount(context)
                 progressStats = LearningProgressStore.load(context)
@@ -754,7 +789,7 @@ private fun BeatriceHome() {
                         FeatureCard(
                             icon = { Icon(Icons.Default.BarChart, contentDescription = null, tint = ForestText) },
                             title = "Vstupní rozřazovací test",
-                            subtitle = "24 offline otázek · doporučení úrovně A1–B2",
+                            subtitle = "24 krátkých otázek · doporučená úroveň A1–C2",
                             onClick = { showPlacementAssessment = true }
                         )
 
