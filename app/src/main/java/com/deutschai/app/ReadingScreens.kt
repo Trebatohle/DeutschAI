@@ -213,6 +213,8 @@ internal fun ReadingArticleScreen(
     val density = LocalDensity.current
     var textLayout by remember(article.id) { mutableStateOf<TextLayoutResult?>(null) }
     var pressedMeaning by remember(article.id) { mutableStateOf<Pair<String, String>?>(null) }
+    var readyMeaning by remember(article.id) { mutableStateOf<String?>(null) }
+    var readingWordSaved by remember(article.id) { mutableStateOf(false) }
     var activePressedWord by remember(article.id) { mutableStateOf<String?>(null) }
     var pressToken by remember(article.id) { mutableStateOf(0) }
     var popupOffset by remember(article.id) { mutableStateOf(IntOffset.Zero) }
@@ -275,7 +277,7 @@ internal fun ReadingArticleScreen(
                 val popupWidth = 260.dp
                 val popupWidthPx = with(density) { popupWidth.toPx() }
                 val textInsetPx = with(density) { 18.dp.toPx() }
-                val popupLiftPx = with(density) { 78.dp.toPx() }
+                val popupLiftPx = with(density) { 118.dp.toPx() }
                 val containerWidthPx = with(density) { maxWidth.toPx() }
 
                 Card(
@@ -291,12 +293,19 @@ internal fun ReadingArticleScreen(
                             .pointerInput(article.id, article.body) {
                                 detectTapGestures(
                                     onPress = {
+                                        val tokenAtPressStart = pressToken
                                         try {
                                             awaitRelease()
                                         } finally {
-                                            pressToken += 1
-                                            activePressedWord = null
-                                            pressedMeaning = null
+                                            // Keep a long-press result visible after the finger is lifted,
+                                            // so the learner can tap the save button in the popup.
+                                            if (pressToken == tokenAtPressStart) {
+                                                pressToken += 1
+                                                activePressedWord = null
+                                                pressedMeaning = null
+                                                readyMeaning = null
+                                                readingWordSaved = false
+                                            }
                                         }
                                     },
                                     onLongPress = { offset ->
@@ -318,6 +327,8 @@ internal fun ReadingArticleScreen(
                                             val newToken = pressToken + 1
                                             pressToken = newToken
                                             activePressedWord = word
+                                            readyMeaning = null
+                                            readingWordSaved = false
                                             val maxX = (containerWidthPx - popupWidthPx).roundToInt().coerceAtLeast(0)
                                             val x = (textInsetPx + bounds.center.x - popupWidthPx / 2f)
                                                 .roundToInt().coerceIn(0, maxX)
@@ -325,10 +336,18 @@ internal fun ReadingArticleScreen(
                                             popupOffset = IntOffset(x, y)
 
                                             val knownMeaning = lookupReadingWordTranslation(article, word)
+                                            readyMeaning = knownMeaning
+                                            readingWordSaved = knownMeaning?.let {
+                                                ReadingWordNotebookStore.isSaved(context, word, it)
+                                            } ?: false
                                             pressedMeaning = word to (knownMeaning ?: "Připravuji offline překlad…")
                                             if (knownMeaning == null) {
                                                 OfflineWordTranslator.translate(context.applicationContext, word) { translated ->
                                                     if (pressToken == newToken && activePressedWord == word) {
+                                                        readyMeaning = translated
+                                                        readingWordSaved = translated?.let {
+                                                            ReadingWordNotebookStore.isSaved(context, word, it)
+                                                        } ?: false
                                                         pressedMeaning = word to (
                                                             translated ?: "Automatický překlad není právě dostupný. Otevři knihovnu čtení na Wi-Fi, aby se model stáhl nebo znovu připravil."
                                                         )
@@ -348,12 +367,19 @@ internal fun ReadingArticleScreen(
 
                 if (pressedMeaning != null) {
                     Popup(
+                        onDismissRequest = {
+                            pressToken += 1
+                            activePressedWord = null
+                            pressedMeaning = null
+                            readyMeaning = null
+                            readingWordSaved = false
+                        },
                         alignment = Alignment.TopStart,
                         offset = popupOffset,
                         properties = PopupProperties(
-                            focusable = false,
-                            dismissOnBackPress = false,
-                            dismissOnClickOutside = false,
+                            focusable = true,
+                            dismissOnBackPress = true,
+                            dismissOnClickOutside = true,
                             clippingEnabled = false
                         )
                     ) {
@@ -379,6 +405,45 @@ internal fun ReadingArticleScreen(
                                     fontSize = 15.sp,
                                     lineHeight = 19.sp
                                 )
+                                if (readyMeaning != null) {
+                                    Button(
+                                        onClick = {
+                                            ReadingWordNotebookStore.save(
+                                                context = context,
+                                                word = pressedMeaning!!.first,
+                                                meaning = readyMeaning!!,
+                                                exampleGerman = readingExampleSentence(article, pressedMeaning!!.first),
+                                                sourceTitle = article.title,
+                                                sourceLevel = article.level
+                                            )
+                                            readingWordSaved = true
+                                        },
+                                        modifier = Modifier.fillMaxWidth().heightIn(min = 42.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = if (readingWordSaved) Forest else ActionColor,
+                                            contentColor = if (readingWordSaved) Color.White else ActionText
+                                        ),
+                                        shape = RoundedCornerShape(11.dp)
+                                    ) {
+                                        Text(
+                                            if (readingWordSaved) "Uloženo ve slovníčku" else "Uložit do slovníčku",
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                                Button(
+                                    onClick = {
+                                        pressToken += 1
+                                        activePressedWord = null
+                                        pressedMeaning = null
+                                        readyMeaning = null
+                                        readingWordSaved = false
+                                    },
+                                    modifier = Modifier.fillMaxWidth().heightIn(min = 38.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = OptionSurface, contentColor = Ink),
+                                    shape = RoundedCornerShape(11.dp)
+                                ) { Text("Zavřít", fontSize = 12.sp) }
                             }
                         }
                     }
