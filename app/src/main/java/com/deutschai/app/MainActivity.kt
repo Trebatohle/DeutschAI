@@ -193,6 +193,8 @@ private fun BeatriceHome() {
 
     var showConversation by remember { mutableStateOf(false) }
     var showDailyTraining by remember { mutableStateOf(false) }
+    var showPlacementAssessment by remember { mutableStateOf(false) }
+    var showLearningOverview by remember { mutableStateOf(false) }
     var showWordTools by remember { mutableStateOf(false) }
     var showNumberPractice by remember { mutableStateOf(false) }
     var showLearningHub by remember { mutableStateOf(false) }
@@ -271,6 +273,25 @@ private fun BeatriceHome() {
         } else {
             LearningProgressStore.load(context)
         }
+    }
+
+    if (showLearningOverview) {
+        LearningOverviewScreen(
+            onBack = { showLearningOverview = false; selectedTab = "Pokroky" },
+            onPlacementTest = { showLearningOverview = false; showPlacementAssessment = true }
+        )
+        return
+    }
+
+    if (showPlacementAssessment) {
+        PlacementAssessmentScreen(
+            onBack = { showPlacementAssessment = false; showLearningOverview = true },
+            onComplete = {
+                habitStats = StudyHabitStore.recordSession(context)
+                progressStats = LearningProgressStore.load(context)
+            }
+        )
+        return
     }
 
     if (showDailyTraining) {
@@ -707,6 +728,19 @@ private fun BeatriceHome() {
 
                     "Pokroky" -> {
                         Text("Tvoje pokroky", color = Ink, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+
+                        FeatureCard(
+                            icon = { Icon(Icons.Default.BarChart, contentDescription = null, tint = ForestText) },
+                            title = "Přehled znalostí",
+                            subtitle = "Skutečná úspěšnost podle oblastí a dlouhodobé opakování",
+                            onClick = { showLearningOverview = true }
+                        )
+                        FeatureCard(
+                            icon = { Icon(Icons.Default.Assessment, contentDescription = null, tint = ForestText) },
+                            title = "Vstupní rozřazovací test",
+                            subtitle = "24 offline otázek · doporučení úrovně A1–B2",
+                            onClick = { showPlacementAssessment = true }
+                        )
 
                         Card(
                             onClick = {
