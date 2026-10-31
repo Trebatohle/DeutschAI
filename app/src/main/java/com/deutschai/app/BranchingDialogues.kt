@@ -192,7 +192,7 @@ internal val branchingGuidedDialogueTopics = listOf(
                         "Už jsem jedl/a. Kde je nádraží?",
                         "Dann sind Sie wahrscheinlich im falschen Gespräch. Der Bahnhof ist zehn Minuten von hier entfernt.",
                         "Pak jste nejspíš v nesprávném rozhovoru. Nádraží je odsud deset minut.",
-                        "clarify_arrival",
+                        null,
                         DialogueAnswerQuality.NEEDS_WORK,
                         "Odpověď nesouvisí s výběrem místa k sezení."
                     )
@@ -378,7 +378,7 @@ internal val branchingGuidedDialogueTopics = listOf(
                         "Promiňte, hledám volný stůl pro dvě osoby.",
                         "Kein Problem. Ich sehe nach, was wir Ihnen anbieten können.",
                         "Žádný problém. Podívám se, co vám můžeme nabídnout.",
-                        "walk_in",
+                        "wait",
                         DialogueAnswerQuality.RECOMMENDED,
                         "Teď už jasně říkáš, co potřebuješ, a uvádíš počet osob."
                     ),
@@ -396,7 +396,7 @@ internal val branchingGuidedDialogueTopics = listOf(
                         "Kde si zde mohu koupit jízdenku na vlak?",
                         "Die Auskunft ist am Bahnhof. Hier sind Sie in einem Restaurant.",
                         "Informace jsou na nádraží. Tady jste v restauraci.",
-                        "walk_in",
+                        "wait",
                         DialogueAnswerQuality.NEEDS_WORK,
                         "Pozor na místo a situaci. Jsi v restauraci, ne na nádraží."
                     )
@@ -421,7 +421,7 @@ internal val branchingGuidedDialogueTopics = listOf(
                         "Mohl/a byste mi jídelní lístek ještě jednou přinést?",
                         "Selbstverständlich. Hier ist die Karte.",
                         "Samozřejmě. Tady je jídelní lístek.",
-                        "menu",
+                        "order",
                         DialogueAnswerQuality.ACCEPTABLE,
                         "Tohle je zdvořilá žádost o jídelní lístek."
                     ),
