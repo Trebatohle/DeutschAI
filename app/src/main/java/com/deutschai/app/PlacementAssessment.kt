@@ -16,7 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Assessment
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -265,7 +265,7 @@ internal fun PlacementAssessmentScreen(
                     colors = CardDefaults.cardColors(containerColor = Forest)
                 ) {
                     Column(modifier = Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        androidx.compose.material3.Icon(Icons.Default.Assessment, contentDescription = null, tint = Gold, modifier = Modifier.size(34.dp))
+                        androidx.compose.material3.Icon(Icons.Default.School, contentDescription = null, tint = Gold, modifier = Modifier.size(34.dp))
                         Text("Tvoje doporučená úroveň", color = Color.White, fontSize = 16.sp)
                         Text(result.estimatedLevel, color = Gold, fontSize = 34.sp, fontWeight = FontWeight.Bold)
                         Text("${result.correctAnswers} z ${result.totalQuestions} správně", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
