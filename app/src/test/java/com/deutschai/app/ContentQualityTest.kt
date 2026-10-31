@@ -337,22 +337,31 @@ class ContentQualityTest {
     }
 
     @Test
-    fun mixedNumberDrillContainsOneHundredQuestionsAcrossAllThreeKinds() {
-        val questions = buildMixedNumberDrillQuestions()
-        assertEquals(100, questions.size)
-        assertEquals(100, questions.map { it.id }.toSet().size)
+    fun mixedNumberDrillContainsTwentyFiveRandomQuestionsAcrossAllThreeKinds() {
+        val questions = buildMixedNumberDrillQuestions(kotlin.random.Random(2026))
+        assertEquals(25, questions.size)
+        assertEquals(25, questions.map { it.id }.toSet().size)
 
         val counts = questions.groupingBy { it.kind }.eachCount()
         assertEquals(setOf("basic", "ordinal", "multiplicative"), counts.keys)
-        assertEquals(34, counts["basic"])
-        assertEquals(33, counts["ordinal"])
-        assertEquals(33, counts["multiplicative"])
+        assertEquals(25, counts.values.sum())
+        assertEquals(9, counts["basic"])
+        assertEquals(8, counts["ordinal"])
+        assertEquals(8, counts["multiplicative"])
+
+        val nextRound = buildMixedNumberDrillQuestions(kotlin.random.Random(2027))
+        assertEquals(25, nextRound.size)
+        assertNotEquals(
+            "A new round should select a different randomized question order and sample",
+            questions.map { it.id },
+            nextRound.map { it.id }
+        )
     }
 
     @Test
     fun everyMixedNumberQuestionHasExactlyThreeChoicesAndOneOfEachNumberKind() {
         val requiredKinds = setOf("basic", "ordinal", "multiplicative")
-        buildMixedNumberDrillQuestions().forEach { question ->
+        buildMixedNumberDrillQuestions(kotlin.random.Random(42)).forEach { question ->
             assertEquals("Question ${question.id} should have exactly three options", 3, question.choices.size)
             assertEquals(
                 "Question ${question.id} has duplicate answer options",
@@ -381,7 +390,7 @@ class ContentQualityTest {
             assertTrue(question.fullGerman.contains(question.choices[question.correctIndex]))
             assertTrue(question.fullCzech.isNotBlank())
             assertTrue(question.explanation.contains(question.choices[question.correctIndex]))
-            assertTrue(question.prompt.contains("jedna základní, jedna řadová a jedna násobná"))
+            assertTrue(question.prompt.startsWith("Doplň správnou číslovku:"))
         }
     }
 
