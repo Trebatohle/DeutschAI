@@ -14,7 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Assessment
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -94,7 +94,7 @@ internal fun LearningOverviewScreen(
                 Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(19.dp), colors = CardDefaults.cardColors(containerColor = Mint)) {
                     Column(modifier = Modifier.padding(17.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            androidx.compose.material3.Icon(Icons.Default.Assessment, contentDescription = null, tint = ForestText)
+                            androidx.compose.material3.Icon(Icons.Default.BarChart, contentDescription = null, tint = ForestText)
                             Text("Zatím neznáme tvoji výchozí úroveň", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         }
                         Text("Krátký offline test A1–B2 ověří praktické věty a čtení s porozuměním a doporučí vhodnou úroveň.", color = ForestText, fontSize = 13.sp, lineHeight = 19.sp)
