@@ -160,7 +160,8 @@ internal fun savePhraseRating(
             context = context,
             question = phraseReviewQuestion(card),
             remembered = rating != PhraseRating.AGAIN,
-            nowMillis = now
+            nowMillis = now,
+            nextDueAtMillis = now + (intervalDays * 24.0 * 60.0 * 60.0 * 1000.0).roundToInt()
         )
     }
     // Rating a phrase counts as a real study day for the rolling weekly goal.
