@@ -148,6 +148,7 @@ internal fun LearningHubScreen(
 @Composable
 internal fun ArticleCategoryLibraryScreen(
     onBack: () -> Unit,
+    onVocabulary: () -> Unit,
     onSelectCategory: (ArticleCategory) -> Unit
 ) {
     val context = LocalContext.current
@@ -167,6 +168,13 @@ internal fun ArticleCategoryLibraryScreen(
                 color = Muted,
                 fontSize = 14.sp,
                 lineHeight = 21.sp
+            )
+            LearningCard(
+                icon = { Icon(Icons.Default.Book, contentDescription = null, tint = ForestText) },
+                title = "Slovní zásoba",
+                subtitle = "Uč se nová německá podstatná jména včetně členu nebo krátké věty s poslechem a českým překladem.",
+                detail = "${vocabularyCatalog.size} slov · náhodné sady po 25",
+                onClick = onVocabulary
             )
             articleCategories.forEachIndexed { index, category ->
                 Card(
