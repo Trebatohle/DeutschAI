@@ -147,7 +147,7 @@ internal object LearningReviewStore {
                         question.id,
                         ReviewMemoryEntry(
                             question = question,
-                            wrongCount = obj.optInt("wrongCount", 1).coerceAtLeast(1),
+                            wrongCount = obj.optInt("wrongCount", 0).coerceAtLeast(0),
                             correctStreak = obj.optInt("correctStreak", 0).coerceAtLeast(0),
                             intervalDays = obj.optInt("intervalDays", 0).coerceAtLeast(0),
                             dueAtMillis = dueAt,
