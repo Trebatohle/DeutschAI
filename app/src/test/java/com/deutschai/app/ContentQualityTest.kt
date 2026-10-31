@@ -320,4 +320,66 @@ class ContentQualityTest {
         assertNotEquals("tabulka", lookupReadingWordTranslation(article, "Tisch"))
         assertEquals("stůl", lookupReadingWordTranslation(article, "Tisch"))
     }
+
+    @Test
+    fun numberPracticeHasThreeSeparateTwentyFiveQuestionGroups() {
+        assertEquals(setOf("numbers", "ordinal-numbers", "multiplicative-numbers"), numberWordToolGroupIds)
+        numberWordToolGroupIds.forEach { groupId ->
+            val group = wordToolGroups.single { it.id == groupId }
+            assertEquals("$groupId should contain 25 items", 25, group.items.size)
+            group.items.forEachIndexed { index, item ->
+                assertTrue("$groupId item $index has no German form", item.german.isNotBlank())
+                assertTrue("$groupId item $index has no Czech meaning", item.czech.isNotBlank())
+                assertTrue("$groupId item $index has no German example", item.sentenceGerman.isNotBlank())
+                assertTrue("$groupId item $index has no Czech example", item.sentenceCzech.isNotBlank())
+            }
+        }
+    }
+
+    @Test
+    fun mixedNumberDrillContainsOneHundredQuestionsAcrossAllThreeKinds() {
+        val questions = buildMixedNumberDrillQuestions()
+        assertEquals(100, questions.size)
+        assertEquals(100, questions.map { it.id }.toSet().size)
+
+        val counts = questions.groupingBy { it.kind }.eachCount()
+        assertEquals(setOf("basic", "ordinal", "multiplicative"), counts.keys)
+        assertEquals(34, counts["basic"])
+        assertEquals(33, counts["ordinal"])
+        assertEquals(33, counts["multiplicative"])
+    }
+
+    @Test
+    fun everyMixedNumberQuestionHasFourUniqueAnswersAndACompleteSentence() {
+        buildMixedNumberDrillQuestions().forEach { question ->
+            assertEquals("Question ${question.id} should have four options", 4, question.choices.size)
+            assertEquals(
+                "Question ${question.id} has duplicate answer options",
+                4,
+                question.choices.map { it.lowercase() }.toSet().size
+            )
+            assertTrue(question.correctIndex in question.choices.indices)
+            assertTrue(question.fullGerman.isNotBlank())
+            assertFalse(question.fullGerman.contains("___"))
+            assertTrue(question.fullGerman.contains(question.choices[question.correctIndex]))
+            assertTrue(question.fullCzech.isNotBlank())
+            assertTrue(question.explanation.contains(question.choices[question.correctIndex]))
+        }
+    }
+
+    @Test
+    fun individualNumberCategoriesGenerateTwentyFiveFourChoiceQuestions() {
+        numberWordToolGroupIds.forEach { groupId ->
+            val questions = makeNumberCategoryQuestions(groupId)
+            assertEquals(groupId, 25, questions.size)
+            questions.forEach { question ->
+                assertEquals(4, question.choices.size)
+                assertEquals(4, question.choices.toSet().size)
+                assertTrue(question.correctIndex in question.choices.indices)
+                assertTrue(question.fullGerman.contains(question.choices[question.correctIndex]))
+                assertTrue(question.fullCzech.isNotBlank())
+            }
+        }
+    }
+
 }
