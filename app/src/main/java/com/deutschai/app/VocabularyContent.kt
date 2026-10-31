@@ -604,7 +604,7 @@ die§Fritteuse§fritéza
 die§Heißluftfritteuse§horkovzdušná fritéza
 der§Sandwichmaker§sendvičovač
 der§Waffelautomat§vaflovač
-das§Raclette§raclette gril
+der§Raclette-Grill§stolní gril na raclette
 der§Grillrost§grilovací rošt
 die§Backform§forma na pečení
 das§Backblech§plech na pečení
