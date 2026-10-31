@@ -1506,6 +1506,7 @@ private fun GuidedDialogueScreen(
     onComplete: () -> Unit
 ) {
     var selectedTopic by remember { mutableStateOf<GuidedDialogueTopic?>(null) }
+    var selectedBranchTopic by remember { mutableStateOf<BranchingDialogueTopic?>(null) }
     var turnIndex by remember { mutableStateOf(0) }
     var completed by remember { mutableStateOf(false) }
     var completionRecorded by remember { mutableStateOf(false) }
@@ -1514,6 +1515,7 @@ private fun GuidedDialogueScreen(
 
     fun startTopic(topic: GuidedDialogueTopic) {
         isTransitioning = false
+        selectedBranchTopic = null
         selectedTopic = topic
         turnIndex = 0
         completed = false
@@ -1524,6 +1526,7 @@ private fun GuidedDialogueScreen(
     fun resetToTopics() {
         isTransitioning = false
         selectedTopic = null
+        selectedBranchTopic = null
         turnIndex = 0
         completed = false
         completionRecorded = false
@@ -1557,6 +1560,15 @@ private fun GuidedDialogueScreen(
             }
             isTransitioning = false
         }
+    }
+
+    if (selectedBranchTopic != null) {
+        BranchingDialogueSessionScreen(
+            topic = selectedBranchTopic!!,
+            onBack = { selectedBranchTopic = null },
+            onComplete = onComplete
+        )
+        return
     }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
@@ -1636,13 +1648,43 @@ private fun GuidedDialogueScreen(
                         }
                     }
                 }
+                Text("Interaktivní scénáře s různým pokračováním", color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                branchingGuidedDialogueTopics.forEach { topic ->
+                    Card(
+                        onClick = { selectedBranchTopic = topic },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = Mint)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier.size(42.dp).background(Forest, RoundedCornerShape(13.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = Color.White)
+                            }
+                            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(topic.title, color = ForestText, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                Text(topic.subtitle, color = ForestText, fontSize = 12.sp, lineHeight = 17.sp)
+                                Text(
+                                    "${topic.level} · ${topic.nodes.size} situací · skutečné větvení",
+                                    color = ForestText, fontSize = 11.sp, fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = Mint)
                 ) {
                     Text(
-                        "Tohle je začátek knihovny dialogů. Obsah je připravený předem, proto funguje bez modelu, bez internetu a bez náhodných odpovědí. Další témata budeme přidávat postupně.",
+                        "Klasické dialogy mají pevnou posloupnost. Interaktivní scénáře reagují na tvoje volby, zaznamenávají chyby do chytrého opakování a na konci ukážou užitečné fráze. Vše funguje offline.",
                         modifier = Modifier.padding(14.dp),
                         color = ForestText,
                         fontSize = 13.sp,
