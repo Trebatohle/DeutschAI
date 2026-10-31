@@ -13,6 +13,21 @@ class ContentQualityTest {
         readingArticlesB2Extra
 
     @Test
+    fun personalVocabularyNotebookFiltersAndSortsOnlySavedEntries() {
+        val sample = vocabularyCatalog.take(12)
+        val savedIds = sample.filterIndexed { index, _ -> index % 3 == 0 }.map { it.id }.toSet()
+
+        val result = filterVocabularyNotebookEntries(sample, savedIds)
+
+        assertEquals(savedIds, result.map { it.id }.toSet())
+        assertEquals(result.size, result.map { it.id }.toSet().size)
+        assertEquals(
+            result.map { it.word.lowercase() }.sorted(),
+            result.map { it.word.lowercase() }
+        )
+    }
+
+    @Test
     fun everyNewA1ToB2StoryExceedsOneThousandWords() {
         assertEquals("Eight additional stories are expected", 8, additionalStories.size)
         additionalStories.forEach { article ->
