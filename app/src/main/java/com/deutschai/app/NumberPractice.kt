@@ -32,7 +32,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -223,7 +222,6 @@ internal fun NumberPracticeScreen(
     onBack: () -> Unit,
     onComplete: (score: Int, total: Int, activityKey: String) -> Unit
 ) {
-    LocalContext.current
     var selectedSet by remember { mutableStateOf<String?>(null) }
     var questions by remember { mutableStateOf<List<NumberPracticeQuestion>>(emptyList()) }
     var questionIndex by remember { mutableStateOf(0) }
