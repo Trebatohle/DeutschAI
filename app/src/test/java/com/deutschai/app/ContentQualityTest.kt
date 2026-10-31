@@ -376,7 +376,10 @@ class ContentQualityTest {
                 assertEquals(4, question.choices.size)
                 assertEquals(4, question.choices.toSet().size)
                 assertTrue(question.correctIndex in question.choices.indices)
-                assertTrue(question.fullGerman.contains(question.choices[question.correctIndex]))
+                assertTrue(
+                    "${question.id} correct number form is missing from its German sentence",
+                    question.fullGerman.contains(question.choices[question.correctIndex], ignoreCase = true)
+                )
                 assertTrue(question.fullCzech.isNotBlank())
             }
         }
