@@ -91,7 +91,8 @@ internal fun buildReadingComprehensionQuestions(article: ReadingArticle): List<R
                     .contains(correctSentence, ignoreCase = true)
             }
             ?.trim()
-            ?: article.body.trim()
+            ?.replace(Regex("\\s+"), " ")
+            ?: article.body.trim().replace(Regex("\\s+"), " ")
 
         ReadingComprehensionQuestion(
             id = stableReviewId("reading", article.id, index.toString()),
