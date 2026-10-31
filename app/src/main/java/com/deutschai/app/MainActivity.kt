@@ -775,7 +775,7 @@ private fun BeatriceHome() {
                         FeatureCard(
                             icon = { Icon(Icons.Default.LibraryBooks, contentDescription = null, tint = ForestText) },
                             title = "Můj slovníček",
-                            subtitle = "${VocabularyNotebookStore.count(context)} uložených slov · vlastní procvičování",
+                            subtitle = "${VocabularyNotebookStore.count(context) + ReadingWordNotebookStore.entries(context).size} uložených slov · vlastní procvičování",
                             onClick = { showVocabularyNotebook = true }
                         )
                         FeatureCard(
