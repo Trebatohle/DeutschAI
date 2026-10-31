@@ -6,7 +6,8 @@ internal data class ReadingComprehensionQuestion(
     val prompt: String,
     val choices: List<String>,
     val correctIndex: Int,
-    val explanation: String
+    val explanation: String,
+    val passage: String = ""
 )
 
 /**
@@ -77,13 +78,23 @@ internal fun buildReadingComprehensionQuestions(article: ReadingArticle): List<R
             "Not enough distinct distractor sentences to build a five-question quiz for ${article.id}."
         }
         val options = (listOf(correctSentence) + distractors).shuffled()
+        val passage = article.body
+            .split(Regex("\\n\\s*\\n"))
+            .firstOrNull { paragraph ->
+                paragraph.replace(Regex("\\s+"), " ")
+                    .contains(correctSentence, ignoreCase = true)
+            }
+            ?.trim()
+            ?: article.body.trim()
+
         ReadingComprehensionQuestion(
             id = stableReviewId("reading", article.id, index.toString()),
             facet = facets[index],
             prompt = "Která informace se skutečně objevila v přečteném textu?",
             choices = options,
             correctIndex = options.indexOf(correctSentence),
-            explanation = "Tato informace se v článku „${article.title}“ skutečně objevila."
+            explanation = "Tato informace se v článku „${article.title}“ skutečně objevila.",
+            passage = passage
         )
     }
 }
