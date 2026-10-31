@@ -385,4 +385,73 @@ class ContentQualityTest {
         }
     }
 
+
+    @Test
+    fun vocabularyCatalogueContainsExactlyTwoThousandUniqueCompleteNouns() {
+        assertEquals("The vocabulary learning pack must contain exactly 2,000 items", 2000, vocabularyCatalog.size)
+        val normalizedWords = vocabularyCatalog.map { it.word.trim().lowercase() }
+        assertEquals("Vocabulary words must be unique", normalizedWords.size, normalizedWords.toSet().size)
+        val ids = vocabularyCatalog.map { it.id }
+        assertEquals("Vocabulary IDs must be unique", ids.size, ids.toSet().size)
+
+        vocabularyCatalog.forEach { entry ->
+            assertTrue("${entry.word} has an invalid German article", entry.article in setOf("der", "die", "das"))
+            assertTrue("A vocabulary item has a blank German noun", entry.word.isNotBlank())
+            assertTrue("${entry.word} has a blank Czech meaning", entry.czech.isNotBlank())
+            assertTrue("${entry.word} has a blank stable ID", entry.id.isNotBlank())
+        }
+    }
+
+    @Test
+    fun vocabularyNounsGenerateGermanAndCzechExampleSentences() {
+        vocabularyCatalog.forEach { entry ->
+            val german = vocabularySentenceGerman(entry)
+            val czech = vocabularySentenceCzech(entry)
+            assertTrue("${entry.word} has no German example", german.isNotBlank())
+            assertTrue("${entry.word} example omits its article", german.contains(entry.article))
+            assertTrue("${entry.word} example omits its noun", german.contains(entry.word))
+            assertTrue("${entry.word} has no Czech example", czech.isNotBlank())
+            assertTrue("${entry.word} Czech example omits its meaning", czech.contains(entry.czech))
+        }
+        assertEquals("Das ist der Tisch.", vocabularySentenceGerman(
+            vocabularyCatalog.single { it.word == "Tisch" }
+        ))
+        assertEquals("To je stůl.", vocabularySentenceCzech(
+            vocabularyCatalog.single { it.word == "Tisch" }
+        ))
+    }
+
+    @Test
+    fun vocabularyBatchContainsTwentyFiveRandomizedUniqueItems() {
+        val batch = buildVocabularyBatch(vocabularyCatalog, count = 25, random = kotlin.random.Random(2026))
+        assertEquals(25, batch.size)
+        assertEquals(25, batch.map { it.entry.id }.toSet().size)
+        batch.forEach { question ->
+            assertTrue(question.germanText.isNotBlank())
+            assertTrue(question.correctCzech.isNotBlank())
+            assertEquals(4, question.choices.size)
+            assertEquals(4, question.choices.toSet().size)
+            assertTrue(question.correctIndex in question.choices.indices)
+            assertEquals(question.correctCzech, question.choices[question.correctIndex])
+            when (question.presentation) {
+                VocabularyPresentation.WORD ->
+                    assertEquals("${question.entry.article} ${question.entry.word}", question.germanText)
+                VocabularyPresentation.SENTENCE ->
+                    assertEquals(vocabularySentenceGerman(question.entry), question.germanText)
+            }
+        }
+    }
+
+    @Test
+    fun vocabularyWordAndSentenceModesBothHaveFourUniqueCzechChoices() {
+        val entry = vocabularyCatalog.single { it.word == "Tisch" }
+        listOf(VocabularyPresentation.WORD, VocabularyPresentation.SENTENCE).forEach { presentation ->
+            val question = makeVocabularyQuestion(entry, presentation, vocabularyCatalog, kotlin.random.Random(17))
+            assertEquals(4, question.choices.size)
+            assertEquals(4, question.choices.toSet().size)
+            assertTrue(question.correctIndex in question.choices.indices)
+            assertEquals(question.correctCzech, question.choices[question.correctIndex])
+        }
+    }
+
 }
