@@ -43,6 +43,7 @@ internal data class NumberPracticeQuestion(
     val kind: String,
     val prompt: String,
     val choices: List<String>,
+    val choiceKinds: List<String> = emptyList(),
     val correctIndex: Int,
     val fullGerman: String,
     val fullCzech: String,
@@ -162,22 +163,38 @@ private fun kindLabel(kind: String): String = when (kind) {
 internal fun buildMixedNumberDrillQuestions(): List<NumberPracticeQuestion> {
     val seeds = allDrillSeeds()
     check(seeds.size == 100) { "The mixed number drill must contain exactly 100 questions." }
-    val optionsByKind = seeds.groupBy { it.kind }.mapValues { (_, rows) -> rows.map { it.answer }.distinct() }
+
     val kinds = listOf("basic", "ordinal", "multiplicative")
+    val optionsByKind = seeds.groupBy { it.kind }
+        .mapValues { (_, rows) -> rows.map { it.answer }.distinct() }
+
     return seeds.shuffled().map { seed ->
-        val otherKinds = kinds.filter { it != seed.kind }
-        val sameKindDistractor = optionsByKind.getValue(seed.kind).filter { it != seed.answer }.shuffled().first()
-        val distractors = listOf(
-            optionsByKind.getValue(otherKinds[0]).shuffled().first(),
-            optionsByKind.getValue(otherKinds[1]).shuffled().first(),
-            sameKindDistractor
-        )
-        val choices = (listOf(seed.answer) + distractors).shuffled()
+        // Every question offers exactly one answer of each grammatical number type.
+        // The correct answer is the one whose type matches the sentence being tested.
+        val choicesWithKinds = kinds.map { optionKind ->
+            val option = if (optionKind == seed.kind) {
+                seed.answer
+            } else {
+                optionsByKind.getValue(optionKind)
+                    .filter { it != seed.answer }
+                    .shuffled()
+                    .first()
+            }
+            option to optionKind
+        }.shuffled()
+
+        val choices = choicesWithKinds.map { it.first }
+        val choiceKinds = choicesWithKinds.map { it.second }
+        check(choices.size == 3 && choices.distinct().size == 3) {
+            "Mixed number question ${seed.id} must have three unique options."
+        }
+
         NumberPracticeQuestion(
             id = seed.id,
             kind = seed.kind,
-            prompt = "Doplň správnou číslovku do věty. Pozor na její druh:\n${seed.sentence}",
+            prompt = "Doplň správnou číslovku do věty. V nabídce je vždy jedna základní, jedna řadová a jedna násobná číslovka:\n${seed.sentence}",
             choices = choices,
+            choiceKinds = choiceKinds,
             correctIndex = choices.indexOf(seed.answer),
             fullGerman = seed.sentence.replace("___", seed.answer),
             fullCzech = seed.czech,
