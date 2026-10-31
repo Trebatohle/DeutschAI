@@ -54,8 +54,7 @@ internal fun LearningHubScreen(
     onVerbs: () -> Unit,
     onDialogues: () -> Unit,
     onReading: () -> Unit,
-    onWordTools: () -> Unit,
-    onNumbers: () -> Unit
+    onWordTools: () -> Unit
 ) {
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
@@ -82,6 +81,13 @@ internal fun LearningHubScreen(
                 onClick = onCourses
             )
             LearningCard(
+                icon = { Icon(Icons.Default.School, contentDescription = null, tint = ForestText) },
+                title = "Důležitá slovesa",
+                subtitle = "Procvič si časování ve větách, ne jen izolované tvary.",
+                detail = verbPracticeTopics.size.toString() + " lekcí · 25 smíšených otázek v každé",
+                onClick = onVerbs
+            )
+            LearningCard(
                 icon = { Icon(Icons.Default.Book, contentDescription = null, tint = ForestText) },
                 title = "Členy a podstatná jména",
                 subtitle = "Vyber si slovní téma: bydlení, jídlo, práce, cestování a další.",
@@ -90,31 +96,10 @@ internal fun LearningHubScreen(
             )
             LearningCard(
                 icon = { Icon(Icons.Default.Translate, contentDescription = null, tint = ForestText) },
-                title = "Číslovky",
-                subtitle = "Základní, řadové a násobné číslovky v samostatných lekcích i ve společném drilu.",
-                detail = "3 samostatné sady · 100 otázek ve smíšeném drilu",
-                onClick = onNumbers
-            )
-            LearningCard(
-                icon = { Icon(Icons.Default.Translate, contentDescription = null, tint = ForestText) },
                 title = "Slovní druhy a gramatika",
-                subtitle = "Předložky, spojky, příslovce i přivlastňovací zájmena.",
-                detail = "${wordToolGroups.size - numberWordToolGroupIds.size} oblastí · 3 způsoby procvičení",
+                subtitle = "Předložky, spojky, příslovce, přivlastňovací zájmena a číslovky.",
+                detail = "${wordToolGroups.size - numberWordToolGroupIds.size} oblasti + číslovky · 3 způsoby procvičení",
                 onClick = onWordTools
-            )
-            LearningCard(
-                icon = { Icon(Icons.Default.School, contentDescription = null, tint = ForestText) },
-                title = "Důležitá slovesa",
-                subtitle = "Procvič si časování ve větách, ne jen izolované tvary.",
-                detail = verbPracticeTopics.size.toString() + " lekcí · 25 smíšených otázek v každé",
-                onClick = onVerbs
-            )
-            LearningCard(
-                icon = { Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = ForestText) },
-                title = "Řízené dialogy",
-                subtitle = "Tři doporučené odpovědi, vždy s českým překladem a navazující replikou.",
-                detail = guidedDialogueTopics.size.toString() + " dialogy v první sadě",
-                onClick = onDialogues
             )
             LearningCard(
                 icon = { Icon(Icons.Default.Book, contentDescription = null, tint = ForestText) },
@@ -122,6 +107,13 @@ internal fun LearningHubScreen(
                 subtitle = "Dlouhé příběhy podle úrovně A1–C2; podrž slovo a zobrazíš český význam.",
                 detail = readingArticles.size.toString() + " příběhů · A1 až C2",
                 onClick = onReading
+            )
+            LearningCard(
+                icon = { Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = ForestText) },
+                title = "Řízené dialogy",
+                subtitle = "Tři doporučené odpovědi, vždy s českým překladem a navazující replikou.",
+                detail = guidedDialogueTopics.size.toString() + " dialogy v první sadě",
+                onClick = onDialogues
             )
             Card(
                 modifier = Modifier.fillMaxWidth(),
