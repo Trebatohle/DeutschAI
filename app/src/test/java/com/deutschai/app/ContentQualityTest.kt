@@ -235,6 +235,54 @@ class ContentQualityTest {
     }
 
     @Test
+    fun branchingDialogueScenariosHaveValidGraphsAndMoreThanOnePossibleRoute() {
+        assertEquals(2, branchingGuidedDialogueTopics.size)
+        branchingGuidedDialogueTopics.forEach { topic ->
+            assertTrue(
+                "${topic.id} has graph errors: ${branchingDialogueValidationErrors(topic)}",
+                branchingDialogueValidationErrors(topic).isEmpty()
+            )
+            val paths = branchingDialoguePaths(topic)
+            assertTrue("${topic.id} should have at least two possible paths", paths.size >= 2)
+            assertTrue("${topic.id} paths should actually diverge", paths.distinct().size >= 2)
+            assertTrue(paths.all { it.first() == topic.startNodeId })
+            topic.nodes.forEach { node ->
+                assertEquals(3, node.options.size)
+                assertEquals(1, node.options.count { it.quality == DialogueAnswerQuality.RECOMMENDED })
+            }
+        }
+    }
+
+    @Test
+    fun branchingDialogueMistakesCreateSpacedReviewWithRecommendedAnswer() {
+        val topic = branchingGuidedDialogueTopics.first()
+        val node = topic.nodes.first { it.id == topic.startNodeId }
+        val mistakeIndex = node.options.indexOfFirst { it.quality == DialogueAnswerQuality.NEEDS_WORK }
+        val recommendedIndex = node.options.indexOfFirst { it.quality == DialogueAnswerQuality.RECOMMENDED }
+
+        val review = buildBranchingDialogueReview(topic, node, mistakeIndex)
+
+        assertFalse(review.wasCorrect)
+        assertEquals(recommendedIndex, review.question.correctIndex)
+        assertEquals(3, review.question.choices.size)
+        assertTrue(review.question.explanation.contains("Lepší formulace"))
+        assertEquals("phrases", review.question.sourceKind)
+    }
+
+    @Test
+    fun acceptableBranchingDialogueAlternativesAreNotMarkedAsMistakes() {
+        val topic = branchingGuidedDialogueTopics.last()
+        val node = topic.nodes.first { it.id == topic.startNodeId }
+        val alternativeIndex = node.options.indexOfFirst { it.quality == DialogueAnswerQuality.ACCEPTABLE }
+
+        val review = buildBranchingDialogueReview(topic, node, alternativeIndex)
+
+        assertTrue(review.wasCorrect)
+        assertEquals(alternativeIndex, review.question.correctIndex)
+        assertTrue(review.question.explanation.isNotBlank())
+    }
+
+    @Test
     fun cakeAndTableTranslationsRemainDistinctAndCorrect() {
         val translatedItems = sentenceCourseCatalog.flatMap { it.items }
         assertTrue(
