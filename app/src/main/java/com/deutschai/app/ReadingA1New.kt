@@ -147,7 +147,8 @@ internal val readingArticlesA1New = listOf(
                 """Im Park treffen sie zufällig die Nachbarn. Herr und Frau Král gehen mit ihrer Tochter spazieren. Sie wünschen dem Vater alles Gute und geben ihm eine kleine Packung Tee. Der Vater bedankt sich und lädt sie spontan auf ein Stück Kuchen am Nachmittag ein. Nora freut sich, denn sie mag die Nachbarn. Sie spielen manchmal zusammen im Hof. Herr Král erzählt einen Witz, und alle lachen. Danach gehen die Familien noch ein Stück gemeinsam weiter, bevor sie sich trennen.""",
                 """Zu Hause ruht sich der Vater kurz aus. Nora und Tim decken den Tisch für den Nachmittag. Sie schneiden Obst, stellen Tassen bereit und holen die restlichen Kuchenstücke aus der Dose. Die Mutter kocht Tee. Als die Nachbarn kommen, sitzen alle im Wohnzimmer. Sie sprechen über den Sommer, die Schule und neue Pläne. Nora hört zu und merkt, dass Erwachsene auch gern Geschichten erzählen. Tim zeigt seine Steinsammlung. Die Tochter der Nachbarn findet einen Stein besonders schön und fragt, ob sie ihn einmal ausleihen darf.""",
                 """Am Abend ist der Vater müde, aber glücklich. Er sagt, dass er den Tag sehr genossen hat. Nora fragt, ob ihm die Überraschung gefallen hat. Er antwortet, dass nicht die Geschenke wichtig sind, sondern die gemeinsame Zeit. Tim sagt, dass er im nächsten Jahr wieder Kuchen backen möchte. Die Mutter lacht und schlägt vor, dass sie dann vielleicht einen Schokoladenkuchen machen. Nora räumt die Teller in die Küche und hilft beim Abwasch. Alle Aufgaben gehen schnell, weil jeder mitarbeitet.""",
-                """Vor dem Schlafengehen gibt der Vater Nora und Tim einen Kuss auf die Stirn. Er bedankt sich noch einmal für das Frühstück und den Spaziergang. Nora legt ihre Zeichnung in ihr Zimmer auf den Schreibtisch. Sie ist froh, dass der Plan funktioniert hat. Sie hat gelernt, dass eine Überraschung nicht teuer sein muss. Ein selbstgemachter Kuchen, ein schöner Spaziergang und ein paar freundliche Worte können einen Tag besonders machen. Mit diesem Gedanken schläft sie schnell ein."""
+                """Vor dem Schlafengehen gibt der Vater Nora und Tim einen Kuss auf die Stirn. Er bedankt sich noch einmal für das Frühstück und den Spaziergang. Nora legt ihre Zeichnung in ihr Zimmer auf den Schreibtisch. Sie ist froh, dass der Plan funktioniert hat. Sie hat gelernt, dass eine Überraschung nicht teuer sein muss. Ein selbstgemachter Kuchen, ein schöner Spaziergang und ein paar freundliche Worte können einen Tag besonders machen. Mit diesem Gedanken schläft sie schnell ein.""",
+                """Am nächsten Sonntag besucht die Familie die Großeltern. Nora bringt ein kleines Stück Kuchen mit, weil sie wissen möchte, ob der Großvater das Rezept mag. Er probiert den Kuchen und erzählt, dass er früher oft mit Noras Vater gebacken hat. Damals war die Küche viel kleiner, und sie hatten nur eine alte Rührschüssel. Nora hört gern zu und fragt nach weiteren Geschichten. Später zeigt sie den Großeltern die Fotos vom Geburtstag. Alle lachen über das Bild mit der großen Kerze. Nora nimmt sich vor, im nächsten Jahr wieder etwas selbst zu planen, vielleicht einen Ausflug oder ein gemeinsames Abendessen. Sie merkt, dass solche Tage lange in Erinnerung bleiben."""
             )
         ),
         glossary = mapOf(
@@ -155,7 +156,7 @@ internal val readingArticlesA1New = listOf(
             "Überraschung" to "překvapení",
             "Einladung" to "pozvání",
             "Kerze" to "svíčka",
-            "Kuchen" to "dort",
+            "Kuchen" to "koláč",
             "helfen" to "pomáhat"
         )
     )
