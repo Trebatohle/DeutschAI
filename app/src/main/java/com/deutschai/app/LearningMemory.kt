@@ -112,14 +112,20 @@ internal object LearningReviewStore {
         context: Context,
         question: ReviewQuestion,
         remembered: Boolean,
-        nowMillis: Long = System.currentTimeMillis()
+        nowMillis: Long = System.currentTimeMillis(),
+        nextDueAtMillis: Long? = null
     ) {
         recordAnswer(context, question, remembered, isMistakeReview = false, nowMillis = nowMillis)
-        if (!remembered) {
-            // "Again" in phrase review is shown again after ten minutes, not immediately.
+        val scheduledDueAt = nextDueAtMillis ?: if (!remembered) {
+            // "Again" defaults to a ten-minute retry when no custom interval is supplied.
+            nowMillis + 10L * 60L * 1000L
+        } else {
+            null
+        }
+        if (scheduledDueAt != null) {
             val entries = readEntries(context)
             val previous = entries[question.id] ?: return
-            entries[question.id] = previous.copy(dueAtMillis = nowMillis + 10L * 60L * 1000L)
+            entries[question.id] = previous.copy(dueAtMillis = scheduledDueAt)
             writeEntries(context, entries.values.take(MAX_ITEMS))
         }
     }
