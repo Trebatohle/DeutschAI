@@ -54,7 +54,8 @@ internal fun LearningHubScreen(
     onVerbs: () -> Unit,
     onDialogues: () -> Unit,
     onReading: () -> Unit,
-    onWordTools: () -> Unit
+    onWordTools: () -> Unit,
+    onNumbers: () -> Unit
 ) {
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
@@ -89,9 +90,16 @@ internal fun LearningHubScreen(
             )
             LearningCard(
                 icon = { Icon(Icons.Default.Translate, contentDescription = null, tint = ForestText) },
+                title = "Číslovky",
+                subtitle = "Základní, řadové a násobné číslovky v samostatných lekcích i ve společném drilu.",
+                detail = "3 samostatné sady · 100 otázek ve smíšeném drilu",
+                onClick = onNumbers
+            )
+            LearningCard(
+                icon = { Icon(Icons.Default.Translate, contentDescription = null, tint = ForestText) },
                 title = "Slovní druhy a gramatika",
-                subtitle = "Číslovky, předložky, spojky, příslovce i přivlastňovací zájmena.",
-                detail = "${wordToolGroups.size} oblastí · 3 způsoby procvičení",
+                subtitle = "Předložky, spojky, příslovce i přivlastňovací zájmena.",
+                detail = "${wordToolGroups.size - numberWordToolGroupIds.size} oblastí · 3 způsoby procvičení",
                 onClick = onWordTools
             )
             LearningCard(
