@@ -65,69 +65,125 @@ internal data class PlacementAssessmentReport(
     val skillResults: Map<String, PlacementSkillResult>
 )
 
+private data class PlacementQuestionSeed(
+    val id: String,
+    val level: String,
+    val skill: String,
+    val prompt: String,
+    val correctAnswer: String,
+    val distractors: List<String>,
+    val explanation: String,
+    val germanSentence: String = "",
+    val translation: String = ""
+)
+
+private val placementQuestionSeeds = listOf(
+    PlacementQuestionSeed("a1-verb", "A1", "Gramatika", "Doplň: Ich ___ aus Tschechien.", "komme",
+        listOf("kommt", "kommen", "kommst"), "U „ich“ má sloveso tvar „komme“.",
+        "Ich komme aus Tschechien.", "Pocházím z Česka."),
+    PlacementQuestionSeed("a1-article", "A1", "Gramatika", "Doplň: Ich sehe ___ Mann.", "den",
+        listOf("der", "dem", "des"), "Mužský rod v tomto předmětu vyžaduje 4. pád.",
+        "Ich sehe den Mann.", "Vidím toho muže."),
+    PlacementQuestionSeed("a1-gestern", "A1", "Slovní zásoba a fráze", "Co znamená „gestern“?", "včera",
+        listOf("dnes", "zítra", "brzy"), "„Gestern“ znamená „včera“."),
+    PlacementQuestionSeed("a1-time", "A1", "Slovní zásoba a fráze", "8:30 se německy řekne:", "halb neun",
+        listOf("halb acht", "acht Uhr halb", "neun halb"), "„Halb neun“ znamená půl deváté.",
+        "Es ist halb neun.", "Je půl deváté."),
+
+    PlacementQuestionSeed("a2-perfect", "A2", "Gramatika", "Doplň: Gestern ___ ich lange gearbeitet.", "habe",
+        listOf("bin", "hatte", "werde"), "Sloveso „arbeiten“ tvoří Perfekt se slovesem „haben“.",
+        "Gestern habe ich lange gearbeitet.", "Včera jsem dlouho pracoval/a."),
+    PlacementQuestionSeed("a2-preposition", "A2", "Gramatika", "Doplň: Ich freue mich ___ deinen Besuch.", "auf",
+        listOf("über", "an", "um"), "Na budoucí událost se těšíme vazbou „sich freuen auf“.",
+        "Ich freue mich auf deinen Besuch.", "Těším se na tvou návštěvu."),
+    PlacementQuestionSeed("a2-erlaubnis", "A2", "Slovní zásoba a fráze", "Co znamená „die Erlaubnis“?", "povolení",
+        listOf("zkušenost", "pozvánka", "rozhodnutí"), "„Die Erlaubnis“ znamená „povolení“."),
+    PlacementQuestionSeed("a2-relative", "A2", "Slovní zásoba a fráze", "Doplň: Das Café, in ___ wir uns treffen.", "dem",
+        listOf("den", "das", "dessen"), "Předložka „in“ zde vyžaduje 3. pád.",
+        "Das ist das Café, in dem wir uns treffen.", "To je kavárna, kde se setkáváme."),
+
+    PlacementQuestionSeed("b1-obwohl", "B1", "Gramatika", "Doplň: Obwohl es regnete, ___ wir spazieren.", "gingen",
+        listOf("gehen", "sind", "gegangen"), "Po vedlejší větě s „obwohl“ následuje v hlavní větě časované sloveso.",
+        "Obwohl es regnete, gingen wir spazieren.", "Přestože pršelo, šli jsme na procházku."),
+    PlacementQuestionSeed("b1-kon2", "B1", "Gramatika", "Doplň: Hätte ich das gewusst, ___ ich früher gekommen.", "wäre",
+        listOf("bin", "war", "hätte"), "Konjunktiv II minulosti u „kommen“ tvoří „wäre gekommen“.",
+        "Hätte ich das gewusst, wäre ich früher gekommen.", "Kdybych to věděl/a, přišel/přišla bych dříve."),
+    PlacementQuestionSeed("b1-verlassen", "B1", "Slovní zásoba a fráze", "„Sich auf jemanden verlassen“ znamená:", "spolehnout se na někoho",
+        listOf("vyhnout se někomu", "postarat se o někoho", "přizpůsobit se někomu"),
+        "Vazba „sich auf jemanden verlassen“ znamená „spolehnout se na někoho“."),
+    PlacementQuestionSeed("b1-verschieben", "B1", "Slovní zásoba a fráze", "„Der Termin wurde verschoben“ znamená:", "termín byl odložen",
+        listOf("termín byl zrušen", "termín byl potvrzen", "termín byl zkrácen"),
+        "„Verschieben“ znamená přesunout nebo odložit termín."),
+
+    PlacementQuestionSeed("b2-als", "B2", "Gramatika", "Doplň: Er tut so, als ___ er alles.", "wüsste",
+        listOf("weiß", "wissen", "gewusst"), "Po „als ob/als“ se v tomto významu používá Konjunktiv II.",
+        "Er tut so, als wüsste er alles.", "Chová se, jako by všechno věděl."),
+    PlacementQuestionSeed("b2-je-desto", "B2", "Gramatika", "Doplň: Je länger ich warte, ___ ungeduldiger werde ich.", "desto",
+        listOf("weil", "als", "ob"), "U stupňovací konstrukce patří dvojice „je …, desto …“.",
+        "Je länger ich warte, desto ungeduldiger werde ich.", "Čím déle čekám, tím jsem netrpělivější."),
+    PlacementQuestionSeed("b2-betracht", "B2", "Slovní zásoba a fráze", "„Etwas in Betracht ziehen“ znamená:", "zvážit něco",
+        listOf("odmítnout něco", "zapomenout na něco", "předpokládat něco"),
+        "Vazba znamená vzít něco v úvahu nebo to zvážit."),
+    PlacementQuestionSeed("b2-stocken", "B2", "Slovní zásoba a fráze", "„Die Verhandlungen sind ins Stocken geraten“ znamená:", "jednání se zadrhla",
+        listOf("jednání skončila", "jednání byla odložena", "jednání se zrychlila"),
+        "„Ins Stocken geraten“ znamená zadrhnout se nebo ustrnout."),
+
+    PlacementQuestionSeed("c1-kritik", "C1", "Gramatika", "Doplň: Der Vorschlag stieß auf ___ Kritik.", "erhebliche",
+        listOf("erheblichen", "erheblicher", "erhebliches"), "„Kritik“ je ženského rodu; po „auf“ je zde 4. pád.",
+        "Der Vorschlag stieß auf erhebliche Kritik.", "Návrh se setkal se značnou kritikou."),
+    PlacementQuestionSeed("c1-eingeraeumt", "C1", "Gramatika", "Doplň: Er räumte ein, den Aufwand falsch ___ zu haben.", "eingeschätzt",
+        listOf("einschätzen", "einschätzt", "einschätzend"), "V konstrukci „zu haben“ stojí příčestí minulé před infinitivem.",
+        "Er räumte ein, den Aufwand falsch eingeschätzt zu haben.", "Přiznal, že náročnost špatně odhadl."),
+    PlacementQuestionSeed("c1-wacklig", "C1", "Slovní zásoba a fráze", "„Auf wackligen Beinen stehen“ znamená:", "mít nejisté základy",
+        listOf("být téměř hotový", "být finančně zajištěný", "mít všeobecnou podporu"),
+        "Obrazné spojení popisuje něco nejistého nebo nedostatečně podloženého."),
+    PlacementQuestionSeed("c1-nicht-zuletzt", "C1", "Slovní zásoba a fráze", "„Nicht zuletzt“ znamená:", "v neposlední řadě",
+        listOf("jen výjimečně", "bez jakékoli výjimky", "teprve později"),
+        "Výraz zdůrazňuje důležitý důvod: „v neposlední řadě“."),
+
+    PlacementQuestionSeed("c2-ungeachtet", "C2", "Gramatika", "Doplň: Ungeachtet ___ Einwände wurde entschieden.", "der",
+        listOf("den", "die", "dem"), "Předložka „ungeachtet“ se pojí s 2. pádem.",
+        "Ungeachtet der Einwände wurde entschieden.", "Navzdory námitkám bylo rozhodnuto."),
+    PlacementQuestionSeed("c2-widerlegen", "C2", "Gramatika", "Doplň: Seine Position lässt sich kaum ___.", "widerlegen",
+        listOf("widerlegt", "widerlegte", "zu widerlegen"), "Po konstrukci „sich lassen“ následuje infinitiv bez „zu“.",
+        "Seine Position lässt sich kaum widerlegen.", "Jeho stanovisko lze jen těžko vyvrátit."),
+    PlacementQuestionSeed("c2-mitnichten", "C2", "Slovní zásoba a fráze", "„Mitnichten“ znamená:", "v žádném případě",
+        listOf("možná", "obvykle", "přinejmenším"), "„Mitnichten“ znamená „v žádném případě“ nebo „ani zdaleka ne“."),
+    PlacementQuestionSeed("c2-revidieren", "C2", "Slovní zásoba a fráze", "„Eine Entscheidung revidieren“ znamená:", "přehodnotit rozhodnutí",
+        listOf("veřejně oznámit rozhodnutí", "odložit rozhodnutí beze změny", "rozhodnutí potvrdit"),
+        "„Revidieren“ znamená rozhodnutí přezkoumat a případně změnit.")
+)
+
 internal fun buildPlacementAssessmentQuestions(
     random: Random = Random.Default
 ): List<PlacementAssessmentQuestion> {
     val levels = listOf("A1", "A2", "B1", "B2", "C1", "C2")
-    val result = mutableListOf<PlacementAssessmentQuestion>()
-
-    levels.forEach { level ->
-        val courses = sentenceCourseCatalog.filter { it.level == level }
-        val sentenceCount = if (level in setOf("A1", "A2", "B1", "B2")) 4 else 0
-        if (sentenceCount > 0) {
-            require(courses.isNotEmpty()) { "No sentence courses are available for $level." }
-            val sentenceQuestions = courses.flatMap { course ->
-                course.items.mapIndexed { index, item ->
-                    val options = listOf(
-                        item,
-                        course.items[(index + 5) % course.items.size],
-                        course.items[(index + 11) % course.items.size],
-                        course.items[(index + 17) % course.items.size]
-                    ).distinctBy { it.german }.shuffled(random)
-                    PlacementAssessmentQuestion(
-                        id = stableReviewId("placement", "sentences", level, course.id, index.toString()),
-                        level = level,
-                        skill = "Věty a gramatika",
-                        prompt = item.prompt,
-                        choices = options.map { it.german },
-                        correctIndex = options.indexOfFirst { it.german == item.german },
-                        explanation = "Správná věta znamená: ${item.czech}",
-                        germanSentence = item.german,
-                        translation = item.czech
-                    )
-                }
+    check(placementQuestionSeeds.size == 24) { "Placement test must contain exactly 24 questions." }
+    val result = levels.flatMap { level ->
+        val levelSeeds = placementQuestionSeeds.filter { it.level == level }
+        check(levelSeeds.size == 4) { "Placement test must contain exactly four questions for $level." }
+        levelSeeds.shuffled(random).map { seed ->
+            check(seed.distractors.size == 3)
+            val choices = (listOf(seed.correctAnswer) + seed.distractors).shuffled(random)
+            check(choices.size == 4 && choices.distinct().size == 4) {
+                "Placement question ${seed.id} must contain four unique answers."
             }
-            result += sentenceQuestions.shuffled(random).take(sentenceCount)
-        }
-
-        val articles = readingArticles.filter { it.level == level }
-        require(articles.isNotEmpty()) { "No reading articles are available for $level." }
-        val comprehensionCount = if (sentenceCount > 0) 2 else 6
-        val readingQuestions = articles.shuffled(random)
-            .flatMap { buildReadingComprehensionQuestions(it).shuffled(random) }
-            .distinctBy { it.id }
-            .take(comprehensionCount)
-        require(readingQuestions.size == comprehensionCount) {
-            "Not enough reading comprehension questions are available for $level."
-        }
-
-        result += readingQuestions.map { question ->
             PlacementAssessmentQuestion(
-                id = stableReviewId("placement", "reading", level, question.id),
-                level = level,
-                skill = "Čtení s porozuměním",
-                prompt = question.prompt,
-                choices = question.choices,
-                correctIndex = question.correctIndex,
-                explanation = question.explanation,
-                passage = question.passage
+                id = stableReviewId("placement", seed.level, seed.id),
+                level = seed.level,
+                skill = seed.skill,
+                prompt = seed.prompt,
+                choices = choices,
+                correctIndex = choices.indexOf(seed.correctAnswer),
+                explanation = seed.explanation,
+                germanSentence = seed.germanSentence,
+                translation = seed.translation
             )
         }
     }
-
-    check(result.size == 36) { "Placement test must contain exactly 36 questions (6 per level)." }
+    check(result.size == 24) { "Placement test must contain exactly 24 questions." }
     check(result.map { it.id }.toSet().size == result.size) { "Placement test question IDs must be unique." }
-    return result.shuffled(random)
+    return result
 }
 
 internal fun evaluatePlacementAssessment(
@@ -150,11 +206,11 @@ internal fun evaluatePlacementAssessment(
         PlacementSkillResult(rows.count { answers[it.id] == it.correctIndex }, rows.size)
     }
 
-    // A level is considered passed when the student gets at least 4 of its 6 questions right.
+    // A level is considered passed when the student gets at least 3 of its 4 questions right.
     // Report the highest consecutive CEFR band passed, not an isolated higher score.
     var estimated = "A1"
     for (level in levels) {
-        if (levelResults.getValue(level).accuracyPercent >= 66) {
+        if (levelResults.getValue(level).correct >= 3) {
             estimated = level
         } else {
             break
@@ -232,7 +288,6 @@ internal fun PlacementAssessmentScreen(
     var selected by remember { mutableStateOf<Int?>(null) }
     var answers by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
     var report by remember { mutableStateOf<PlacementAssessmentReport?>(null) }
-    var score by remember { mutableStateOf(0) }
     val current = questions.getOrNull(index)
 
     fun restart() {
@@ -241,7 +296,6 @@ internal fun PlacementAssessmentScreen(
         selected = null
         answers = emptyMap()
         report = null
-        score = 0
     }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
@@ -279,7 +333,7 @@ internal fun PlacementAssessmentScreen(
                         Text(result.estimatedLevel, color = Gold, fontSize = 34.sp, fontWeight = FontWeight.Bold)
                         Text("${result.correctAnswers} z ${result.totalQuestions} správně", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                         Text(
-                            "Výsledek je orientační. Test ověřuje především praktické věty a porozumění textu; během dalšího studia se doporučení může zpřesnit.",
+                            "Výsledek je orientační a doporučuje vhodný začátek. Během studia se může zpřesnit.",
                             color = Color(0xFFE0EAE5), fontSize = 13.sp, lineHeight = 19.sp
                         )
                     }
@@ -337,26 +391,10 @@ internal fun PlacementAssessmentScreen(
                     shape = RoundedCornerShape(14.dp)
                 ) { Text("Zpět na přehled", fontWeight = FontWeight.Bold) }
             } else if (current != null) {
-                Text("TEST ÚROVNĚ A1–C2 · 36 OTÁZEK", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                Text("TEST ÚROVNĚ A1–C2 · 24 OTÁZEK", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                 Text("Otázka ${index + 1} z ${questions.size}", color = Ink, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                 LinearProgressIndicator(progress = { (index + 1).toFloat() / questions.size }, modifier = Modifier.fillMaxWidth())
                 Text(current.level + " · " + current.skill, color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                if (current.passage.isNotBlank()) {
-                    Text("Přečti si krátký text", color = Ink, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(18.dp),
-                        colors = CardDefaults.cardColors(containerColor = CardSurface)
-                    ) {
-                        Text(
-                            current.passage,
-                            modifier = Modifier.padding(17.dp),
-                            color = Ink,
-                            fontSize = 14.sp,
-                            lineHeight = 22.sp
-                        )
-                    }
-                }
                 Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = CardSurface)) {
                     Text(current.prompt, modifier = Modifier.padding(20.dp), color = Ink, fontSize = 19.sp, lineHeight = 27.sp, fontWeight = FontWeight.SemiBold)
                 }
@@ -377,7 +415,7 @@ internal fun PlacementAssessmentScreen(
                                     context = context,
                                     question = ReviewQuestion(
                                         id = current.id,
-                                        sourceKind = if (current.skill == "Čtení s porozuměním") "reading" else "sentences",
+                                        sourceKind = if (current.skill == "Gramatika") "sentences" else "wordtools",
                                         sourceTitle = "Rozřazovací test ${current.level}",
                                         prompt = current.prompt,
                                         choices = current.choices,
@@ -388,7 +426,6 @@ internal fun PlacementAssessmentScreen(
                                     ),
                                     wasCorrect = correct
                                 )
-                                if (correct) score += 1
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
@@ -401,7 +438,7 @@ internal fun PlacementAssessmentScreen(
                 if (selected != null) {
                     Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(17.dp), colors = CardDefaults.cardColors(containerColor = Mint)) {
                         Text(
-                            "Odpověď zaznamenána. Správná řešení a vysvětlení se zobrazí až po dokončení celého testu.",
+                            "Odpověď uložena. Řešení uvidíš na konci.",
                             modifier = Modifier.padding(15.dp),
                             color = ForestText, fontSize = 13.sp, lineHeight = 19.sp
                         )
@@ -424,6 +461,62 @@ internal fun PlacementAssessmentScreen(
                     ) { Text(if (index == questions.lastIndex) "Vyhodnotit test" else "Další otázka", fontWeight = FontWeight.Bold) }
                 }
             }
+        }
+    }
+}
+
+@Composable
+internal fun PlacementWelcomeScreen(
+    onStart: () -> Unit,
+    onSkip: () -> Unit
+) {
+    Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
+        Column(
+            modifier = Modifier.fillMaxSize().navigationBarsPadding()
+                .verticalScroll(rememberScrollState())
+                .padding(start = 24.dp, top = 30.dp, end = 24.dp, bottom = 30.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.size(24.dp))
+            androidx.compose.material3.Icon(
+                Icons.Default.School,
+                contentDescription = null,
+                tint = ForestText,
+                modifier = Modifier.size(54.dp)
+            )
+            Text("Vítej v DeutschAI", color = ForestText, fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+            Text(
+                "Chceš si nejdřív ověřit svou úroveň němčiny?",
+                color = Ink,
+                fontSize = 26.sp,
+                lineHeight = 32.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = CardSurface)
+            ) {
+                Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                    Text("24 krátkých otázek", color = ForestText, fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                    Text("4 otázky na každou úroveň A1–C2 · plně offline", color = Muted, fontSize = 14.sp, lineHeight = 20.sp)
+                    Text("Na konci dostaneš doporučenou startovní úroveň.", color = Muted, fontSize = 14.sp, lineHeight = 20.sp)
+                }
+            }
+            Button(
+                onClick = onStart,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
+                shape = RoundedCornerShape(14.dp)
+            ) { Text("Spustit vstupní test", fontWeight = FontWeight.Bold) }
+            Button(
+                onClick = onSkip,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
+                shape = RoundedCornerShape(14.dp)
+            ) { Text("Přeskočit a začít se učit", fontWeight = FontWeight.Bold) }
+            Text("Test je dobrovolný. Najdeš ho i později v části Pokroky.", color = Muted, fontSize = 12.sp, lineHeight = 17.sp)
         }
     }
 }
