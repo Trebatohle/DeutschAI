@@ -54,7 +54,8 @@ internal fun LearningHubScreen(
     onVerbs: () -> Unit,
     onDialogues: () -> Unit,
     onReading: () -> Unit,
-    onWordTools: () -> Unit
+    onWordTools: () -> Unit,
+    onNumbers: () -> Unit
 ) {
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
@@ -89,9 +90,16 @@ internal fun LearningHubScreen(
             )
             LearningCard(
                 icon = { Icon(Icons.Default.Translate, contentDescription = null, tint = ForestText) },
+                title = "Číslovky",
+                subtitle = "Základní, řadové a násobné číslovky v samostatných lekcích i ve společném drilu.",
+                detail = "3 samostatné sady · 100 otázek ve smíšeném drilu",
+                onClick = onNumbers
+            )
+            LearningCard(
+                icon = { Icon(Icons.Default.Translate, contentDescription = null, tint = ForestText) },
                 title = "Slovní druhy a gramatika",
-                subtitle = "Číslovky, předložky, spojky, příslovce i přivlastňovací zájmena.",
-                detail = "${wordToolGroups.size} oblastí · 3 způsoby procvičení",
+                subtitle = "Předložky, spojky, příslovce i přivlastňovací zájmena.",
+                detail = "${wordToolGroups.size - numberWordToolGroupIds.size} oblastí · 3 způsoby procvičení",
                 onClick = onWordTools
             )
             LearningCard(
@@ -140,6 +148,7 @@ internal fun LearningHubScreen(
 @Composable
 internal fun ArticleCategoryLibraryScreen(
     onBack: () -> Unit,
+    onVocabulary: () -> Unit,
     onSelectCategory: (ArticleCategory) -> Unit
 ) {
     val context = LocalContext.current
@@ -159,6 +168,13 @@ internal fun ArticleCategoryLibraryScreen(
                 color = Muted,
                 fontSize = 14.sp,
                 lineHeight = 21.sp
+            )
+            LearningCard(
+                icon = { Icon(Icons.Default.Book, contentDescription = null, tint = ForestText) },
+                title = "Slovní zásoba",
+                subtitle = "Uč se nová německá podstatná jména včetně členu nebo krátké věty s poslechem a českým překladem.",
+                detail = "${vocabularyCatalog.size} slov · náhodné sady po 25",
+                onClick = onVocabulary
             )
             articleCategories.forEachIndexed { index, category ->
                 Card(

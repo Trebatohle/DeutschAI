@@ -185,7 +185,7 @@ class ContentQualityTest {
 
     @Test
     fun wordToolGroupsContainTwentyFiveCompletePracticeItems() {
-        assertEquals("Five grammar and vocabulary areas are expected", 5, wordToolGroups.size)
+        assertEquals("Seven grammar and vocabulary areas are expected", 7, wordToolGroups.size)
         val ids = wordToolGroups.map { it.id }
         assertEquals("Word-tool group IDs must be unique", ids.size, ids.toSet().size)
 
@@ -320,4 +320,156 @@ class ContentQualityTest {
         assertNotEquals("tabulka", lookupReadingWordTranslation(article, "Tisch"))
         assertEquals("stůl", lookupReadingWordTranslation(article, "Tisch"))
     }
+
+    @Test
+    fun numberPracticeHasThreeSeparateTwentyFiveQuestionGroups() {
+        assertEquals(setOf("numbers", "ordinal-numbers", "multiplicative-numbers"), numberWordToolGroupIds)
+        numberWordToolGroupIds.forEach { groupId ->
+            val group = wordToolGroups.single { it.id == groupId }
+            assertEquals("$groupId should contain 25 items", 25, group.items.size)
+            group.items.forEachIndexed { index, item ->
+                assertTrue("$groupId item $index has no German form", item.german.isNotBlank())
+                assertTrue("$groupId item $index has no Czech meaning", item.czech.isNotBlank())
+                assertTrue("$groupId item $index has no German example", item.sentenceGerman.isNotBlank())
+                assertTrue("$groupId item $index has no Czech example", item.sentenceCzech.isNotBlank())
+            }
+        }
+    }
+
+    @Test
+    fun mixedNumberDrillContainsOneHundredQuestionsAcrossAllThreeKinds() {
+        val questions = buildMixedNumberDrillQuestions()
+        assertEquals(100, questions.size)
+        assertEquals(100, questions.map { it.id }.toSet().size)
+
+        val counts = questions.groupingBy { it.kind }.eachCount()
+        assertEquals(setOf("basic", "ordinal", "multiplicative"), counts.keys)
+        assertEquals(34, counts["basic"])
+        assertEquals(33, counts["ordinal"])
+        assertEquals(33, counts["multiplicative"])
+    }
+
+    @Test
+    fun everyMixedNumberQuestionHasExactlyThreeChoicesAndOneOfEachNumberKind() {
+        val requiredKinds = setOf("basic", "ordinal", "multiplicative")
+        buildMixedNumberDrillQuestions().forEach { question ->
+            assertEquals("Question ${question.id} should have exactly three options", 3, question.choices.size)
+            assertEquals(
+                "Question ${question.id} has duplicate answer options",
+                3,
+                question.choices.map { it.lowercase() }.toSet().size
+            )
+            assertEquals(
+                "Question ${question.id} must identify the kind of every answer",
+                3,
+                question.choiceKinds.size
+            )
+            assertEquals(
+                "Question ${question.id} must offer one basic, one ordinal and one multiplicative numeral",
+                requiredKinds,
+                question.choiceKinds.toSet()
+            )
+            assertEquals(
+                "Only the option matching the question's target kind may be correct",
+                1,
+                question.choiceKinds.count { it == question.kind }
+            )
+            assertTrue(question.correctIndex in question.choices.indices)
+            assertEquals(question.kind, question.choiceKinds[question.correctIndex])
+            assertTrue(question.fullGerman.isNotBlank())
+            assertFalse(question.fullGerman.contains("___"))
+            assertTrue(question.fullGerman.contains(question.choices[question.correctIndex]))
+            assertTrue(question.fullCzech.isNotBlank())
+            assertTrue(question.explanation.contains(question.choices[question.correctIndex]))
+            assertTrue(question.prompt.contains("jedna základní, jedna řadová a jedna násobná"))
+        }
+    }
+
+    @Test
+    fun individualNumberCategoriesGenerateTwentyFiveFourChoiceQuestions() {
+        numberWordToolGroupIds.forEach { groupId ->
+            val questions = makeNumberCategoryQuestions(groupId)
+            assertEquals(groupId, 25, questions.size)
+            questions.forEach { question ->
+                assertEquals(4, question.choices.size)
+                assertEquals(4, question.choices.toSet().size)
+                assertTrue(question.correctIndex in question.choices.indices)
+                assertTrue(
+                    "${question.id} correct number form is missing from its German sentence",
+                    question.fullGerman.contains(question.choices[question.correctIndex], ignoreCase = true)
+                )
+                assertTrue(question.fullCzech.isNotBlank())
+            }
+        }
+    }
+
+
+    @Test
+    fun vocabularyCatalogueContainsExactlyTwoThousandUniqueCompleteNouns() {
+        assertEquals("The vocabulary learning pack must contain exactly 2,000 items", 2000, vocabularyCatalog.size)
+        val normalizedWords = vocabularyCatalog.map { it.word.trim().lowercase() }
+        assertEquals("Vocabulary words must be unique", normalizedWords.size, normalizedWords.toSet().size)
+        val ids = vocabularyCatalog.map { it.id }
+        assertEquals("Vocabulary IDs must be unique", ids.size, ids.toSet().size)
+
+        vocabularyCatalog.forEach { entry ->
+            assertTrue("${entry.word} has an invalid German article", entry.article in setOf("der", "die", "das"))
+            assertTrue("A vocabulary item has a blank German noun", entry.word.isNotBlank())
+            assertTrue("${entry.word} has a blank Czech meaning", entry.czech.isNotBlank())
+            assertTrue("${entry.word} has a blank stable ID", entry.id.isNotBlank())
+        }
+    }
+
+    @Test
+    fun vocabularyNounsGenerateGermanAndCzechExampleSentences() {
+        vocabularyCatalog.forEach { entry ->
+            val german = vocabularySentenceGerman(entry)
+            val czech = vocabularySentenceCzech(entry)
+            assertTrue("${entry.word} has no German example", german.isNotBlank())
+            assertTrue("${entry.word} example omits its article", german.contains(entry.article))
+            assertTrue("${entry.word} example omits its noun", german.contains(entry.word))
+            assertTrue("${entry.word} has no Czech example", czech.isNotBlank())
+            assertTrue("${entry.word} Czech example omits its meaning", czech.contains(entry.czech))
+        }
+        assertEquals("Das ist der Tisch.", vocabularySentenceGerman(
+            vocabularyCatalog.single { it.word == "Tisch" }
+        ))
+        assertEquals("To je stůl.", vocabularySentenceCzech(
+            vocabularyCatalog.single { it.word == "Tisch" }
+        ))
+    }
+
+    @Test
+    fun vocabularyBatchContainsTwentyFiveRandomizedUniqueItems() {
+        val batch = buildVocabularyBatch(vocabularyCatalog, count = 25, random = kotlin.random.Random(2026))
+        assertEquals(25, batch.size)
+        assertEquals(25, batch.map { it.entry.id }.toSet().size)
+        batch.forEach { question ->
+            assertTrue(question.germanText.isNotBlank())
+            assertTrue(question.correctCzech.isNotBlank())
+            assertEquals(4, question.choices.size)
+            assertEquals(4, question.choices.toSet().size)
+            assertTrue(question.correctIndex in question.choices.indices)
+            assertEquals(question.correctCzech, question.choices[question.correctIndex])
+            when (question.presentation) {
+                VocabularyPresentation.WORD ->
+                    assertEquals("${question.entry.article} ${question.entry.word}", question.germanText)
+                VocabularyPresentation.SENTENCE ->
+                    assertEquals(vocabularySentenceGerman(question.entry), question.germanText)
+            }
+        }
+    }
+
+    @Test
+    fun vocabularyWordAndSentenceModesBothHaveFourUniqueCzechChoices() {
+        val entry = vocabularyCatalog.single { it.word == "Tisch" }
+        listOf(VocabularyPresentation.WORD, VocabularyPresentation.SENTENCE).forEach { presentation ->
+            val question = makeVocabularyQuestion(entry, presentation, vocabularyCatalog, kotlin.random.Random(17))
+            assertEquals(4, question.choices.size)
+            assertEquals(4, question.choices.toSet().size)
+            assertTrue(question.correctIndex in question.choices.indices)
+            assertEquals(question.correctCzech, question.choices[question.correctIndex])
+        }
+    }
+
 }

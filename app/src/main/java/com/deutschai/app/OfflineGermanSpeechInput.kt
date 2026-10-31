@@ -3,7 +3,6 @@ package com.deutschai.app
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
@@ -49,18 +48,17 @@ internal fun OfflineGermanSpeechInput(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val onDeviceAvailable = remember(context) {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-            SpeechRecognizer.isOnDeviceRecognitionAvailable(context)
+    val recognitionAvailable = remember(context) {
+        SpeechRecognizer.isRecognitionAvailable(context)
     }
     val recognizerRef = remember { arrayOfNulls<SpeechRecognizer>(1) }
     var transcript by remember { mutableStateOf("") }
     var status by remember {
         mutableStateOf(
-            if (onDeviceAvailable) {
-                "Odpověď se rozpoznává přímo v telefonu; zvuk se neodesílá na server."
+            if (recognitionAvailable) {
+                "Používám systémové rozpoznávání řeči Androidu. Offline režim závisí na nainstalovaném německém jazykovém balíčku."
             } else {
-                "Tento telefon nemá dostupné lokální rozpoznávání němčiny. Můžeš dál procvičovat pomocí nabízených odpovědí."
+                "V telefonu není dostupná služba rozpoznávání řeči. Můžeš dál procvičovat pomocí nabízených odpovědí."
             }
         )
     }
@@ -82,12 +80,12 @@ internal fun OfflineGermanSpeechInput(
     }
 
     fun beginListening() {
-        if (!onDeviceAvailable) {
-            status = "Lokální rozpoznávání řeči není na tomto zařízení dostupné."
+        if (!recognitionAvailable) {
+            status = "Systémová služba rozpoznávání řeči není na tomto zařízení dostupná."
             return
         }
         val recognizer = runCatching {
-            SpeechRecognizer.createOnDeviceSpeechRecognizer(context.applicationContext)
+            SpeechRecognizer.createSpeechRecognizer(context.applicationContext)
         }.getOrNull()
         if (recognizer == null) {
             status = "Nepodařilo se spustit lokální rozpoznávání řeči."
@@ -181,15 +179,15 @@ internal fun OfflineGermanSpeechInput(
     ) {
         Button(
             onClick = {
-                if (!onDeviceAvailable) {
-                    status = "Lokální rozpoznávání řeči není na tomto zařízení dostupné; aplikace nepoužije online náhradu."
+                if (!recognitionAvailable) {
+                    status = "Systémová služba rozpoznávání řeči není dostupná. Zkontroluj Google Speech Services nebo službu rozpoznávání v nastavení Androidu."
                 } else if (!permissionGranted) {
                     permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                 } else {
                     startRequested = true
                 }
             },
-            enabled = onDeviceAvailable && !isListening,
+            enabled = recognitionAvailable && !isListening,
             modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = Forest),
             shape = RoundedCornerShape(12.dp)

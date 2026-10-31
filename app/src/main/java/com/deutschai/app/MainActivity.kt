@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LibraryBooks
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.VolumeUp
@@ -144,7 +145,7 @@ class MainActivity : ComponentActivity() {
         }
 
         val appearance = getSharedPreferences("beatrice_appearance", Context.MODE_PRIVATE)
-        applyBeatriceTheme(appearance.getBoolean("dark_mode", true))
+        applyBeatriceTheme(appearance.getBoolean("dark_mode", false))
 
         setContent {
             val appColors = if (IsDarkTheme) {
@@ -193,10 +194,17 @@ private fun BeatriceHome() {
 
     var showConversation by remember { mutableStateOf(false) }
     var showDailyTraining by remember { mutableStateOf(false) }
+    var showPlacementAssessment by remember { mutableStateOf(false) }
+    var showLearningOverview by remember { mutableStateOf(false) }
     var showWordTools by remember { mutableStateOf(false) }
+    var showNumberPractice by remember { mutableStateOf(false) }
     var showLearningHub by remember { mutableStateOf(false) }
     var showLessonLibrary by remember { mutableStateOf(false) }
+    var lessonLibraryOpenedFromHub by remember { mutableStateOf(false) }
+    var readingLibraryOpenedFromHub by remember { mutableStateOf(false) }
+    var dialogueOpenedFromHub by remember { mutableStateOf(false) }
     var showArticleCategories by remember { mutableStateOf(false) }
+    var showVocabularyPractice by remember { mutableStateOf(false) }
     var selectedArticleCategory by remember { mutableStateOf<ArticleCategory?>(null) }
     var showVerbCategories by remember { mutableStateOf(false) }
     var selectedVerbTopic by remember { mutableStateOf<VerbPracticeLesson?>(null) }
@@ -242,6 +250,8 @@ private fun BeatriceHome() {
             "dialogue" -> showConversation = true
             "daily-training" -> showDailyTraining = true
             "word-tools" -> showWordTools = true
+            "number-practice" -> showNumberPractice = true
+            "vocabulary-practice" -> showVocabularyPractice = true
             "article-quiz" -> {
                 val item = articleCategories.firstOrNull { it.id == lastActivityId }
                 if (item != null) selectedArticleCategory = item else showLearningHub = true
@@ -255,6 +265,12 @@ private fun BeatriceHome() {
         }
     }
 
+    fun refreshLearningMetrics() {
+        habitStats = StudyHabitStore.load(context)
+        pendingReviewCount = LearningReviewStore.pendingCount(context)
+        progressStats = LearningProgressStore.load(context)
+    }
+
     fun recordScore(score: Int, total: Int, activityKey: String) {
         if (total <= 0) return
         habitStats = StudyHabitStore.recordSession(context)
@@ -266,12 +282,43 @@ private fun BeatriceHome() {
         }
     }
 
+    if (showLearningOverview) {
+        LearningOverviewScreen(
+            onBack = { showLearningOverview = false; selectedTab = "Pokroky" },
+            onPlacementTest = { showLearningOverview = false; showPlacementAssessment = true }
+        )
+        return
+    }
+
+    if (showPlacementAssessment) {
+        PlacementAssessmentScreen(
+            onBack = { showPlacementAssessment = false; showLearningOverview = true },
+            onComplete = {
+                habitStats = StudyHabitStore.recordSession(context)
+                pendingReviewCount = LearningReviewStore.pendingCount(context)
+                progressStats = LearningProgressStore.load(context)
+            }
+        )
+        return
+    }
+
     if (showDailyTraining) {
         DailyTrainingScreen(
             onBack = { showDailyTraining = false },
             onComplete = { score, total ->
                 CourseResultStore.save(context, "daily_training", score, total)
                 recordScore(score, total, "daily_training")
+            }
+        )
+        return
+    }
+
+    if (showNumberPractice) {
+        NumberPracticeScreen(
+            onBack = { showNumberPractice = false; showLearningHub = true },
+            onComplete = { score, total, activityKey ->
+                CourseResultStore.save(context, activityKey, score, total)
+                recordScore(score, total, activityKey)
             }
         )
         return
@@ -289,7 +336,7 @@ private fun BeatriceHome() {
 
     if (showConversation) {
         GuidedDialogueScreen(
-            onBack = { showConversation = false },
+            onBack = { showConversation = false; showLearningHub = dialogueOpenedFromHub },
             // A completed dialogue counts as a study day, but not as a scored quiz session.
             onComplete = { habitStats = StudyHabitStore.recordSession(context) }
         )
@@ -299,18 +346,32 @@ private fun BeatriceHome() {
     if (selectedReadingArticle != null) {
         ReadingArticleScreen(
             article = selectedReadingArticle!!,
-            onBack = { selectedReadingArticle = null; showReadingLibrary = true }
+            onBack = {
+                selectedReadingArticle = null
+                showReadingLibrary = true
+                refreshLearningMetrics()
+            }
         )
         return
     }
 
     if (showReadingLibrary) {
         ReadingLibraryScreen(
-            onBack = { showReadingLibrary = false; showLearningHub = true },
+            onBack = { showReadingLibrary = false; showLearningHub = readingLibraryOpenedFromHub },
             onSelectArticle = { article ->
                 saveLastActivity("reading", article.id, article.title)
                 selectedReadingArticle = article
                 showReadingLibrary = false
+            }
+        )
+        return
+    }
+
+    if (showVocabularyPractice) {
+        VocabularyPracticeScreen(
+            onBack = { showVocabularyPractice = false; showArticleCategories = true },
+            onComplete = { score, total ->
+                recordScore(score, total, "vocabulary_learning")
             }
         )
         return
@@ -341,6 +402,11 @@ private fun BeatriceHome() {
     if (showArticleCategories) {
         ArticleCategoryLibraryScreen(
             onBack = { showArticleCategories = false; showLearningHub = true },
+            onVocabulary = {
+                saveLastActivity("vocabulary-practice", "vocabulary-practice", "Slovní zásoba")
+                showArticleCategories = false
+                showVocabularyPractice = true
+            },
             onSelectCategory = { category ->
                 saveLastActivity("article-quiz", category.id, category.title)
                 selectedArticleCategory = category
@@ -365,19 +431,25 @@ private fun BeatriceHome() {
     if (showLearningHub) {
         LearningHubScreen(
             onBack = { showLearningHub = false },
-            onCourses = { showLearningHub = false; showLessonLibrary = true },
+            onCourses = { lessonLibraryOpenedFromHub = true; showLearningHub = false; showLessonLibrary = true },
             onArticles = { showLearningHub = false; showArticleCategories = true },
             onVerbs = { showLearningHub = false; showVerbCategories = true },
             onDialogues = {
                 saveLastActivity("dialogue", "dialogue", "Řízené dialogy s Beatrice")
+                dialogueOpenedFromHub = true
                 showLearningHub = false
                 showConversation = true
             },
-            onReading = { showLearningHub = false; showReadingLibrary = true },
+            onReading = { readingLibraryOpenedFromHub = true; showLearningHub = false; showReadingLibrary = true },
             onWordTools = {
                 saveLastActivity("word-tools", "word-tools", "Slovní nástroje")
                 showLearningHub = false
                 showWordTools = true
+            },
+            onNumbers = {
+                saveLastActivity("number-practice", "number-practice", "Číslovky")
+                showLearningHub = false
+                showNumberPractice = true
             }
         )
         return
@@ -386,7 +458,11 @@ private fun BeatriceHome() {
     if (selectedPhraseReviewLevel != null) {
         PhraseReviewScreen(
             level = selectedPhraseReviewLevel!!,
-            onBack = { selectedPhraseReviewLevel = null; showLessonLibrary = true }
+            onBack = {
+                selectedPhraseReviewLevel = null
+                showLessonLibrary = true
+                refreshLearningMetrics()
+            }
         )
         return
     }
@@ -412,7 +488,7 @@ private fun BeatriceHome() {
 
     if (showLessonLibrary) {
         LessonLibraryScreen(
-            onBack = { showLessonLibrary = false; showLearningHub = true },
+            onBack = { showLessonLibrary = false; showLearningHub = lessonLibraryOpenedFromHub },
             onSelectLesson = { lesson ->
                 saveLastActivity("lesson", lesson.id, lesson.title)
                 selectedLesson = lesson
@@ -646,13 +722,13 @@ private fun BeatriceHome() {
                             icon = { Icon(Icons.Default.VolumeUp, contentDescription = null, tint = ForestText) },
                             title = "Poslech",
                             subtitle = "Poslech a porozumění A1–B2",
-                            onClick = { showLessonLibrary = true }
+                            onClick = { lessonLibraryOpenedFromHub = false; showLessonLibrary = true }
                         )
                         FeatureCard(
                             icon = { Icon(Icons.Default.MenuBook, contentDescription = null, tint = ForestText) },
                             title = "Čtení",
                             subtitle = "Příběhy a texty podle úrovně",
-                            onClick = { showReadingLibrary = true }
+                            onClick = { readingLibraryOpenedFromHub = false; showReadingLibrary = true }
                         )
                         FeatureCard(
                             icon = { Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = ForestText) },
@@ -660,6 +736,7 @@ private fun BeatriceHome() {
                             subtitle = "Konverzace s Beatrice",
                             onClick = {
                                 saveLastActivity("dialogue", "dialogue", "Řízené dialogy s Beatrice")
+                                dialogueOpenedFromHub = false
                                 showConversation = true
                             }
                         )
@@ -667,6 +744,19 @@ private fun BeatriceHome() {
 
                     "Pokroky" -> {
                         Text("Tvoje pokroky", color = Ink, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+
+                        FeatureCard(
+                            icon = { Icon(Icons.Default.BarChart, contentDescription = null, tint = ForestText) },
+                            title = "Přehled znalostí",
+                            subtitle = "Skutečná úspěšnost podle oblastí a dlouhodobé opakování",
+                            onClick = { showLearningOverview = true }
+                        )
+                        FeatureCard(
+                            icon = { Icon(Icons.Default.BarChart, contentDescription = null, tint = ForestText) },
+                            title = "Vstupní rozřazovací test",
+                            subtitle = "24 offline otázek · doporučení úrovně A1–B2",
+                            onClick = { showPlacementAssessment = true }
+                        )
 
                         Card(
                             onClick = {
@@ -1292,7 +1382,6 @@ private fun LessonScreen(
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.Bold
                             )
-                            Text(question.explanation, color = Ink, fontSize = 14.sp, lineHeight = 21.sp)
                             if (question.germanSentence.isNotBlank()) {
                                 Text("Celá věta:", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 Text(question.germanSentence, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, lineHeight = 23.sp)
@@ -1559,7 +1648,7 @@ private fun GuidedDialogueScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(18.dp),
-                        colors = CardDefaults.cardColors(containerColor = if (line.learner) Forest else Color.White)
+                        colors = CardDefaults.cardColors(containerColor = if (line.learner) Forest else CardSurface)
                     ) {
                         Column(
                             modifier = Modifier.padding(14.dp),
