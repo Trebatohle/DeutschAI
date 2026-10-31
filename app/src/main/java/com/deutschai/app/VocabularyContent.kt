@@ -183,7 +183,7 @@ der§Löwenzahn§pampeliška
 das§Gänseblümchen§sedmikráska
 das§Schneeglöckchen§sněženka
 die§Hyazinthe§hyacint
-die§Krokus§krokus
+der§Krokus§krokus
 der§Kaktus§kaktus
 die§Palme§palma
 der§Farn§kapradina
@@ -611,7 +611,7 @@ das§Backblech§plech na pečení
 die§Springform§dortová forma
 der§Kuchenheber§lopatka na dort
 die§Teigrolle§váleček na těsto
-der§Nudelholz§váleček na těsto
+das§Nudelholz§váleček na těsto
 die§Küchenreibe§kuchyňské struhadlo
 die§Zitronenpresse§lis na citron
 der§Entsafter§odšťavňovač
@@ -2191,3 +2191,25 @@ der§Versicherer§pojistitel
 der§Versicherungsnehmer§pojistník
 der§Versicherte§pojištěný
 die§Versicherte§pojištěná
+
+
+"""
+
+private val vocabularyRowsPart2 = """
+"""
+
+internal val vocabularyCatalog: List<VocabularyEntry> = run {
+    val existing = articleCategories.flatMap { category ->
+        category.words.map { word ->
+            VocabularyEntry(
+                id = stableReviewId("vocabulary", word.article, word.word.lowercase()),
+                article = word.article,
+                word = word.word,
+                czech = word.czech
+            )
+        }
+    }
+    (existing + parseVocabularyRows(vocabularyRowsPart1 + vocabularyRowsPart2))
+        .distinctBy { it.word.trim().lowercase() }
+        .take(2000)
+}
