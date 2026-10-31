@@ -36,11 +36,15 @@ internal fun buildReadingComprehensionQuestions(article: ReadingArticle): List<R
         .filter { it.id != article.id && it.level != article.level }
         .flatMap { sentences(it.body) }
 
-    val allDistractors = (sameLevelDistractors + otherLevelDistractors)
+    val targetSentenceKeys = sourceSentences.map { it.lowercase() }.toSet()
+    val safeSameLevelDistractors = sameLevelDistractors
         .filterNot { article.body.contains(it, ignoreCase = true) }
+        .filterNot { it.lowercase() in targetSentenceKeys }
         .distinctBy { it.lowercase() }
-        .shuffled()
-        .toMutableList()
+    val safeOtherLevelDistractors = otherLevelDistractors
+        .filterNot { article.body.contains(it, ignoreCase = true) }
+        .filterNot { it.lowercase() in targetSentenceKeys }
+        .distinctBy { it.lowercase() }
 
     val facets = listOf(
         "Informace z úvodu",
@@ -59,10 +63,11 @@ internal fun buildReadingComprehensionQuestions(article: ReadingArticle): List<R
     require(targets.size == 5) { "Reading article ${article.id} must produce five distinct facts." }
 
     return targets.mapIndexed { index, correctSentence ->
-        val distractors = allDistractors
-            .asSequence()
+        // Prefer distractors from the same CEFR level, and reshuffle them for each question.
+        val distractors = (
+            safeSameLevelDistractors.shuffled() + safeOtherLevelDistractors.shuffled()
+        ).asSequence()
             .filterNot { it.equals(correctSentence, ignoreCase = true) }
-            .filterNot { candidate -> candidate.lowercase() in targets.map { it.lowercase() } }
             .take(3)
             .toList()
         require(distractors.size == 3) {
