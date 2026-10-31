@@ -201,6 +201,7 @@ private fun BeatriceHome() {
     var readingLibraryOpenedFromHub by remember { mutableStateOf(false) }
     var dialogueOpenedFromHub by remember { mutableStateOf(false) }
     var showArticleCategories by remember { mutableStateOf(false) }
+    var showVocabularyPractice by remember { mutableStateOf(false) }
     var selectedArticleCategory by remember { mutableStateOf<ArticleCategory?>(null) }
     var showVerbCategories by remember { mutableStateOf(false) }
     var selectedVerbTopic by remember { mutableStateOf<VerbPracticeLesson?>(null) }
@@ -247,6 +248,7 @@ private fun BeatriceHome() {
             "daily-training" -> showDailyTraining = true
             "word-tools" -> showWordTools = true
             "number-practice" -> showNumberPractice = true
+            "vocabulary-practice" -> showVocabularyPractice = true
             "article-quiz" -> {
                 val item = articleCategories.firstOrNull { it.id == lastActivityId }
                 if (item != null) selectedArticleCategory = item else showLearningHub = true
@@ -332,6 +334,16 @@ private fun BeatriceHome() {
         return
     }
 
+    if (showVocabularyPractice) {
+        VocabularyPracticeScreen(
+            onBack = { showVocabularyPractice = false; showArticleCategories = true },
+            onComplete = { score, total ->
+                recordScore(score, total, "vocabulary_learning")
+            }
+        )
+        return
+    }
+
     if (selectedArticleCategory != null) {
         ArticleQuizScreen(
             category = selectedArticleCategory!!,
@@ -357,6 +369,11 @@ private fun BeatriceHome() {
     if (showArticleCategories) {
         ArticleCategoryLibraryScreen(
             onBack = { showArticleCategories = false; showLearningHub = true },
+            onVocabulary = {
+                saveLastActivity("vocabulary-practice", "vocabulary-practice", "Slovní zásoba")
+                showArticleCategories = false
+                showVocabularyPractice = true
+            },
             onSelectCategory = { category ->
                 saveLastActivity("article-quiz", category.id, category.title)
                 selectedArticleCategory = category
