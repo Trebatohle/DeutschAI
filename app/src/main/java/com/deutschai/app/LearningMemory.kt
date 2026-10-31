@@ -39,7 +39,7 @@ internal data class ReviewMemoryEntry(
 internal object LearningReviewStore {
     private const val PREFS = "deutschai_long_term_memory"
     private const val ITEMS = "items_v1"
-    private const val MAX_ITEMS = 300
+    private const val MAX_ITEMS = 1000
     private const val DAY_MILLIS = 24L * 60L * 60L * 1000L
 
     fun all(context: Context): List<ReviewMemoryEntry> =
