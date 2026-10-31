@@ -127,7 +127,9 @@ internal fun evaluatePlacementAssessment(
     nowMillis: Long = System.currentTimeMillis()
 ): PlacementAssessmentReport {
     require(questions.isNotEmpty())
-    require(questions.all { answers[it.id] in it.choices.indices }) {
+    require(questions.all { question ->
+        answers[question.id]?.let { answerIndex -> answerIndex in question.choices.indices } == true
+    }) {
         "Every placement question must have one selected answer."
     }
     val levels = listOf("A1", "A2", "B1", "B2")
