@@ -350,20 +350,38 @@ class ContentQualityTest {
     }
 
     @Test
-    fun everyMixedNumberQuestionHasFourUniqueAnswersAndACompleteSentence() {
+    fun everyMixedNumberQuestionHasExactlyThreeChoicesAndOneOfEachNumberKind() {
+        val requiredKinds = setOf("basic", "ordinal", "multiplicative")
         buildMixedNumberDrillQuestions().forEach { question ->
-            assertEquals("Question ${question.id} should have four options", 4, question.choices.size)
+            assertEquals("Question ${question.id} should have exactly three options", 3, question.choices.size)
             assertEquals(
                 "Question ${question.id} has duplicate answer options",
-                4,
+                3,
                 question.choices.map { it.lowercase() }.toSet().size
             )
+            assertEquals(
+                "Question ${question.id} must identify the kind of every answer",
+                3,
+                question.choiceKinds.size
+            )
+            assertEquals(
+                "Question ${question.id} must offer one basic, one ordinal and one multiplicative numeral",
+                requiredKinds,
+                question.choiceKinds.toSet()
+            )
+            assertEquals(
+                "Only the option matching the question's target kind may be correct",
+                1,
+                question.choiceKinds.count { it == question.kind }
+            )
             assertTrue(question.correctIndex in question.choices.indices)
+            assertEquals(question.kind, question.choiceKinds[question.correctIndex])
             assertTrue(question.fullGerman.isNotBlank())
             assertFalse(question.fullGerman.contains("___"))
             assertTrue(question.fullGerman.contains(question.choices[question.correctIndex]))
             assertTrue(question.fullCzech.isNotBlank())
             assertTrue(question.explanation.contains(question.choices[question.correctIndex]))
+            assertTrue(question.prompt.contains("jedna základní, jedna řadová a jedna násobná"))
         }
     }
 
