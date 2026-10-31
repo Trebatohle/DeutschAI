@@ -215,6 +215,8 @@ private fun BeatriceHome() {
     var dialogueOpenedFromHub by remember { mutableStateOf(false) }
     var showArticleCategories by remember { mutableStateOf(false) }
     var showVocabularyPractice by remember { mutableStateOf(false) }
+    var showVocabularyNotebook by remember { mutableStateOf(false) }
+    var showSavedVocabularyPractice by remember { mutableStateOf(false) }
     var selectedArticleCategory by remember { mutableStateOf<ArticleCategory?>(null) }
     var showVerbCategories by remember { mutableStateOf(false) }
     var selectedVerbTopic by remember { mutableStateOf<VerbPracticeLesson?>(null) }
@@ -401,6 +403,31 @@ private fun BeatriceHome() {
                 saveLastActivity("reading", article.id, article.title)
                 selectedReadingArticle = article
                 showReadingLibrary = false
+            }
+        )
+        return
+    }
+
+    if (showSavedVocabularyPractice) {
+        VocabularyPracticeScreen(
+            onBack = {
+                showSavedVocabularyPractice = false
+                showVocabularyNotebook = true
+            },
+            onComplete = { score, total ->
+                recordScore(score, total, "saved_vocabulary")
+            },
+            entryPool = VocabularyNotebookStore.entries(context)
+        )
+        return
+    }
+
+    if (showVocabularyNotebook) {
+        VocabularyNotebookScreen(
+            onBack = { showVocabularyNotebook = false },
+            onPractice = {
+                showVocabularyNotebook = false
+                showSavedVocabularyPractice = true
             }
         )
         return
@@ -746,6 +773,12 @@ private fun BeatriceHome() {
                         }
 
                         Text("Procvičuj", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                        FeatureCard(
+                            icon = { Icon(Icons.Default.LibraryBooks, contentDescription = null, tint = ForestText) },
+                            title = "Můj slovníček",
+                            subtitle = "${VocabularyNotebookStore.count(context)} uložených slov · vlastní procvičování",
+                            onClick = { showVocabularyNotebook = true }
+                        )
                         FeatureCard(
                             icon = { Icon(Icons.Default.MenuBook, contentDescription = null, tint = ForestText) },
                             title = "Kurzy",
