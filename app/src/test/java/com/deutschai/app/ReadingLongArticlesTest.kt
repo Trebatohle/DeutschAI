@@ -33,11 +33,11 @@ class ReadingLongArticlesTest {
 
         (newA1 + newA2).forEach { article ->
             assertTrue("${article.id} must contain more than 1,000 words (found ${article.wordCount})", article.wordCount > 1000)
-            assertTrue("${article.id} must contain multiple paragraphs", article.body.split("\\n\\n").size >= 10)
+            assertTrue("${article.id} must contain multiple paragraphs", article.body.split("\n\n").size >= 10)
             assertEquals(
                 "${article.id} must not repeat entire paragraphs",
-                article.body.split("\\n\\n").size,
-                article.body.split("\\n\\n").toSet().size
+                article.body.split("\n\n").size,
+                article.body.split("\n\n").toSet().size
             )
         }
         newA1.forEach { assertEquals("A1", it.level) }
