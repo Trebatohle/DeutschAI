@@ -617,8 +617,7 @@ internal val branchingGuidedDialogueTopics = listOf(
             )
         )
     )
-)
-
+) + additionalBranchingDialogueTopics
 internal data class BranchingDialogueReview(
     val question: ReviewQuestion,
     val wasCorrect: Boolean
