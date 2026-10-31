@@ -43,11 +43,11 @@ internal data class NumberPracticeQuestion(
     val kind: String,
     val prompt: String,
     val choices: List<String>,
-    val choiceKinds: List<String> = emptyList(),
     val correctIndex: Int,
     val fullGerman: String,
     val fullCzech: String,
-    val explanation: String
+    val explanation: String,
+    val choiceKinds: List<String> = emptyList()
 )
 
 private data class DrillSeed(
