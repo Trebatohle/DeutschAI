@@ -47,6 +47,10 @@ class LearningAssessmentTest {
             assertTrue(question.correctIndex in question.choices.indices)
             assertTrue(question.prompt.isNotBlank())
             assertTrue(question.skill.isNotBlank())
+            if (question.skill == "Čtení s porozuměním") {
+                assertTrue(question.passage.isNotBlank())
+                assertTrue(question.passage.contains(question.choices[question.correctIndex], ignoreCase = true))
+            }
         }
     }
 
