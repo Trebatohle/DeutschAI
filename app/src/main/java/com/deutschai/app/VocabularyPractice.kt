@@ -188,12 +188,15 @@ internal fun buildVocabularyBatch(
 @Composable
 internal fun VocabularyPracticeScreen(
     onBack: () -> Unit,
-    onComplete: (score: Int, total: Int) -> Unit
+    onComplete: (score: Int, total: Int) -> Unit,
+    entryPool: List<VocabularyEntry>? = null
 ) {
     val context = LocalContext.current
     val speaker = rememberGermanSpeechPlayer()
-    var questions by remember {
-        mutableStateOf(buildVocabularyBatch(VocabularyPreferenceStore.available(context)))
+    val notebookMode = entryPool != null
+    val initialEntries = entryPool ?: VocabularyPreferenceStore.available(context)
+    var questions by remember(entryPool?.map { it.id }) {
+        mutableStateOf(buildVocabularyBatch(initialEntries))
     }
     var questionIndex by remember { mutableStateOf(0) }
     var selectedAnswer by remember { mutableStateOf<Int?>(null) }
@@ -203,9 +206,18 @@ internal fun VocabularyPracticeScreen(
     var currentPreference by remember(currentQuestion?.entry?.id) {
         mutableStateOf(currentQuestion?.let { VocabularyPreferenceStore.get(context, it.entry.id) })
     }
+    var savedInNotebook by remember(currentQuestion?.entry?.id) {
+        mutableStateOf(currentQuestion?.let { VocabularyNotebookStore.isSaved(context, it.entry.id) } ?: false)
+    }
+
+    fun toggleNotebookSave() {
+        val entry = currentQuestion?.entry ?: return
+        savedInNotebook = VocabularyNotebookStore.toggle(context, entry.id)
+    }
 
     fun startNextBatch() {
-        questions = buildVocabularyBatch(VocabularyPreferenceStore.available(context))
+        val entries = entryPool ?: VocabularyPreferenceStore.available(context)
+        questions = buildVocabularyBatch(entries)
         questionIndex = 0
         selectedAnswer = null
         score = 0
@@ -242,7 +254,11 @@ internal fun VocabularyPracticeScreen(
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text("DEUTSCHAI", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
-                    Text("Slovní zásoba · 2 000 výrazů", color = Muted, fontSize = 13.sp)
+                    Text(
+                        if (notebookMode) "Můj slovníček · ${entryPool?.size ?: 0} slov"
+                        else "Slovní zásoba · ${vocabularyCatalog.size} výrazů",
+                        color = Muted, fontSize = 13.sp
+                    )
                 }
             }
 
@@ -256,22 +272,34 @@ internal fun VocabularyPracticeScreen(
                         modifier = Modifier.padding(20.dp),
                         verticalArrangement = Arrangement.spacedBy(9.dp)
                     ) {
-                        Text("V učebním balíčku teď nejsou žádné položky.", color = Ink, fontSize = 19.sp, fontWeight = FontWeight.Bold)
                         Text(
-                            "Všechna slovíčka byla označena jako „Nechci se učit“. Můžeš je znovu vrátit do nabídky.",
+                            if (notebookMode) "Ve slovníčku zatím nemáš uložená žádná slova."
+                            else "V učebním balíčku teď nejsou žádné položky.",
+                            color = Ink, fontSize = 19.sp, fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            if (notebookMode) "V běžném procvičování si u vybraného výrazu klepni na „Uložit do mého slovníčku“."
+                            else "Všechna slovíčka byla označena jako „Nechci se učit“. Můžeš je znovu vrátit do nabídky.",
                             color = Muted, fontSize = 14.sp, lineHeight = 21.sp
                         )
                     }
                 }
                 Button(
                     onClick = {
-                        VocabularyPreferenceStore.resetSkipped(context)
-                        startNextBatch()
+                        if (notebookMode) onBack() else {
+                            VocabularyPreferenceStore.resetSkipped(context)
+                            startNextBatch()
+                        }
                     },
                     modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
                     shape = RoundedCornerShape(14.dp)
-                ) { Text("Vrátit vyřazená slovíčka", fontWeight = FontWeight.Bold) }
+                ) {
+                    Text(
+                        if (notebookMode) "Zpět do slovníčku" else "Vrátit vyřazená slovíčka",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             } else if (finished) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -287,7 +315,8 @@ internal fun VocabularyPracticeScreen(
                         Text("Sada dokončena", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                         Text("${score} z ${questions.size} správně", color = Gold, fontSize = 29.sp, fontWeight = FontWeight.Bold)
                         Text(
-                            "V učebním balíčku je ${VocabularyPreferenceStore.available(context).size} položek. " +
+                            if (notebookMode) "Procvičil/a jsi ${questions.size} výrazů ze svého osobního výběru."
+                            else "V učebním balíčku je ${VocabularyPreferenceStore.available(context).size} položek. " +
                                 "Chceš se učit: ${VocabularyPreferenceStore.learnedCount(context)} · " +
                                 "Nechceš se učit: ${VocabularyPreferenceStore.skippedCount(context)}.",
                             color = Color(0xFFE0EAE5), fontSize = 13.sp, lineHeight = 20.sp
@@ -305,7 +334,12 @@ internal fun VocabularyPracticeScreen(
                     modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
                     shape = RoundedCornerShape(14.dp)
-                ) { Text("Zpět k členům a podstatným jménům", fontWeight = FontWeight.Bold) }
+                ) {
+                    Text(
+                        if (notebookMode) "Zpět do mého slovníčku" else "Zpět k členům a podstatným jménům",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             } else if (currentQuestion != null) {
                 Text(
                     "OTÁZKA ${questionIndex + 1} Z ${questions.size}",
@@ -339,6 +373,21 @@ internal fun VocabularyPracticeScreen(
                         )
                         GermanAudioControls(player = speaker, text = currentQuestion.germanText)
                     }
+                }
+                Button(
+                    onClick = { toggleNotebookSave() },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (savedInNotebook) Mint else OptionSurface,
+                        contentColor = if (savedInNotebook) ForestText else Ink
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        if (savedInNotebook) "Uloženo v mém slovníčku" else "Uložit do mého slovníčku",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp
+                    )
                 }
                 currentQuestion.choices.forEachIndexed { index, choice ->
                     val background = when {
@@ -452,7 +501,12 @@ internal fun VocabularyPracticeScreen(
                                 selectedAnswer = null
                             } else {
                                 finished = true
-                                CourseResultStore.save(context, "vocabulary_learning", score, questions.size)
+                                CourseResultStore.save(
+                                    context,
+                                    if (notebookMode) "saved_vocabulary" else "vocabulary_learning",
+                                    score,
+                                    questions.size
+                                )
                                 onComplete(score, questions.size)
                             }
                         },
