@@ -139,7 +139,7 @@ internal fun evaluatePlacementAssessment(
     }) {
         "Every placement question must have one selected answer."
     }
-    val levels = listOf("A1", "A2", "B1", "B2")
+    val levels = listOf("A1", "A2", "B1", "B2", "C1", "C2")
     val levelResults = levels.associateWith { level ->
         val rows = questions.filter { it.level == level }
         PlacementSkillResult(rows.count { answers[it.id] == it.correctIndex }, rows.size)
