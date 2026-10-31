@@ -354,7 +354,23 @@ internal fun PlacementAssessmentScreen(
                             if (selected == null) {
                                 selected = choiceIndex
                                 answers = answers + (current.id to choiceIndex)
-                                if (choiceIndex == current.correctIndex) score += 1
+                                val correct = choiceIndex == current.correctIndex
+                                LearningReviewStore.recordAnswer(
+                                    context = context,
+                                    question = ReviewQuestion(
+                                        id = current.id,
+                                        sourceKind = if (current.skill == "Čtení s porozuměním") "reading" else "sentences",
+                                        sourceTitle = "Rozřazovací test ${current.level}",
+                                        prompt = current.prompt,
+                                        choices = current.choices,
+                                        correctIndex = current.correctIndex,
+                                        explanation = current.explanation,
+                                        germanSentence = current.germanSentence,
+                                        translation = current.translation
+                                    ),
+                                    wasCorrect = correct
+                                )
+                                if (correct) score += 1
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
