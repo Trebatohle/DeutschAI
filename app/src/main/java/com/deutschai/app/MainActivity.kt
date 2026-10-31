@@ -350,7 +350,7 @@ private fun BeatriceHome() {
 
     if (showNumberPractice) {
         NumberPracticeScreen(
-            onBack = { showNumberPractice = false; showLearningHub = true },
+            onBack = { showNumberPractice = false; showWordTools = true },
             onComplete = { score, total, activityKey ->
                 CourseResultStore.save(context, activityKey, score, total)
                 recordScore(score, total, activityKey)
@@ -362,6 +362,10 @@ private fun BeatriceHome() {
     if (showWordTools) {
         WordToolsScreen(
             onBack = { showWordTools = false; showLearningHub = true },
+            onNumbers = {
+                saveLastActivity("number-practice", "number-practice", "Číslovky")
+                showNumberPractice = true
+            },
             onComplete = { score, total, activityKey ->
                 recordScore(score, total, activityKey)
             }
@@ -477,14 +481,9 @@ private fun BeatriceHome() {
             },
             onReading = { readingLibraryOpenedFromHub = true; showLearningHub = false; showReadingLibrary = true },
             onWordTools = {
-                saveLastActivity("word-tools", "word-tools", "Slovní nástroje")
+                saveLastActivity("word-tools", "word-tools", "Slovní druhy a gramatika")
                 showLearningHub = false
                 showWordTools = true
-            },
-            onNumbers = {
-                saveLastActivity("number-practice", "number-practice", "Číslovky")
-                showLearningHub = false
-                showNumberPractice = true
             }
         )
         return
@@ -1480,7 +1479,6 @@ private fun GuidedDialogueScreen(
     var completionRecorded by remember { mutableStateOf(false) }
     var lines by remember { mutableStateOf(emptyList<GuidedDialogueLine>()) }
     var isTransitioning by remember { mutableStateOf(false) }
-    var spokenAttempt by remember { mutableStateOf("") }
 
     fun startTopic(topic: GuidedDialogueTopic) {
         isTransitioning = false
@@ -1489,7 +1487,6 @@ private fun GuidedDialogueScreen(
         completed = false
         completionRecorded = false
         lines = emptyList()
-        spokenAttempt = ""
     }
 
     fun resetToTopics() {
@@ -1499,7 +1496,6 @@ private fun GuidedDialogueScreen(
         completed = false
         completionRecorded = false
         lines = emptyList()
-        spokenAttempt = ""
     }
 
     fun chooseOption(option: GuidedDialogueOption) {
@@ -1509,7 +1505,6 @@ private fun GuidedDialogueScreen(
         lines = lines +
             GuidedDialogueLine(option.german, option.czech, learner = true) +
             GuidedDialogueLine(option.replyGerman, option.replyCzech, learner = false)
-        spokenAttempt = ""
         isTransitioning = true
     }
 
@@ -1526,8 +1521,7 @@ private fun GuidedDialogueScreen(
                     }
                 } else {
                     turnIndex += 1
-                    spokenAttempt = ""
-                }
+                            }
             }
             isTransitioning = false
         }
@@ -1571,7 +1565,7 @@ private fun GuidedDialogueScreen(
             if (selectedTopic == null) {
                 Text("Vyber si situaci", color = Ink, fontSize = 27.sp, fontWeight = FontWeight.Bold)
                 Text(
-                    "V každém kroku uvidíš tři přirozené odpovědi. Německá věta i český překlad jsou vidět současně. Vybranou větu si přečti nahlas.",
+                    "V každém kroku uvidíš tři přirozené odpovědi. Německá věta i český překlad jsou vidět současně.",
                     color = Muted,
                     fontSize = 14.sp,
                     lineHeight = 21.sp
@@ -1768,14 +1762,9 @@ private fun GuidedDialogueScreen(
                             lineHeight = 21.sp
                         )
                     } else {
-                        Text("Vyber odpověď a přečti ji nahlas", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                        Text("Vyber jednu z nabízených odpovědí", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                     }
                     if (!isTransitioning) {
-                    Text("Zkus nejdřív odpovědět vlastními slovy:", color = Ink, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                    OfflineGermanSpeechInput(onRecognized = { spokenAttempt = it })
-                    if (spokenAttempt.isNotBlank()) {
-                        Text("Dobrá práce s mluvením. Teď porovnej svou větu s možnostmi níže a vyber nejbližší odpověď.", color = ForestText, fontSize = 13.sp, lineHeight = 19.sp)
-                    }
                     turn.options.forEachIndexed { index, option ->
                         Card(
                             onClick = { chooseOption(option) },
