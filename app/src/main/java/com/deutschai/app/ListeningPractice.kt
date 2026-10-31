@@ -219,7 +219,28 @@ internal fun ListeningPracticeScreen(level: String, onBack: () -> Unit) {
                             if (heard && selectedAnswer == null) {
                                 selectedAnswer = index
                                 completedCount += 1
-                                if (index == question.correctIndex) {
+                                val correct = index == question.correctIndex
+                                LearningReviewStore.recordAnswer(
+                                    context = context,
+                                    question = ReviewQuestion(
+                                        id = stableReviewId(
+                                            "listening",
+                                            level,
+                                            question.source.courseId,
+                                            question.source.itemIndex.toString()
+                                        ),
+                                        sourceKind = "listening",
+                                        sourceTitle = question.source.courseTitle,
+                                        prompt = "Co znamená věta, kterou uslyšíš?",
+                                        choices = question.choices,
+                                        correctIndex = question.correctIndex,
+                                        explanation = "Správný význam: ${question.source.item.czech}",
+                                        germanSentence = question.source.item.german,
+                                        translation = question.source.item.czech
+                                    ),
+                                    wasCorrect = correct
+                                )
+                                if (correct) {
                                     score += 1
                                 } else {
                                     markPhraseNeedsReview(
