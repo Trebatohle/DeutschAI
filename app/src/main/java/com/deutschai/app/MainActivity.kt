@@ -737,7 +737,7 @@ private fun BeatriceHome() {
                             onClick = { showLearningOverview = true }
                         )
                         FeatureCard(
-                            icon = { Icon(Icons.Default.Assessment, contentDescription = null, tint = ForestText) },
+                            icon = { Icon(Icons.Default.BarChart, contentDescription = null, tint = ForestText) },
                             title = "Vstupní rozřazovací test",
                             subtitle = "24 offline otázek · doporučení úrovně A1–B2",
                             onClick = { showPlacementAssessment = true }
