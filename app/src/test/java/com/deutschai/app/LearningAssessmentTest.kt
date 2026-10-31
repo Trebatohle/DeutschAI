@@ -19,6 +19,11 @@ class LearningAssessmentTest {
                     "The correct statement for ${article.id} must occur in the source story",
                     article.body.contains(question.choices[question.correctIndex], ignoreCase = true)
                 )
+                assertTrue("${article.id} question must provide a reading context", question.passage.isNotBlank())
+                assertTrue(
+                    "${article.id} question's passage must contain the correct statement",
+                    question.passage.contains(question.choices[question.correctIndex], ignoreCase = true)
+                )
                 question.choices.filterIndexed { index, _ -> index != question.correctIndex }.forEach { distractor ->
                     assertTrue(
                         "A distractor for ${article.id} must not occur in the source story",
