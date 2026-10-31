@@ -618,3 +618,43 @@ internal val branchingGuidedDialogueTopics = listOf(
         )
     )
 )
+
+internal data class BranchingDialogueReview(
+    val question: ReviewQuestion,
+    val wasCorrect: Boolean
+)
+
+internal fun buildBranchingDialogueReview(
+    topic: BranchingDialogueTopic,
+    node: BranchingDialogueNode,
+    selectedOptionIndex: Int
+): BranchingDialogueReview {
+    require(selectedOptionIndex in node.options.indices) { "Selected dialogue option is outside the node." }
+    val selected = node.options[selectedOptionIndex]
+    val recommendedIndex = node.options.indexOfFirst {
+        it.quality == DialogueAnswerQuality.RECOMMENDED
+    }
+    require(recommendedIndex >= 0) { "Every branching dialogue node needs a recommended answer." }
+    val recommended = node.options[recommendedIndex]
+    val wasCorrect = selected.quality != DialogueAnswerQuality.NEEDS_WORK
+    val correctIndex = if (wasCorrect) selectedOptionIndex else recommendedIndex
+    val explanation = if (wasCorrect) {
+        selected.feedback
+    } else {
+        "${selected.feedback} Lepší formulace: ${recommended.german} — ${recommended.czech}"
+    }
+    return BranchingDialogueReview(
+        question = ReviewQuestion(
+            id = stableReviewId("dialogue", topic.id, node.id),
+            sourceKind = "phrases",
+            sourceTitle = "Beatrice · ${topic.title}",
+            prompt = "${node.promptGerman}\n${node.promptCzech}",
+            choices = node.options.map { it.german },
+            correctIndex = correctIndex,
+            explanation = explanation,
+            germanSentence = if (wasCorrect) selected.german else recommended.german,
+            translation = if (wasCorrect) selected.czech else recommended.czech
+        ),
+        wasCorrect = wasCorrect
+    )
+}
