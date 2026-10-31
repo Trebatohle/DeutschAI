@@ -16,12 +16,13 @@ internal data class ReadingComprehensionQuestion(
  */
 internal fun buildReadingComprehensionQuestions(article: ReadingArticle): List<ReadingComprehensionQuestion> {
     fun sentences(text: String): List<String> = text
-        .replace("\\n", " ")
+        .replace("\n", " ")
         .split(Regex("(?<=[.!?])\\s+"))
         .map { it.trim().replace(Regex("\\s+"), " ") }
         .filter { sentence ->
             val words = sentence.split(Regex("\\s+")).filter { it.isNotBlank() }
-            words.size in 7..28 && sentence.lastOrNull() in listOf('.', '!', '?')
+            words.size in 7..28 &&
+                (sentence.endsWith(".") || sentence.endsWith("!") || sentence.endsWith("?"))
         }
         .distinctBy { it.lowercase() }
 
