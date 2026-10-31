@@ -430,6 +430,13 @@ class ContentQualityTest {
     }
 
     @Test
+    fun racletteGrillHasCorrectGermanArticleAndCzechMeaning() {
+        val raclette = vocabularyCatalog.single { it.word == "Raclette-Grill" }
+        assertEquals("der", raclette.article)
+        assertEquals("stolní gril na raclette", raclette.czech)
+    }
+
+    @Test
     fun vocabularyNounsGenerateGermanAndCzechExampleSentences() {
         vocabularyCatalog.forEach { entry ->
             val german = vocabularySentenceGerman(entry)
