@@ -190,6 +190,18 @@ internal fun lookupReadingWordTranslation(article: ReadingArticle, rawWord: Stri
     return null
 }
 
+internal fun readingExampleSentence(article: ReadingArticle, rawWord: String): String {
+    val word = rawWord.trim()
+    if (word.isBlank()) return article.title
+    val sentences = article.body
+        .split(Regex("(?<=[.!?])\\s+|\\n+"))
+        .map { it.trim() }
+        .filter { it.isNotBlank() }
+    return sentences.firstOrNull { it.contains(word, ignoreCase = true) }
+        ?: sentences.firstOrNull()
+        ?: word
+}
+
 internal fun translateReadingWord(article: ReadingArticle, rawWord: String): String =
     lookupReadingWordTranslation(article, rawWord)
         ?: "Překlad se připravuje z offline německo-českého slovníku."
