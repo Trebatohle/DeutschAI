@@ -194,6 +194,7 @@ private fun BeatriceHome() {
     var showConversation by remember { mutableStateOf(false) }
     var showDailyTraining by remember { mutableStateOf(false) }
     var showWordTools by remember { mutableStateOf(false) }
+    var showNumberPractice by remember { mutableStateOf(false) }
     var showLearningHub by remember { mutableStateOf(false) }
     var showLessonLibrary by remember { mutableStateOf(false) }
     var lessonLibraryOpenedFromHub by remember { mutableStateOf(false) }
@@ -245,6 +246,7 @@ private fun BeatriceHome() {
             "dialogue" -> showConversation = true
             "daily-training" -> showDailyTraining = true
             "word-tools" -> showWordTools = true
+            "number-practice" -> showNumberPractice = true
             "article-quiz" -> {
                 val item = articleCategories.firstOrNull { it.id == lastActivityId }
                 if (item != null) selectedArticleCategory = item else showLearningHub = true
@@ -275,6 +277,17 @@ private fun BeatriceHome() {
             onComplete = { score, total ->
                 CourseResultStore.save(context, "daily_training", score, total)
                 recordScore(score, total, "daily_training")
+            }
+        )
+        return
+    }
+
+    if (showNumberPractice) {
+        NumberPracticeScreen(
+            onBack = { showNumberPractice = false; showLearningHub = true },
+            onComplete = { score, total, activityKey ->
+                CourseResultStore.save(context, activityKey, score, total)
+                recordScore(score, total, activityKey)
             }
         )
         return
@@ -382,6 +395,11 @@ private fun BeatriceHome() {
                 saveLastActivity("word-tools", "word-tools", "Slovní nástroje")
                 showLearningHub = false
                 showWordTools = true
+            },
+            onNumbers = {
+                saveLastActivity("number-practice", "number-practice", "Číslovky")
+                showLearningHub = false
+                showNumberPractice = true
             }
         )
         return
