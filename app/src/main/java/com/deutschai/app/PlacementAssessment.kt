@@ -48,7 +48,8 @@ internal data class PlacementAssessmentQuestion(
     val correctIndex: Int,
     val explanation: String,
     val germanSentence: String = "",
-    val translation: String = ""
+    val translation: String = "",
+    val passage: String = ""
 )
 
 internal data class PlacementSkillResult(val correct: Int, val total: Int) {
@@ -118,7 +119,8 @@ internal fun buildPlacementAssessmentQuestions(
                 prompt = question.prompt,
                 choices = question.choices,
                 correctIndex = question.correctIndex,
-                explanation = question.explanation
+                explanation = question.explanation,
+                passage = question.passage
             )
         }
     }
@@ -339,6 +341,22 @@ internal fun PlacementAssessmentScreen(
                 Text("Otázka ${index + 1} z ${questions.size}", color = Ink, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                 LinearProgressIndicator(progress = { (index + 1).toFloat() / questions.size }, modifier = Modifier.fillMaxWidth())
                 Text(current.level + " · " + current.skill, color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                if (current.passage.isNotBlank()) {
+                    Text("Přečti si krátký text", color = Ink, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(containerColor = CardSurface)
+                    ) {
+                        Text(
+                            current.passage,
+                            modifier = Modifier.padding(17.dp),
+                            color = Ink,
+                            fontSize = 14.sp,
+                            lineHeight = 22.sp
+                        )
+                    }
+                }
                 Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = CardSurface)) {
                     Text(current.prompt, modifier = Modifier.padding(20.dp), color = Ink, fontSize = 19.sp, lineHeight = 27.sp, fontWeight = FontWeight.SemiBold)
                 }
