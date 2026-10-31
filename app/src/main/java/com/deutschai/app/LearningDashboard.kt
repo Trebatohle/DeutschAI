@@ -97,7 +97,7 @@ internal fun LearningOverviewScreen(
                             androidx.compose.material3.Icon(Icons.Default.BarChart, contentDescription = null, tint = ForestText)
                             Text("Zatím neznáme tvoji výchozí úroveň", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         }
-                        Text("Krátký offline test A1–B2 ověří praktické věty a čtení s porozuměním a doporučí vhodnou úroveň.", color = ForestText, fontSize = 13.sp, lineHeight = 19.sp)
+                        Text("24 krátkých offline otázek ověří úroveň A1–C2 a doporučí vhodný začátek.", color = ForestText, fontSize = 13.sp, lineHeight = 19.sp)
                         Button(
                             onClick = onPlacementTest,
                             modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
