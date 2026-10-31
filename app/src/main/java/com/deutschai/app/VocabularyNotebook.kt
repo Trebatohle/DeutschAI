@@ -86,6 +86,7 @@ internal fun VocabularyNotebookScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
     val speaker = rememberGermanSpeechPlayer()
     var savedEntries by remember { mutableStateOf(VocabularyNotebookStore.entries(context)) }
+    var readingEntries by remember { mutableStateOf(ReadingWordNotebookStore.entries(context)) }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
@@ -115,11 +116,12 @@ internal fun VocabularyNotebookScreen(
 
             Text("Moje uložená slova", color = Ink, fontSize = 25.sp, fontWeight = FontWeight.Bold)
             Text(
-                "Výrazy, které si ukládáš během procvičování. Slovníček zůstává uložený přímo v telefonu a funguje offline.",
+                "Výrazy z procvičování i německých příběhů. Slovníček se ukládá přímo v telefonu a funguje offline.",
                 color = Muted, fontSize = 14.sp, lineHeight = 21.sp
             )
 
-            if (savedEntries.isEmpty()) {
+            val totalSaved = savedEntries.size + readingEntries.size
+            if (totalSaved == 0) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(18.dp),
@@ -131,7 +133,7 @@ internal fun VocabularyNotebookScreen(
                     ) {
                         Text("Zatím tu nemáš žádná slova.", color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                         Text(
-                            "Otevři procvičování 2 000 slov a u zajímavého výrazu klepni na „Uložit do mého slovníčku“.",
+                            "Ulož si slovo při procvičování nebo podržením prstu na výrazu v některém německém příběhu.",
                             color = Muted, fontSize = 13.sp, lineHeight = 19.sp
                         )
                     }
@@ -142,14 +144,17 @@ internal fun VocabularyNotebookScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("${savedEntries.size} uložených slov", color = ForestText, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text("$totalSaved uložených slov", color = ForestText, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     Button(
                         onClick = onPractice,
                         colors = ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
                         shape = RoundedCornerShape(12.dp)
                     ) { Text("Procvičit", fontWeight = FontWeight.Bold) }
                 }
+            }
 
+            if (savedEntries.isNotEmpty()) {
+                Text("Ze slovní zásoby", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                 savedEntries.forEach { entry ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -181,6 +186,44 @@ internal fun VocabularyNotebookScreen(
                             Text(vocabularySentenceGerman(entry), color = Ink, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                             GermanAudioControls(player = speaker, text = vocabularySentenceGerman(entry))
                             Text(vocabularySentenceCzech(entry), color = Muted, fontSize = 13.sp)
+                        }
+                    }
+                }
+            }
+
+            if (readingEntries.isNotEmpty()) {
+                Text("Z německého čtení", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                readingEntries.forEach { entry ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(17.dp),
+                        colors = CardDefaults.cardColors(containerColor = CardSurface)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(15.dp),
+                            verticalArrangement = Arrangement.spacedBy(7.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                    Text(entry.word, color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                    Text(entry.meaning, color = Muted, fontSize = 14.sp)
+                                }
+                                Button(
+                                    onClick = {
+                                        ReadingWordNotebookStore.remove(context, entry.id)
+                                        readingEntries = ReadingWordNotebookStore.entries(context)
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = OptionSurface, contentColor = Ink),
+                                    shape = RoundedCornerShape(10.dp)
+                                ) { Text("Odebrat", fontSize = 12.sp) }
+                            }
+                            Text(entry.exampleGerman, color = Ink, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                            GermanAudioControls(player = speaker, text = entry.exampleGerman)
+                            Text("Zdroj: ${entry.sourceTitle} · ${entry.sourceLevel}", color = Muted, fontSize = 12.sp)
                         }
                     }
                 }
