@@ -67,41 +67,48 @@ internal data class PlacementAssessmentReport(
 internal fun buildPlacementAssessmentQuestions(
     random: Random = Random.Default
 ): List<PlacementAssessmentQuestion> {
-    val levels = listOf("A1", "A2", "B1", "B2")
+    val levels = listOf("A1", "A2", "B1", "B2", "C1", "C2")
     val result = mutableListOf<PlacementAssessmentQuestion>()
 
     levels.forEach { level ->
         val courses = sentenceCourseCatalog.filter { it.level == level }
-        require(courses.isNotEmpty()) { "No sentence courses are available for $level." }
-        val sentenceQuestions = courses.flatMap { course ->
-            course.items.mapIndexed { index, item ->
-                val options = listOf(
-                    item,
-                    course.items[(index + 5) % course.items.size],
-                    course.items[(index + 11) % course.items.size],
-                    course.items[(index + 17) % course.items.size]
-                ).distinctBy { it.german }.shuffled(random)
-                PlacementAssessmentQuestion(
-                    id = stableReviewId("placement", "sentences", level, course.id, index.toString()),
-                    level = level,
-                    skill = "Věty a gramatika",
-                    prompt = item.prompt,
-                    choices = options.map { it.german },
-                    correctIndex = options.indexOfFirst { it.german == item.german },
-                    explanation = "Správná věta znamená: ${item.czech}",
-                    germanSentence = item.german,
-                    translation = item.czech
-                )
+        val sentenceCount = if (level in setOf("A1", "A2", "B1", "B2")) 4 else 0
+        if (sentenceCount > 0) {
+            require(courses.isNotEmpty()) { "No sentence courses are available for $level." }
+            val sentenceQuestions = courses.flatMap { course ->
+                course.items.mapIndexed { index, item ->
+                    val options = listOf(
+                        item,
+                        course.items[(index + 5) % course.items.size],
+                        course.items[(index + 11) % course.items.size],
+                        course.items[(index + 17) % course.items.size]
+                    ).distinctBy { it.german }.shuffled(random)
+                    PlacementAssessmentQuestion(
+                        id = stableReviewId("placement", "sentences", level, course.id, index.toString()),
+                        level = level,
+                        skill = "Věty a gramatika",
+                        prompt = item.prompt,
+                        choices = options.map { it.german },
+                        correctIndex = options.indexOfFirst { it.german == item.german },
+                        explanation = "Správná věta znamená: ${item.czech}",
+                        germanSentence = item.german,
+                        translation = item.czech
+                    )
+                }
             }
+            result += sentenceQuestions.shuffled(random).take(sentenceCount)
         }
-        result += sentenceQuestions.shuffled(random).take(4)
 
         val articles = readingArticles.filter { it.level == level }
         require(articles.isNotEmpty()) { "No reading articles are available for $level." }
+        val comprehensionCount = if (sentenceCount > 0) 2 else 6
         val readingQuestions = articles.shuffled(random)
             .flatMap { buildReadingComprehensionQuestions(it).shuffled(random) }
             .distinctBy { it.id }
-            .take(2)
+            .take(comprehensionCount)
+        require(readingQuestions.size == comprehensionCount) {
+            "Not enough reading comprehension questions are available for $level."
+        }
 
         result += readingQuestions.map { question ->
             PlacementAssessmentQuestion(
@@ -116,7 +123,7 @@ internal fun buildPlacementAssessmentQuestions(
         }
     }
 
-    check(result.size == 24) { "Placement test must contain 24 questions (6 per level)." }
+    check(result.size == 36) { "Placement test must contain exactly 36 questions (6 per level)." }
     check(result.map { it.id }.toSet().size == result.size) { "Placement test question IDs must be unique." }
     return result.shuffled(random)
 }
@@ -307,7 +314,7 @@ internal fun PlacementAssessmentScreen(
                     shape = RoundedCornerShape(14.dp)
                 ) { Text("Zpět na přehled", fontWeight = FontWeight.Bold) }
             } else if (current != null) {
-                Text("TEST ÚROVNĚ A1–B2 · 24 OTÁZEK", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                Text("TEST ÚROVNĚ A1–C2 · 36 OTÁZEK", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                 Text("Otázka ${index + 1} z ${questions.size}", color = Ink, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                 LinearProgressIndicator(progress = { (index + 1).toFloat() / questions.size }, modifier = Modifier.fillMaxWidth())
                 Text(current.level + " · " + current.skill, color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
