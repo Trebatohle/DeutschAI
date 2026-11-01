@@ -137,7 +137,8 @@ internal fun makeDailyTrainingQuestions(
 @Composable
 internal fun DailyTrainingScreen(
     onBack: () -> Unit,
-    onComplete: (score: Int, total: Int) -> Unit
+    onComplete: (score: Int, total: Int) -> Unit,
+    onHome: () -> Unit = onBack
 ) {
     val context = LocalContext.current
     val speaker = rememberGermanSpeechPlayer()
@@ -177,20 +178,7 @@ internal fun DailyTrainingScreen(
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(
-                    onClick = onBack,
-                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Zpět")
-                    Text("Zpět")
-                }
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("DEUTSCHAI", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
-                    Text("Osobní denní trénink", color = Muted, fontSize = 13.sp)
-                }
-            }
+            AppScreenHeader(title = "Osobní denní trénink", onBack = onBack, onHome = onHome)
 
             if (finished) {
                 Card(
