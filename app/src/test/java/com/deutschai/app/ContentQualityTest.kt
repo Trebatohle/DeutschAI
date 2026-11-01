@@ -299,6 +299,25 @@ class ContentQualityTest {
     }
 
     @Test
+    fun expandedA1AndA2SentenceCoursesAddTenNewSectionsAndTwoHundredFiftyPhrases() {
+        val expectedIds = setOf("a1_visiting", "a1_health_everyday", "a1_hobbies_sports", "a1_weather_clothes", "a1_phone_messages", "a2_money_payments", "a2_transport_city", "a2_services_travel", "a2_cooking_household", "a2_goals_experiences")
+        val addedCourses = sentenceCourseCatalog.filter { it.id in expectedIds }
+        assertEquals("Ten new course sections should be present", 10, addedCourses.size)
+        assertEquals("Five added sections should belong to A1", 5, addedCourses.count { it.level == "A1" })
+        assertEquals("Five added sections should belong to A2", 5, addedCourses.count { it.level == "A2" })
+        assertEquals("The new sections should contain exactly 250 phrases", 250, addedCourses.sumOf { it.items.size })
+        addedCourses.forEach { course ->
+            assertEquals("${course.id} should contain 25 phrases", 25, course.items.size)
+            assertEquals("${course.id} should produce 25 lesson questions", 25, sentenceCourseQuestions(course.id).size)
+            course.items.forEachIndexed { index, item ->
+                assertTrue("${course.id} item ${index + 1} has a blank prompt", item.prompt.isNotBlank())
+                assertTrue("${course.id} item ${index + 1} has a blank German phrase", item.german.isNotBlank())
+                assertTrue("${course.id} item ${index + 1} has a blank Czech translation", item.czech.isNotBlank())
+            }
+        }
+    }
+
+    @Test
     fun cakeAndTableTranslationsRemainDistinctAndCorrect() {
         val translatedItems = sentenceCourseCatalog.flatMap { it.items }
         assertTrue(

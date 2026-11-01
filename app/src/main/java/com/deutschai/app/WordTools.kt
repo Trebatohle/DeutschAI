@@ -484,7 +484,7 @@ internal fun WordToolsScreen(
                         onClick = onNumbers,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(containerColor = Mint)
+                        colors = CardDefaults.cardColors(containerColor = CardSurface)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(18.dp),
@@ -492,11 +492,11 @@ internal fun WordToolsScreen(
                             horizontalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
                             Box(
-                                modifier = Modifier.size(46.dp).background(Forest, RoundedCornerShape(14.dp)),
+                                modifier = Modifier.size(46.dp).background(Mint, RoundedCornerShape(14.dp)),
                                 contentAlignment = Alignment.Center
-                            ) { Icon(Icons.Default.Translate, contentDescription = null, tint = Color.White) }
+                            ) { Icon(Icons.Default.Translate, contentDescription = null, tint = ForestText) }
                             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Text("Číslovky", color = ForestText, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                                Text("Číslovky", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
                                 Text(
                                     "Základní, řadové a násobné číslovky v samostatných sadách i ve smíšeném drilu.",
                                     color = Muted,
@@ -504,6 +504,7 @@ internal fun WordToolsScreen(
                                     lineHeight = 18.sp
                                 )
                                 Text("3 samostatné sady · 25 otázek ve smíšeném drilu", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                LatestResultLine(CourseResultStore.load(context, "numbers_mixed"))
                             }
                         }
                     }
