@@ -35,7 +35,8 @@ import androidx.compose.ui.unit.sp
 @Composable
 internal fun LearningOverviewScreen(
     onBack: () -> Unit,
-    onPlacementTest: () -> Unit
+    onPlacementTest: () -> Unit,
+    onHome: () -> Unit = onBack
 ) {
     val context = LocalContext.current
     val skillStats = LearningReviewStore.skillStats(context)
@@ -52,20 +53,7 @@ internal fun LearningOverviewScreen(
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(
-                    onClick = onBack,
-                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    androidx.compose.material3.Icon(Icons.Default.ArrowBack, contentDescription = "Zpět")
-                    Text("Zpět")
-                }
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("DEUTSCHAI", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-                    Text("Přehled znalostí", color = Muted, fontSize = 13.sp)
-                }
-            }
+            AppScreenHeader(title = "Přehled znalostí", onBack = onBack, onHome = onHome)
 
             Text("Jak na tom skutečně jsi?", color = Ink, fontSize = 26.sp, lineHeight = 32.sp, fontWeight = FontWeight.Bold)
             Text(
