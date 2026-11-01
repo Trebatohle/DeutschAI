@@ -169,7 +169,7 @@ internal fun savePhraseRating(
 }
 
 @Composable
-internal fun PhraseReviewScreen(level: String, onBack: () -> Unit) {
+internal fun PhraseReviewScreen(level: String, onBack: () -> Unit, onHome: () -> Unit = onBack) {
     val context = LocalContext.current
     val speaker = rememberGermanSpeechPlayer()
     val cards = remember(level) { phraseReviewCards(level) }
@@ -203,20 +203,7 @@ internal fun PhraseReviewScreen(level: String, onBack: () -> Unit) {
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(
-                    onClick = onBack,
-                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Zpět")
-                    Text("Zpět")
-                }
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("DEUTSCHAI", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
-                    Text("Chytré opakování · $level", color = Muted, fontSize = 13.sp)
-                }
-            }
+            AppScreenHeader(title = "Chytré opakování · $level", onBack = onBack, onHome = onHome)
 
             Text("Zapamatuj si užitečné fráze", color = Ink, fontSize = 26.sp, lineHeight = 31.sp, fontWeight = FontWeight.Bold)
             Text(
