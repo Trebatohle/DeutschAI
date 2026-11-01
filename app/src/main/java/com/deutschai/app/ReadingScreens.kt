@@ -59,7 +59,8 @@ private val readingLevels = listOf("A1", "A2", "B1", "B2", "C1", "C2")
 @Composable
 internal fun ReadingLibraryScreen(
     onBack: () -> Unit,
-    onSelectArticle: (ReadingArticle) -> Unit
+    onSelectArticle: (ReadingArticle) -> Unit,
+    onHome: () -> Unit = onBack
 ) {
     var selectedLevel by remember { mutableStateOf("A1") }
     val articles = readingArticles.filter { it.level == selectedLevel }
@@ -86,7 +87,7 @@ internal fun ReadingLibraryScreen(
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            ReadingHeader("Čtení v němčině", onBack)
+            ReadingHeader("Čtení v němčině", onBack, onHome)
             Text("Vyber úroveň", color = Ink, fontSize = 27.sp, fontWeight = FontWeight.Bold)
             Text(
                 "Všechny příběhy jsou pouze v němčině. Když podržíš prst na slovu, zobrazí se jeho český význam; po puštění zmizí.",
@@ -207,7 +208,8 @@ internal fun ReadingLibraryScreen(
 @Composable
 internal fun ReadingArticleScreen(
     article: ReadingArticle,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onHome: () -> Unit = onBack
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -245,7 +247,7 @@ internal fun ReadingArticleScreen(
                 .padding(start = 20.dp, top = 16.dp, end = 20.dp, bottom = 30.dp),
             verticalArrangement = Arrangement.spacedBy(13.dp)
         ) {
-            ReadingHeader(article.level + " · Čtení", onBack)
+            ReadingHeader(article.level + " · Čtení", onBack, onHome)
             Text(article.title, color = Ink, fontSize = 27.sp, lineHeight = 33.sp, fontWeight = FontWeight.Bold)
             Text(article.subtitle, color = Muted, fontSize = 14.sp, lineHeight = 20.sp)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -630,24 +632,6 @@ internal fun ReadingArticleScreen(
 }
 
 @Composable
-private fun ReadingHeader(title: String, onBack: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Button(
-            onClick = onBack,
-            colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.heightIn(min = 50.dp)
-        ) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Zpět")
-            Text("Zpět")
-        }
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text("DEUTSCHAI", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
-            Text(title, color = Muted, fontSize = 13.sp)
-        }
-    }
+private fun ReadingHeader(title: String, onBack: () -> Unit, onHome: () -> Unit = onBack) {
+    AppScreenHeader(title = title, onBack = onBack, onHome = onHome)
 }
