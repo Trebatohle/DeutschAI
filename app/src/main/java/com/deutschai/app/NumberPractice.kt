@@ -245,7 +245,8 @@ internal fun makeNumberCategoryQuestions(groupId: String): List<NumberPracticeQu
 @Composable
 internal fun NumberPracticeScreen(
     onBack: () -> Unit,
-    onComplete: (score: Int, total: Int, activityKey: String) -> Unit
+    onComplete: (score: Int, total: Int, activityKey: String) -> Unit,
+    onHome: () -> Unit = onBack
 ) {
     val context = LocalContext.current
     var selectedSet by remember { mutableStateOf<String?>(null) }
@@ -296,20 +297,7 @@ internal fun NumberPracticeScreen(
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(
-                    onClick = { goBackOneLevel() },
-                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    androidx.compose.material3.Icon(Icons.Default.ArrowBack, contentDescription = "Zpět")
-                    Text("Zpět")
-                }
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("DEUTSCHAI", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
-                    Text(title, color = Muted, fontSize = 13.sp)
-                }
-            }
+            AppScreenHeader(title = title, onBack = { goBackOneLevel() }, onHome = onHome)
 
             if (selectedSet == null) {
                 Text("Číslovky", color = Ink, fontSize = 27.sp, fontWeight = FontWeight.Bold)
