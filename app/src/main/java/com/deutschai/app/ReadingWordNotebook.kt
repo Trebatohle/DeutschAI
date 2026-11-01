@@ -182,7 +182,8 @@ internal object ReadingWordNotebookStore {
 @androidx.compose.runtime.Composable
 internal fun PersonalNotebookPracticeScreen(
     onBack: () -> Unit,
-    onComplete: (score: Int, total: Int) -> Unit
+    onComplete: (score: Int, total: Int) -> Unit,
+    onHome: () -> Unit = onBack
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val speaker = rememberGermanSpeechPlayer()
@@ -221,26 +222,7 @@ internal fun PersonalNotebookPracticeScreen(
                 .padding(start = 20.dp, top = 16.dp, end = 20.dp, bottom = 30.dp),
             verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(14.dp)
         ) {
-            androidx.compose.foundation.layout.Row(
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp)
-            ) {
-                androidx.compose.material3.Button(
-                    onClick = onBack,
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
-                ) {
-                    androidx.compose.material3.Icon(
-                        androidx.compose.material.icons.Icons.Default.ArrowBack,
-                        contentDescription = "Zpět"
-                    )
-                    androidx.compose.material3.Text("Zpět")
-                }
-                androidx.compose.foundation.layout.Column(verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(2.dp)) {
-                    androidx.compose.material3.Text("DEUTSCHAI", color = ForestText, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
-                    androidx.compose.material3.Text("Procvičování mého slovníčku", color = Muted, fontSize = 13.sp)
-                }
-            }
+            AppScreenHeader(title = "Procvičování mého slovníčku", onBack = onBack, onHome = onHome)
 
             if (questions.isEmpty()) {
                 androidx.compose.material3.Card(
