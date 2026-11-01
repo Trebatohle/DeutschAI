@@ -236,6 +236,34 @@ private fun BeatriceHome() {
         mutableStateOf(preferences.getString("last_activity_title", "") ?: "")
     }
 
+    fun navigateHome() {
+        showConversation = false
+        showDailyTraining = false
+        showPlacementAssessment = false
+        showLearningOverview = false
+        showWordTools = false
+        showNumberPractice = false
+        showLearningHub = false
+        showLessonLibrary = false
+        lessonLibraryOpenedFromHub = false
+        readingLibraryOpenedFromHub = false
+        dialogueOpenedFromHub = false
+        showArticleCategories = false
+        showVocabularyPractice = false
+        showVocabularyNotebook = false
+        showSavedVocabularyPractice = false
+        selectedArticleCategory = null
+        showVerbCategories = false
+        selectedVerbTopic = null
+        showReadingLibrary = false
+        selectedReadingArticle = null
+        selectedLesson = null
+        selectedPhraseReviewLevel = null
+        selectedListeningLevel = null
+        selectedTab = "Domů"
+        placementStartedFromWelcome = false
+    }
+
     fun saveLastActivity(type: String, id: String, title: String) {
         lastActivityType = type
         lastActivityId = id
@@ -342,6 +370,7 @@ private fun BeatriceHome() {
     if (showDailyTraining) {
         DailyTrainingScreen(
             onBack = { showDailyTraining = false },
+            onHome = { navigateHome() },
             onComplete = { score, total ->
                 CourseResultStore.save(context, "daily_training", score, total)
                 recordScore(score, total, "daily_training")
@@ -353,6 +382,7 @@ private fun BeatriceHome() {
     if (showNumberPractice) {
         NumberPracticeScreen(
             onBack = { showNumberPractice = false; showWordTools = true },
+            onHome = { navigateHome() },
             onComplete = { score, total, activityKey ->
                 CourseResultStore.save(context, activityKey, score, total)
                 recordScore(score, total, activityKey)
@@ -364,6 +394,7 @@ private fun BeatriceHome() {
     if (showWordTools) {
         WordToolsScreen(
             onBack = { showWordTools = false; showLearningHub = true },
+            onHome = { navigateHome() },
             onNumbers = {
                 saveLastActivity("number-practice", "number-practice", "Číslovky")
                 showNumberPractice = true
@@ -378,6 +409,7 @@ private fun BeatriceHome() {
     if (showConversation) {
         GuidedDialogueScreen(
             onBack = { showConversation = false; showLearningHub = dialogueOpenedFromHub },
+            onHome = { navigateHome() },
             // A completed dialogue counts as a study day, but not as a scored quiz session.
             onComplete = { habitStats = StudyHabitStore.recordSession(context) }
         )
@@ -387,6 +419,7 @@ private fun BeatriceHome() {
     if (selectedReadingArticle != null) {
         ReadingArticleScreen(
             article = selectedReadingArticle!!,
+            onHome = { navigateHome() },
             onBack = {
                 selectedReadingArticle = null
                 showReadingLibrary = true
@@ -399,6 +432,7 @@ private fun BeatriceHome() {
     if (showReadingLibrary) {
         ReadingLibraryScreen(
             onBack = { showReadingLibrary = false; showLearningHub = readingLibraryOpenedFromHub },
+            onHome = { navigateHome() },
             onSelectArticle = { article ->
                 saveLastActivity("reading", article.id, article.title)
                 selectedReadingArticle = article
@@ -445,6 +479,7 @@ private fun BeatriceHome() {
     if (selectedArticleCategory != null) {
         ArticleQuizScreen(
             category = selectedArticleCategory!!,
+            onHome = { navigateHome() },
             onBack = { selectedArticleCategory = null; showArticleCategories = true },
             onComplete = { score, total ->
                 recordScore(score, total, "articles_${selectedArticleCategory!!.id}")
@@ -456,6 +491,7 @@ private fun BeatriceHome() {
     if (selectedVerbTopic != null) {
         VerbQuizScreen(
             topic = selectedVerbTopic!!,
+            onHome = { navigateHome() },
             onBack = { selectedVerbTopic = null; showVerbCategories = true },
             onComplete = { score, total ->
                 recordScore(score, total, "verbs_${selectedVerbTopic!!.id}")
@@ -467,6 +503,7 @@ private fun BeatriceHome() {
     if (showArticleCategories) {
         ArticleCategoryLibraryScreen(
             onBack = { showArticleCategories = false; showLearningHub = true },
+            onHome = { navigateHome() },
             onVocabulary = {
                 saveLastActivity("vocabulary-practice", "vocabulary-practice", "Slovní zásoba")
                 showArticleCategories = false
@@ -484,6 +521,7 @@ private fun BeatriceHome() {
     if (showVerbCategories) {
         VerbCategoryLibraryScreen(
             onBack = { showVerbCategories = false; showLearningHub = true },
+            onHome = { navigateHome() },
             onSelectTopic = { topic ->
                 saveLastActivity("verb-quiz", topic.id, topic.title)
                 selectedVerbTopic = topic
@@ -496,6 +534,7 @@ private fun BeatriceHome() {
     if (showLearningHub) {
         LearningHubScreen(
             onBack = { showLearningHub = false },
+            onHome = { navigateHome() },
             onCourses = { lessonLibraryOpenedFromHub = true; showLearningHub = false; showLessonLibrary = true },
             onArticles = { showLearningHub = false; showArticleCategories = true },
             onVerbs = { showLearningHub = false; showVerbCategories = true },
@@ -518,6 +557,7 @@ private fun BeatriceHome() {
     if (selectedPhraseReviewLevel != null) {
         PhraseReviewScreen(
             level = selectedPhraseReviewLevel!!,
+            onHome = { navigateHome() },
             onBack = {
                 selectedPhraseReviewLevel = null
                 showLessonLibrary = true
@@ -530,6 +570,7 @@ private fun BeatriceHome() {
     if (selectedListeningLevel != null) {
         ListeningPracticeScreen(
             level = selectedListeningLevel!!,
+            onHome = { navigateHome() },
             onBack = { selectedListeningLevel = null; showLessonLibrary = true }
         )
         return
@@ -538,6 +579,7 @@ private fun BeatriceHome() {
     if (selectedLesson != null) {
         LessonScreen(
             lesson = selectedLesson!!,
+            onHome = { navigateHome() },
             onBack = { selectedLesson = null; showLessonLibrary = true },
             onComplete = { score, total ->
                 recordScore(score, total, "sentence_${selectedLesson!!.id}")
@@ -549,6 +591,7 @@ private fun BeatriceHome() {
     if (showLessonLibrary) {
         LessonLibraryScreen(
             onBack = { showLessonLibrary = false; showLearningHub = lessonLibraryOpenedFromHub },
+            onHome = { navigateHome() },
             onSelectLesson = { lesson ->
                 saveLastActivity("lesson", lesson.id, lesson.title)
                 selectedLesson = lesson
@@ -1048,7 +1091,8 @@ private fun LessonLibraryScreen(
     onBack: () -> Unit,
     onSelectLesson: (Lesson) -> Unit,
     onSelectPhraseReview: (String) -> Unit,
-    onSelectListening: (String) -> Unit
+    onSelectListening: (String) -> Unit,
+    onHome: () -> Unit = onBack
 ) {
     val context = LocalContext.current
     var selectedLevel by remember { mutableStateOf<String?>(null) }
@@ -1065,20 +1109,11 @@ private fun LessonLibraryScreen(
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(
-                    onClick = { if (selectedLevel != null) selectedLevel = null else onBack() },
-                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Zpět")
-                    Text("Zpět")
-                }
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("DEUTSCHAI", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
-                    Text(if (selectedLevel == null) "Kurzy podle úrovně" else "Kurzová knihovna · ${selectedLevel}", color = Muted, fontSize = 13.sp)
-                }
-            }
+            AppScreenHeader(
+                title = if (selectedLevel == null) "Kurzy podle úrovně" else "Kurzová knihovna · $selectedLevel",
+                onBack = { if (selectedLevel != null) selectedLevel = null else onBack() },
+                onHome = onHome
+            )
 
             if (selectedLevel == null) {
                 Text("Vyber svou úroveň", color = Ink, fontSize = 27.sp, fontWeight = FontWeight.Bold, lineHeight = 32.sp)
@@ -1212,7 +1247,8 @@ private fun LessonLibraryScreen(
 private fun LessonScreen(
     lesson: Lesson,
     onBack: () -> Unit,
-    onComplete: (score: Int, total: Int) -> Unit
+    onComplete: (score: Int, total: Int) -> Unit,
+    onHome: () -> Unit = onBack
 ) {
     val context = LocalContext.current
     val speaker = rememberGermanSpeechPlayer()
@@ -1254,23 +1290,7 @@ private fun LessonScreen(
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Button(
-                    onClick = onBack,
-                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Zpět")
-                    Text("Zpět")
-                }
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("DEUTSCHAI", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
-                    Text(lesson.title + " · " + lesson.level, color = Muted, fontSize = 13.sp)
-                }
-            }
+            AppScreenHeader(title = lesson.title + " · " + lesson.level, onBack = onBack, onHome = onHome)
 
             if (finished) {
                 Card(
@@ -1503,7 +1523,8 @@ private data class GuidedDialogueLine(
 @Composable
 private fun GuidedDialogueScreen(
     onBack: () -> Unit,
-    onComplete: () -> Unit
+    onComplete: () -> Unit,
+    onHome: () -> Unit = onBack
 ) {
     var selectedTopic by remember { mutableStateOf<GuidedDialogueTopic?>(null) }
     var selectedBranchTopic by remember { mutableStateOf<BranchingDialogueTopic?>(null) }
@@ -1580,31 +1601,7 @@ private fun GuidedDialogueScreen(
                 .padding(start = 18.dp, top = 14.dp, end = 18.dp, bottom = 30.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Button(
-                    onClick = onBack,
-                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.heightIn(min = 52.dp)
-                ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Zpět")
-                    Text("Zpět")
-                }
-                Box(
-                    modifier = Modifier.size(46.dp).background(Forest, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("B", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Bold)
-                }
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("Beatrice", color = ForestText, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    Text("Řízené dialogy · A1 · offline", color = Muted, fontSize = 12.sp)
-                }
-            }
+            AppScreenHeader(title = "Řízené dialogy · A1 · offline", onBack = onBack, onHome = onHome)
 
             if (selectedTopic == null) {
                 Text("Vyber si situaci", color = Ink, fontSize = 27.sp, fontWeight = FontWeight.Bold)
