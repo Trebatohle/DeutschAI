@@ -341,13 +341,15 @@ private fun BeatriceHome() {
     if (showLearningOverview) {
         LearningOverviewScreen(
             onBack = { showLearningOverview = false; selectedTab = "Pokroky" },
-            onPlacementTest = { showLearningOverview = false; showPlacementAssessment = true }
+            onPlacementTest = { showLearningOverview = false; showPlacementAssessment = true },
+            onHome = { navigateHome() }
         )
         return
     }
 
     if (showPlacementAssessment) {
         PlacementAssessmentScreen(
+            onHome = { navigateHome() },
             onBack = {
                 showPlacementAssessment = false
                 if (placementStartedFromWelcome) {
@@ -444,6 +446,7 @@ private fun BeatriceHome() {
 
     if (showSavedVocabularyPractice) {
         PersonalNotebookPracticeScreen(
+            onHome = { navigateHome() },
             onBack = {
                 showSavedVocabularyPractice = false
                 showVocabularyNotebook = true
@@ -458,6 +461,7 @@ private fun BeatriceHome() {
     if (showVocabularyNotebook) {
         VocabularyNotebookScreen(
             onBack = { showVocabularyNotebook = false },
+            onHome = { navigateHome() },
             onPractice = {
                 showVocabularyNotebook = false
                 showSavedVocabularyPractice = true
@@ -469,6 +473,7 @@ private fun BeatriceHome() {
     if (showVocabularyPractice) {
         VocabularyPracticeScreen(
             onBack = { showVocabularyPractice = false; showArticleCategories = true },
+            onHome = { navigateHome() },
             onComplete = { score, total ->
                 recordScore(score, total, "vocabulary_learning")
             }
