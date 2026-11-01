@@ -399,7 +399,8 @@ internal fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Li
 internal fun WordToolsScreen(
     onBack: () -> Unit,
     onNumbers: () -> Unit,
-    onComplete: (score: Int, total: Int, activityKey: String) -> Unit
+    onComplete: (score: Int, total: Int, activityKey: String) -> Unit,
+    onHome: () -> Unit = onBack
 ) {
     val context = LocalContext.current
     var selectedGroup by remember { mutableStateOf<WordToolGroup?>(null) }
@@ -454,24 +455,11 @@ internal fun WordToolsScreen(
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(
-                    onClick = { goBackOneLevel() },
-                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Zpět")
-                    Text("Zpět")
-                }
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("DEUTSCHAI", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
-                    Text(
-                        selectedMode?.title ?: selectedGroup?.title ?: "Slovní druhy a gramatika",
-                        color = Muted,
-                        fontSize = 13.sp
-                    )
-                }
-            }
+            AppScreenHeader(
+                title = selectedMode?.title ?: selectedGroup?.title ?: "Slovní druhy a gramatika",
+                onBack = { goBackOneLevel() },
+                onHome = onHome
+            )
 
             when {
                 selectedMode == null && selectedGroup == null -> {
