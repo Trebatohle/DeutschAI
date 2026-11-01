@@ -54,7 +54,8 @@ internal fun LearningHubScreen(
     onVerbs: () -> Unit,
     onDialogues: () -> Unit,
     onReading: () -> Unit,
-    onWordTools: () -> Unit
+    onWordTools: () -> Unit,
+    onHome: () -> Unit = onBack
 ) {
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
@@ -65,7 +66,7 @@ internal fun LearningHubScreen(
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            ScreenHeader("Knihovna učení", onBack)
+            ScreenHeader("Knihovna učení", onBack, onHome)
             Text("Co chceš dnes procvičit?", color = Ink, fontSize = 27.sp, fontWeight = FontWeight.Bold)
             Text(
                 "Vyber hlavní kategorii a potom konkrétní téma. Každé cvičení funguje offline.",
@@ -141,7 +142,8 @@ internal fun LearningHubScreen(
 internal fun ArticleCategoryLibraryScreen(
     onBack: () -> Unit,
     onVocabulary: () -> Unit,
-    onSelectCategory: (ArticleCategory) -> Unit
+    onSelectCategory: (ArticleCategory) -> Unit,
+    onHome: () -> Unit = onBack
 ) {
     val context = LocalContext.current
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
@@ -153,7 +155,7 @@ internal fun ArticleCategoryLibraryScreen(
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            ScreenHeader("Členy a slovíčka", onBack)
+            ScreenHeader("Členy a slovíčka", onBack, onHome)
             Text("Vyber slovní téma", color = Ink, fontSize = 27.sp, fontWeight = FontWeight.Bold)
             Text(
                 "V každé sadě je 25 podstatných jmen. Vyber správný člen der, die nebo das a uč se zároveň český význam.",
@@ -202,7 +204,8 @@ internal fun ArticleCategoryLibraryScreen(
 @Composable
 internal fun VerbCategoryLibraryScreen(
     onBack: () -> Unit,
-    onSelectTopic: (VerbPracticeLesson) -> Unit
+    onSelectTopic: (VerbPracticeLesson) -> Unit,
+    onHome: () -> Unit = onBack
 ) {
     val context = LocalContext.current
     var selectedPart by remember { mutableStateOf<String?>(null) }
@@ -216,9 +219,11 @@ internal fun VerbCategoryLibraryScreen(
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            ScreenHeader("Důležitá slovesa") {
-                if (selectedPart != null) selectedPart = null else onBack()
-            }
+            ScreenHeader(
+                "Důležitá slovesa",
+                onBack = { if (selectedPart != null) selectedPart = null else onBack() },
+                onHome = onHome
+            )
             Text(
                 if (selectedPart == null) "Vyber způsob procvičování"
                 else if (selectedPart == "advanced") "Pokročilé procvičování"
@@ -295,7 +300,8 @@ internal fun VerbCategoryLibraryScreen(
 internal fun ArticleQuizScreen(
     category: ArticleCategory,
     onBack: () -> Unit,
-    onComplete: (score: Int, total: Int) -> Unit
+    onComplete: (score: Int, total: Int) -> Unit,
+    onHome: () -> Unit = onBack
 ) {
     val context = LocalContext.current
     var words by remember(category.id) { mutableStateOf(category.words.shuffled()) }
@@ -338,7 +344,7 @@ internal fun ArticleQuizScreen(
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            ScreenHeader(category.title, onBack)
+            ScreenHeader(category.title, onBack, onHome)
             if (finished) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -503,7 +509,8 @@ internal fun ArticleQuizScreen(
 internal fun VerbQuizScreen(
     topic: VerbPracticeLesson,
     onBack: () -> Unit,
-    onComplete: (score: Int, total: Int) -> Unit
+    onComplete: (score: Int, total: Int) -> Unit,
+    onHome: () -> Unit = onBack
 ) {
     val context = LocalContext.current
     var questions by remember(topic.id) { mutableStateOf(buildVerbQuestions(topic).shuffled()) }
@@ -544,7 +551,7 @@ internal fun VerbQuizScreen(
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            ScreenHeader(topic.title, onBack)
+            ScreenHeader(topic.title, onBack, onHome)
             Text(topic.subtitle, color = Muted, fontSize = 14.sp, lineHeight = 20.sp)
             Text(
                 "Slovesa: " + topic.verbIds.mapNotNull { id -> verbDefinitions.find { it.id == id }?.infinitive }.joinToString(" · "),
@@ -780,26 +787,8 @@ private fun createVerbQuestions(lesson: VerbPracticeLesson): List<LessonQuestion
 }
 
 @Composable
-private fun ScreenHeader(title: String, onBack: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Button(
-            onClick = onBack,
-            colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.heightIn(min = 52.dp)
-        ) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Zpět")
-            Text("Zpět")
-        }
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text("DEUTSCHAI", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
-            Text(title, color = Muted, fontSize = 13.sp)
-        }
-    }
+private fun ScreenHeader(title: String, onBack: () -> Unit, onHome: () -> Unit = onBack) {
+    AppScreenHeader(title = title, onBack = onBack, onHome = onHome)
 }
 
 @Composable
