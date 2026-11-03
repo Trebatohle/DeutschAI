@@ -337,9 +337,10 @@ class ContentQualityTest {
         }
 
         fun normalizeGermanPhrase(value: String): String = value.lowercase()
-            .replace(Regex("[^a-zäöüß0-9 ]"), " ")
-            .replace(Regex(" +"), " ")
-            .trim()
+            .filter { it.isLetterOrDigit() || it.isWhitespace() }
+            .split(Regex("\\s+"))
+            .filter { it.isNotBlank() }
+            .joinToString(" ")
 
         val previousGermanPhrases = sentenceCourseCatalog
             .filterNot { it.id in addedCourseIds }
