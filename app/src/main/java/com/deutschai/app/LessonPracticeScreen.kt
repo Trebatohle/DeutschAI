@@ -329,9 +329,9 @@ internal fun LessonPracticeScreen(
                 Text(
                     text = when (stage) {
                         LessonPracticeStage.INTRODUCTION ->
-                            "Věty \${questionIndex + 1}–\${minOf(questionIndex + 5, tasks.size)} z \${tasks.size}"
-                        LessonPracticeStage.REVIEW -> "Chyba \${questionIndex + 1} z \${tasks.size}"
-                        else -> "Otázka \${questionIndex + 1} z \${tasks.size}"
+                            "Věty ${questionIndex + 1}–${minOf(questionIndex + 5, tasks.size)} z ${tasks.size}"
+                        LessonPracticeStage.REVIEW -> "Chyba ${questionIndex + 1} z ${tasks.size}"
+                        else -> "Otázka ${questionIndex + 1} z ${tasks.size}"
                     },
                     color = ForestText,
                     fontSize = 22.sp,
