@@ -218,7 +218,7 @@ internal val additionalA1SentenceCourseCatalog = listOf(
         "Ich habe den Termin um halb drei.§Mám termín v půl třetí.",
         "Die Brille rutscht mir von der Nase.§Brýle mi sklouzávají z nosu.",
         "Bitte geben Sie mir ein Brillenetui.§Dejte mi prosím pouzdro na brýle.",
-        "Wie lange gilt die Garantie?§Jak dlouho platí záruka?",
+        "Gibt es auf diese Brille eine Garantie?§Je na tyto brýle záruka?",
         "Kann ich die Rechnung später abholen?§Mohu si fakturu vyzvednout později?",
         "Danke, jetzt kann ich wieder gut sehen.§Děkuji, teď zase dobře vidím."
     )),
@@ -909,7 +909,7 @@ internal val additionalA1SentenceCourseCatalog = listOf(
         "Ich nehme eine kleine Flasche Apfelsaft.§Vezmu si malou láhev jablečného džusu.",
         "Die Erdbeeren sind heute besonders süß.§Jahody jsou dnes obzvlášť sladké.",
         "Woher kommt dieser Ziegenkäse?§Odkud pochází tento kozí sýr?",
-        "Kann ich mit Karte bezahlen?§Mohu platit kartou?",
+        "Kann ich kontaktlos zahlen?§Mohu platit bezkontaktně?",
         "Bitte legen Sie die Kräuter oben auf.§Položte prosím bylinky nahoru.",
         "Ich möchte die Kartoffeln in einem Netz.§Chtěl bych brambory v síťce.",
         "Gibt es diese Woche auch Kürbisse?§Máte tento týden také dýně?",

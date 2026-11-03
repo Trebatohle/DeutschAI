@@ -352,9 +352,10 @@ class ContentQualityTest {
             .map { normalizeGermanPhrase(it.german) }
 
         assertEquals("All 1,250 newly added German phrases must be unique", 1250, newGermanPhrases.toSet().size)
+        val repeatedPhrases = newGermanPhrases.filter { it in previousGermanPhrases }
         assertTrue(
-            "A new phrase must not repeat an existing course phrase",
-            newGermanPhrases.none { it in previousGermanPhrases }
+            "New phrases must not repeat existing course phrases: ${repeatedPhrases.joinToString()}",
+            repeatedPhrases.isEmpty()
         )
     }
 

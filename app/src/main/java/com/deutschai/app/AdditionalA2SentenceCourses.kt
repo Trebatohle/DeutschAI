@@ -188,7 +188,7 @@ internal val additionalA2SentenceCourseCatalog = listOf(
         "Die Aufgabenbeschreibung passt gut zu meinen bisherigen Erfahrungen.§Popis pracovních úkolů dobře odpovídá mým dosavadním zkušenostem.",
         "Ich würde gerne wissen, ob es regelmäßige Mitarbeitergespräche gibt.§Rád bych věděl, zda se konají pravidelné rozhovory se zaměstnanci.",
         "Vielen Dank für Ihre Zeit und die ausführlichen Informationen.§Děkuji za váš čas a podrobné informace.",
-        "Ich freue mich auf Ihre Rückmeldung.§Těším se na vaši odpověď."
+        "Ich bin gespannt auf Ihre Entscheidung.§Jsem zvědavý na vaše rozhodnutí."
     )),
     additionalPhraseCourse("A2", "a2_shift_planning", "Směny, dovolená a pracovní doba", "Domluvit rozpis směn, výměnu služby a volno", listOf(
         "Im nächsten Monat würde ich gerne die Frühschicht übernehmen.§Příští měsíc bych rád převzal ranní směnu.",
