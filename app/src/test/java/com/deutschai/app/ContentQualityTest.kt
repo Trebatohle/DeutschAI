@@ -318,6 +318,46 @@ class ContentQualityTest {
     }
 
     @Test
+    fun additionalA1AndA2SpeakingCoursesContainFiftyCoursesAnd1250UniqueNewPhrases() {
+        val addedCourseIds = setOf("a1_pets_at_home", "a1_veterinary_visit", "a1_post_office", "a1_library", "a1_hairdresser", "a1_florist", "a1_optician", "a1_photo_service", "a1_fuel_station", "a1_car_wash", "a1_bicycle_repair", "a1_swimming_pool", "a1_camping", "a1_forest_walk", "a1_gardening", "a1_houseplants", "a1_laundry_service", "a1_recycling", "a1_home_tools", "a1_lost_property", "a1_information_desk", "a1_zoo", "a1_museum", "a1_cinema", "a1_theatre_concerts", "a1_birthday_party", "a1_neighbours", "a1_school_supplies", "a1_kindergarten", "a1_community_volunteering", "a1_playground", "a1_stationery_shop", "a1_farmers_market", "a1_local_festival", "a1_animal_shelter", "a2_insurance_claim", "a2_car_rental", "a2_product_warranty", "a2_mobile_internet_contract", "a2_online_orders_delivery", "a2_apartment_handover", "a2_job_interview", "a2_shift_planning", "a2_parent_teacher_meeting", "a2_training_certification", "a2_volunteer_project", "a2_event_organisation", "a2_travel_disruptions", "a2_group_reservations", "a2_feedback_misunderstandings")
+        val addedCourses = sentenceCourseCatalog.filter { it.id in addedCourseIds }
+
+        assertEquals("Exactly 50 additional speaking courses should be present", 50, addedCourses.size)
+        assertEquals("A1 should receive 35 new courses", 35, addedCourses.count { it.level == "A1" })
+        assertEquals("A2 should receive 15 new courses", 15, addedCourses.count { it.level == "A2" })
+        assertEquals("The added catalogue should contain 1,250 phrases", 1250, addedCourses.sumOf { it.items.size })
+
+        addedCourses.forEach { course ->
+            assertEquals("${course.id} should contain exactly 25 questions", 25, course.items.size)
+            course.items.forEachIndexed { index, item ->
+                assertTrue("${course.id} question ${index + 1} has no prompt", item.prompt.isNotBlank())
+                assertTrue("${course.id} question ${index + 1} has no German phrase", item.german.isNotBlank())
+                assertTrue("${course.id} question ${index + 1} has no Czech translation", item.czech.isNotBlank())
+            }
+        }
+
+        fun normalizeGermanPhrase(value: String): String = value.lowercase()
+            .replace(Regex("[^a-zäöüß0-9 ]"), " ")
+            .replace(Regex(" +"), " ")
+            .trim()
+
+        val previousGermanPhrases = sentenceCourseCatalog
+            .filterNot { it.id in addedCourseIds }
+            .flatMap { it.items }
+            .map { normalizeGermanPhrase(it.german) }
+            .toSet()
+        val newGermanPhrases = addedCourses
+            .flatMap { it.items }
+            .map { normalizeGermanPhrase(it.german) }
+
+        assertEquals("All 1,250 newly added German phrases must be unique", 1250, newGermanPhrases.toSet().size)
+        assertTrue(
+            "A new phrase must not repeat an existing course phrase",
+            newGermanPhrases.none { it in previousGermanPhrases }
+        )
+    }
+
+    @Test
     fun cakeAndTableTranslationsRemainDistinctAndCorrect() {
         val translatedItems = sentenceCourseCatalog.flatMap { it.items }
         assertTrue(

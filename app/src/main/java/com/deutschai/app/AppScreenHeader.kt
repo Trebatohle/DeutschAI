@@ -3,6 +3,7 @@ package com.deutschai.app
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
@@ -37,10 +38,11 @@ internal fun AppScreenHeader(
             onClick = onBack,
             colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
             shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.size(width = 94.dp, height = 50.dp)
+            modifier = Modifier.size(width = 112.dp, height = 50.dp),
+            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)
         ) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Zpět")
-            Text("Zpět")
+            Icon(Icons.Default.ArrowBack, contentDescription = "Zpět", modifier = Modifier.size(20.dp))
+            Text("Zpět", maxLines = 1, softWrap = false)
         }
         Column(
             modifier = Modifier.weight(1f),
