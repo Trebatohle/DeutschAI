@@ -80,7 +80,7 @@ internal fun LessonPracticeScreen(
         stage = LessonPracticeStage.COMPLETE
         if (!completionRecorded) {
             val totalCorrect = writingScore + dictationScore
-            CourseResultStore.save(context, "sentence_\${lesson.id}", totalCorrect, 10)
+            CourseResultStore.save(context, "sentence_${lesson.id}", totalCorrect, 10)
             onComplete(totalCorrect, 10)
             completionRecorded = true
         }
@@ -223,7 +223,7 @@ internal fun LessonPracticeScreen(
 
             if (stage != LessonPracticeStage.COMPLETE) {
                 Text(
-                    text = "KROK \${stageIndex + 1} ZE 4  ·  \${stageName.uppercase()}",
+                    text = "KROK ${stageIndex + 1} ZE 4  ·  ${stageName.uppercase()}",
                     color = Muted,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
@@ -265,7 +265,7 @@ internal fun LessonPracticeScreen(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            "\${writingScore + dictationScore} z 10",
+                            "${writingScore + dictationScore} z 10",
                             color = Gold,
                             fontSize = 32.sp,
                             fontWeight = FontWeight.Bold
@@ -300,7 +300,7 @@ internal fun LessonPracticeScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
                         shape = RoundedCornerShape(14.dp)
                     ) {
-                        Text("Opakovat zbývající chyby (\${remainingTasks.size})", fontWeight = FontWeight.Bold)
+                        Text("Opakovat zbývající chyby (${remainingTasks.size})", fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -324,9 +324,9 @@ internal fun LessonPracticeScreen(
             } else if (currentTask != null && currentQuestion != null) {
                 Text(
                     text = when (stage) {
-                        LessonPracticeStage.INTRODUCTION -> "Věta \${questionIndex + 1} z \${tasks.size}"
-                        LessonPracticeStage.REVIEW -> "Chyba \${questionIndex + 1} z \${tasks.size}"
-                        else -> "Otázka \${questionIndex + 1} z \${tasks.size}"
+                        LessonPracticeStage.INTRODUCTION -> "Věta ${questionIndex + 1} z ${tasks.size}"
+                        LessonPracticeStage.REVIEW -> "Chyba ${questionIndex + 1} z ${tasks.size}"
+                        else -> "Otázka ${questionIndex + 1} z ${tasks.size}"
                     },
                     color = ForestText,
                     fontSize = 22.sp,
