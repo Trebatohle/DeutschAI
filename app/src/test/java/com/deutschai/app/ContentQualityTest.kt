@@ -202,6 +202,52 @@ class ContentQualityTest {
     }
 
     @Test
+    fun sentenceLessonPracticeUsesFiveWritingAndFiveDifferentDictationQuestions() {
+        val course = sentenceCourseCatalog.first { it.level == "A1" }
+        val questions = sentenceCourseQuestions(course.id)
+        val selection = createLessonPracticeSelection(questions, kotlin.random.Random(41))
+
+        assertEquals(25, selection.introduction.size)
+        assertEquals(5, selection.writing.size)
+        assertEquals(5, selection.dictation.size)
+        assertEquals(25, selection.introduction.toSet().size)
+        assertEquals(
+            10,
+            (selection.writing + selection.dictation)
+                .map { it.germanSentence }
+                .toSet()
+                .size
+        )
+        assertEquals(
+            selection.introduction.map { it.germanSentence }.toSet(),
+            (selection.writing + selection.dictation).map { it.germanSentence }
+                .toSet() + selection.introduction.drop(10).map { it.germanSentence }
+        )
+    }
+
+    @Test
+    fun writtenGermanAnswersAreStrictExceptForHarmlessWhitespaceAndExplicitAlternatives() {
+        val question = LessonQuestion(
+            prompt = "Přelož do němčiny.",
+            choices = emptyList(),
+            correctIndex = 0,
+            explanation = "",
+            germanSentence = "Ich möchte einen Kaffee.",
+            translation = "Chtěl bych kávu.",
+            acceptedAnswers = listOf("Ich hätte gern einen Kaffee.")
+        )
+
+        assertTrue(isGermanWrittenAnswerCorrect(question, "Ich möchte einen Kaffee."))
+        assertTrue(isGermanWrittenAnswerCorrect(question, "  Ich   möchte einen Kaffee.  "))
+        assertTrue(isGermanWrittenAnswerCorrect(question, "Ich hätte gern einen Kaffee."))
+        assertFalse(isGermanWrittenAnswerCorrect(question, "ich möchte einen Kaffee."))
+        assertFalse(isGermanWrittenAnswerCorrect(question, "Ich mochte einen Kaffee."))
+        assertFalse(isGermanWrittenAnswerCorrect(question, "Ich möchte einen Kaffee"))
+        assertFalse(isGermanWrittenAnswerCorrect(question, "Ich möchte Kaffee."))
+        assertFalse(isGermanWrittenAnswerCorrect(question, ""))
+    }
+
+    @Test
     fun sentenceCoursesContainCompleteGermanAndCzechPairs() {
         assertTrue(sentenceCourseCatalog.isNotEmpty())
         val ids = sentenceCourseCatalog.map { it.id }
