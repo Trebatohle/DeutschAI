@@ -375,12 +375,12 @@ internal fun LessonPracticeScreen(
                                             lineHeight = 18.sp
                                         )
                                     }
-                                    androidx.compose.material3.IconButton(
+                                    IconButton(
                                         onClick = { speaker.speak(item.question.germanSentence) },
                                         enabled = speaker.status == GermanVoiceStatus.READY
                                     ) {
-                                        androidx.compose.material3.Icon(
-                                            androidx.compose.material.icons.Icons.Default.VolumeUp,
+                                        Icon(
+                                            Icons.Default.VolumeUp,
                                             contentDescription = "Přehrát německou větu",
                                             tint = ActionColor,
                                             modifier = Modifier.size(23.dp)
