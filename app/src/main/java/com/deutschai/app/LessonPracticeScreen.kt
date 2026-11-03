@@ -22,6 +22,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -324,9 +328,10 @@ internal fun LessonPracticeScreen(
             } else if (currentTask != null && currentQuestion != null) {
                 Text(
                     text = when (stage) {
-                        LessonPracticeStage.INTRODUCTION -> "Věta ${questionIndex + 1} z ${tasks.size}"
-                        LessonPracticeStage.REVIEW -> "Chyba ${questionIndex + 1} z ${tasks.size}"
-                        else -> "Otázka ${questionIndex + 1} z ${tasks.size}"
+                        LessonPracticeStage.INTRODUCTION ->
+                            "Věty \${questionIndex + 1}–\${minOf(questionIndex + 5, tasks.size)} z \${tasks.size}"
+                        LessonPracticeStage.REVIEW -> "Chyba \${questionIndex + 1} z \${tasks.size}"
+                        else -> "Otázka \${questionIndex + 1} z \${tasks.size}"
                     },
                     color = ForestText,
                     fontSize = 22.sp,
@@ -334,42 +339,89 @@ internal fun LessonPracticeScreen(
                 )
 
                 if (stage == LessonPracticeStage.INTRODUCTION) {
+                    val pageTasks = tasks.drop(questionIndex).take(5)
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(22.dp),
                         colors = CardDefaults.cardColors(containerColor = CardSurface)
                     ) {
                         Column(
-                            modifier = Modifier.padding(20.dp),
-                            verticalArrangement = Arrangement.spacedBy(13.dp)
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
-                            Text("NĚMECKY", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            Text(
-                                currentQuestion.germanSentence,
-                                color = Ink,
-                                fontSize = 23.sp,
-                                lineHeight = 31.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text("ČESKY", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            Text(
-                                currentQuestion.translation,
-                                color = Ink,
-                                fontSize = 17.sp,
-                                lineHeight = 24.sp
-                            )
-                            GermanAudioControls(player = speaker, text = currentQuestion.germanSentence)
+                            pageTasks.forEachIndexed { index, item ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Column(
+                                        modifier = Modifier.weight(1f),
+                                        verticalArrangement = Arrangement.spacedBy(3.dp)
+                                    ) {
+                                        Text(
+                                            item.question.germanSentence,
+                                            color = Ink,
+                                            fontSize = 16.sp,
+                                            lineHeight = 22.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                        Text(
+                                            item.question.translation,
+                                            color = Muted,
+                                            fontSize = 13.sp,
+                                            lineHeight = 18.sp
+                                        )
+                                    }
+                                    androidx.compose.material3.IconButton(
+                                        onClick = { speaker.speak(item.question.germanSentence) },
+                                        enabled = speaker.status == GermanVoiceStatus.READY
+                                    ) {
+                                        androidx.compose.material3.Icon(
+                                            androidx.compose.material.icons.Icons.Default.VolumeUp,
+                                            contentDescription = "Přehrát německou větu",
+                                            tint = ActionColor,
+                                            modifier = Modifier.size(23.dp)
+                                        )
+                                    }
+                                }
+                                if (index < pageTasks.lastIndex) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(1.dp)
+                                            .background(OptionSurface)
+                                    )
+                                }
+                            }
                         }
                     }
 
+                    if (speaker.status != GermanVoiceStatus.READY) {
+                        Text(
+                            "Pro přehrávání je potřeba dostupný offline německý hlas (de-DE).",
+                            color = Muted,
+                            fontSize = 12.sp,
+                            lineHeight = 17.sp
+                        )
+                    }
+
                     Button(
-                        onClick = { advance() },
+                        onClick = {
+                            if (questionIndex + 5 < tasks.size) {
+                                questionIndex += 5
+                            } else {
+                                beginWriting()
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
                         shape = RoundedCornerShape(14.dp)
                     ) {
                         Text(
-                            if (questionIndex == tasks.lastIndex) "Začít psaní" else "Další věta",
+                            if (questionIndex + 5 < tasks.size) "Další skupina" else "Začít psaní",
                             fontWeight = FontWeight.Bold
                         )
                     }
