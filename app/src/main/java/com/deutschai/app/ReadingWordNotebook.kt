@@ -185,7 +185,8 @@ internal data class ActiveVocabularyQuestion(
     val czechPrompt: String,
     val answerGerman: String,
     val exampleGerman: String,
-    val exampleCzech: String
+    val exampleCzech: String,
+    val reviewChoices: List<String>
 )
 
 internal fun normalizeGermanRecallAnswer(value: String): String =
@@ -203,14 +204,15 @@ internal fun buildActiveVocabularyQuestions(
     if (count <= 0) return emptyList()
     val catalogWords = catalogEntries.distinctBy { it.id }
     val catalogNormalized = catalogWords.map { it.word.trim().lowercase() }.toSet()
-    val questions = catalogWords.map { entry ->
+    val baseQuestions = catalogWords.map { entry ->
         ActiveVocabularyQuestion(
             id = stableReviewId("active_catalog_word", entry.id),
             sourceTitle = "Můj slovníček",
             czechPrompt = entry.czech,
             answerGerman = "${entry.article} ${entry.word}",
             exampleGerman = vocabularySentenceGerman(entry),
-            exampleCzech = vocabularySentenceCzech(entry)
+            exampleCzech = vocabularySentenceCzech(entry),
+            reviewChoices = emptyList()
         )
     } + readingEntries.distinctBy { it.id }
         .filterNot { it.word.trim().lowercase() in catalogNormalized }
@@ -221,10 +223,21 @@ internal fun buildActiveVocabularyQuestions(
                 czechPrompt = entry.meaning,
                 answerGerman = entry.word,
                 exampleGerman = entry.exampleGerman,
-                exampleCzech = entry.meaning
+                exampleCzech = entry.meaning,
+                reviewChoices = emptyList()
             )
         }
-    return questions.shuffled(random).take(count)
+    val answerPool = baseQuestions.map { it.answerGerman }.distinct()
+    return baseQuestions.map { question ->
+        val distractors = answerPool
+            .filterNot { it.equals(question.answerGerman, ignoreCase = true) }
+            .shuffled(random)
+            .take(3)
+        val choices = (distractors + question.answerGerman).shuffled(random)
+            .ifEmpty { listOf(question.answerGerman) }
+            .let { if (it.size == 1) it + "Nevím" else it }
+        question.copy(reviewChoices = choices)
+    }.shuffled(random).take(count)
 }
 
 internal enum class PersonalNotebookPracticeMode { RECOGNITION, ACTIVE_RECALL }
@@ -562,8 +575,8 @@ internal fun PersonalNotebookPracticeScreen(
                                     sourceKind = "vocabulary",
                                     sourceTitle = activeQuestion.sourceTitle,
                                     prompt = "Jak se německy řekne: ${activeQuestion.czechPrompt}?",
-                                    choices = listOf(activeQuestion.answerGerman, "Jiná odpověď"),
-                                    correctIndex = 0,
+                                    choices = activeQuestion.reviewChoices,
+                                    correctIndex = activeQuestion.reviewChoices.indexOf(activeQuestion.answerGerman),
                                     explanation = "Správně: ${activeQuestion.answerGerman}.",
                                     germanSentence = activeQuestion.exampleGerman,
                                     translation = activeQuestion.exampleCzech
