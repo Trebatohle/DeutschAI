@@ -508,7 +508,13 @@ internal fun LessonPracticeScreen(
                             shape = RoundedCornerShape(14.dp)
                         ) {
                             Text(
-                                if (questionIndex == tasks.lastIndex) "Pokračovat k psaní" else "Další otázka",
+                                when {
+                                    stage == LessonPracticeStage.REVIEW && questionIndex == tasks.lastIndex ->
+                                        "Zobrazit výsledek"
+                                    stage == LessonPracticeStage.REVIEW -> "Další chyba"
+                                    questionIndex == tasks.lastIndex -> "Pokračovat k psaní"
+                                    else -> "Další otázka"
+                                },
                                 fontWeight = FontWeight.Bold
                             )
                         }
