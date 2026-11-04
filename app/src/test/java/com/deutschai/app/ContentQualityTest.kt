@@ -874,4 +874,77 @@ class ContentQualityTest {
         ) <= 60)
     }
 
+
+    @Test
+    fun listeningPracticeProvidesAllFourExerciseModesWithValidQuestions() {
+        val meaning = buildListeningQuestions(
+            "A1",
+            ListeningExerciseMode.MEANING,
+            count = 5,
+            random = kotlin.random.Random(10)
+        )
+        assertEquals(5, meaning.size)
+        meaning.forEach { question ->
+            assertEquals(ListeningExerciseMode.MEANING, question.mode)
+            assertEquals(4, question.choices.size)
+            assertTrue(question.correctIndex in question.choices.indices)
+            assertEquals(question.source.item.czech, question.answerText)
+        }
+
+        val gaps = buildListeningQuestions(
+            "A1",
+            ListeningExerciseMode.GAP,
+            count = 5,
+            random = kotlin.random.Random(11)
+        )
+        assertEquals(5, gaps.size)
+        gaps.forEach { question ->
+            assertEquals(ListeningExerciseMode.GAP, question.mode)
+            assertEquals(4, question.choices.size)
+            assertTrue(question.correctIndex in question.choices.indices)
+            assertEquals(question.answerText, question.choices[question.correctIndex])
+            assertTrue(question.displayWithGap.contains("_____"))
+        }
+
+        val dictation = buildListeningQuestions(
+            "A1",
+            ListeningExerciseMode.DICTATION,
+            count = 5,
+            random = kotlin.random.Random(12)
+        )
+        assertEquals(5, dictation.size)
+        dictation.forEach { question ->
+            assertEquals(ListeningExerciseMode.DICTATION, question.mode)
+            assertTrue(question.choices.isEmpty())
+            assertEquals(question.listeningText, question.answerText)
+        }
+
+        val context = buildListeningQuestions(
+            "A1",
+            ListeningExerciseMode.CONTEXT,
+            count = 5,
+            random = kotlin.random.Random(13)
+        )
+        assertEquals(5, context.size)
+        context.forEach { question ->
+            assertEquals(ListeningExerciseMode.CONTEXT, question.mode)
+            assertEquals(4, question.choices.size)
+            assertTrue(question.correctIndex in question.choices.indices)
+            assertEquals(question.source.courseTitle, question.choices[question.correctIndex])
+            assertTrue(question.listeningText.split(Regex("\\s+")).size > 5)
+        }
+    }
+
+    @Test
+    fun listeningDictationNormalizationIgnoresCapitalizationAndPunctuationButKeepsUmlauts() {
+        assertEquals(
+            normalizeListeningDictation("Ich habe heute Zeit."),
+            normalizeListeningDictation("  ICH habe heute ZEIT  ")
+        )
+        assertFalse(
+            normalizeListeningDictation("schon heute") ==
+                normalizeListeningDictation("schön heute")
+        )
+    }
+
 }
