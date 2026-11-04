@@ -143,7 +143,7 @@ internal fun buildListeningQuestions(
                 .map { it.item.czech }
             val options = (alternatives + source.item.czech).shuffled(random)
             ListeningQuestion(
-                id = stableReviewId("listening", level, source.courseId, source.itemIndex.toString()),
+                id = stableReviewId("listening", level, mode.name, source.courseId, source.itemIndex.toString()),
                 mode = mode,
                 source = source,
                 listeningText = source.item.german,
@@ -172,7 +172,7 @@ internal fun buildListeningQuestions(
                 if (distractors.size < 3) return@mapNotNull null
                 val options = (distractors + answer).shuffled(random)
                 ListeningQuestion(
-                    id = stableReviewId("listening", level, source.courseId, source.itemIndex.toString()),
+                    id = stableReviewId("listening", level, mode.name, source.courseId, source.itemIndex.toString()),
                     mode = mode,
                     source = source,
                     listeningText = source.item.german,
@@ -187,7 +187,7 @@ internal fun buildListeningQuestions(
 
         ListeningExerciseMode.DICTATION -> sources.shuffled(random).take(count).map { source ->
             ListeningQuestion(
-                id = stableReviewId("listening", level, source.courseId, source.itemIndex.toString()),
+                id = stableReviewId("listening", level, mode.name, source.courseId, source.itemIndex.toString()),
                 mode = mode,
                 source = source,
                 listeningText = source.item.german,
