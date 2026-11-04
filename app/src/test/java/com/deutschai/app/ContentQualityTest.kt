@@ -777,4 +777,101 @@ class ContentQualityTest {
         }
     }
 
+
+    @Test
+    fun activeVocabularyRecallRequiresTypedGermanAndKeepsNounArticle() {
+        val table = vocabularyCatalog.single { it.word == "Tisch" }
+        val reading = ReadingNotebookWord(
+            id = "active-reading-1",
+            word = "entscheiden",
+            meaning = "rozhodnout",
+            exampleGerman = "Sie muss heute entscheiden.",
+            sourceTitle = "Ein neuer Anfang",
+            sourceLevel = "B1",
+            savedAtMillis = 123L
+        )
+
+        val questions = buildActiveVocabularyQuestions(
+            catalogEntries = listOf(table),
+            readingEntries = listOf(reading),
+            count = 10,
+            random = kotlin.random.Random(21)
+        )
+
+        assertEquals(2, questions.size)
+        assertEquals(2, questions.map { it.id }.toSet().size)
+        assertTrue(questions.any { it.czechPrompt == table.czech && it.answerGerman == "der Tisch" })
+        assertTrue(questions.any { it.czechPrompt == "rozhodnout" && it.answerGerman == "entscheiden" })
+        assertTrue(questions.all { it.exampleGerman.isNotBlank() })
+    }
+
+    @Test
+    fun activeVocabularyRecallDoesNotDuplicateWordsAlreadyInTheCuratedNotebook() {
+        val table = vocabularyCatalog.single { it.word == "Tisch" }
+        val reading = ReadingNotebookWord(
+            id = "reading-table",
+            word = "Tisch",
+            meaning = "stůl",
+            exampleGerman = "Der Tisch ist groß.",
+            sourceTitle = "Ein Zimmer",
+            sourceLevel = "A1",
+            savedAtMillis = 123L
+        )
+
+        val questions = buildActiveVocabularyQuestions(
+            catalogEntries = listOf(table),
+            readingEntries = listOf(reading),
+            random = kotlin.random.Random(5)
+        )
+
+        assertEquals(1, questions.size)
+        assertEquals("der Tisch", questions.single().answerGerman)
+    }
+
+    @Test
+    fun germanRecallAnswerNormalizationIgnoresCaseExtraSpacesAndFinalPunctuation() {
+        assertEquals(
+            normalizeGermanRecallAnswer("der Tisch."),
+            normalizeGermanRecallAnswer("  DER   Tisch  ")
+        )
+        assertFalse(
+            normalizeGermanRecallAnswer("das Tisch") == normalizeGermanRecallAnswer("der Tisch")
+        )
+        assertFalse(
+            normalizeGermanRecallAnswer("schon") == normalizeGermanRecallAnswer("schön")
+        )
+    }
+
+    @Test
+    fun adaptiveReviewIntervalsUsePredictableEarlyStepsAndAdjustLater() {
+        assertEquals(1, calculateNextReviewIntervalDays(0, 0, 0, 0, 0))
+        assertEquals(3, calculateNextReviewIntervalDays(1, 1, 0, 1, 1))
+        assertEquals(7, calculateNextReviewIntervalDays(2, 3, 0, 2, 2))
+        assertEquals(14, calculateNextReviewIntervalDays(3, 7, 0, 3, 3))
+
+        val highAccuracy = calculateNextReviewIntervalDays(
+            correctStreak = 4,
+            previousIntervalDays = 14,
+            wrongCount = 0,
+            attemptCount = 10,
+            correctCount = 10
+        )
+        val repeatedMistakes = calculateNextReviewIntervalDays(
+            correctStreak = 4,
+            previousIntervalDays = 14,
+            wrongCount = 4,
+            attemptCount = 10,
+            correctCount = 5
+        )
+
+        assertTrue("Strongly retained items should receive a longer interval", highAccuracy > repeatedMistakes)
+        assertTrue("Review intervals must not exceed sixty days", calculateNextReviewIntervalDays(
+            correctStreak = 12,
+            previousIntervalDays = 60,
+            wrongCount = 0,
+            attemptCount = 20,
+            correctCount = 20
+        ) <= 60)
+    }
+
 }
