@@ -244,7 +244,7 @@ internal fun LessonPracticeScreen(
         LessonPracticeStage.COMPLETE -> 3
     }
     val stageName = when (stage) {
-        LessonPracticeStage.INTRODUCTION -> "Seznámení s větami"
+        LessonPracticeStage.INTRODUCTION -> "Úvodní test 25 vět"
         LessonPracticeStage.WRITING -> "Psaní vět"
         LessonPracticeStage.DICTATION -> "Poslechový diktát"
         LessonPracticeStage.REVIEW -> "Opakování chyb"
