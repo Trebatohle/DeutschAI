@@ -60,7 +60,7 @@ internal object LearningReviewStore {
     /** Repeatedly missed items surfaced in the knowledge overview. */
     fun recurringMistakes(context: Context, limit: Int = 5): List<ReviewMemoryEntry> =
         all(context)
-            .filter { it.wrongCount >= 2 }
+            .filter { it.wrongCount >= 2 && !(it.correctStreak >= 3 && it.intervalDays >= 7) }
             .sortedWith(
                 compareByDescending<ReviewMemoryEntry> { it.wrongCount }
                     .thenBy { it.correctStreak }
