@@ -179,6 +179,56 @@ internal object ReadingWordNotebookStore {
     }
 }
 
+internal data class ActiveVocabularyQuestion(
+    val id: String,
+    val sourceTitle: String,
+    val czechPrompt: String,
+    val answerGerman: String,
+    val exampleGerman: String,
+    val exampleCzech: String
+)
+
+internal fun normalizeGermanRecallAnswer(value: String): String =
+    value.trim()
+        .lowercase()
+        .replace(Regex("[.!?,;:]+$"), "")
+        .replace(Regex("\\s+"), " ")
+
+internal fun buildActiveVocabularyQuestions(
+    catalogEntries: List<VocabularyEntry>,
+    readingEntries: List<ReadingNotebookWord>,
+    count: Int = 25,
+    random: kotlin.random.Random = kotlin.random.Random.Default
+): List<ActiveVocabularyQuestion> {
+    if (count <= 0) return emptyList()
+    val catalogWords = catalogEntries.distinctBy { it.id }
+    val catalogNormalized = catalogWords.map { it.word.trim().lowercase() }.toSet()
+    val questions = catalogWords.map { entry ->
+        ActiveVocabularyQuestion(
+            id = stableReviewId("active_catalog_word", entry.id),
+            sourceTitle = "Můj slovníček",
+            czechPrompt = entry.czech,
+            answerGerman = "${entry.article} ${entry.word}",
+            exampleGerman = vocabularySentenceGerman(entry),
+            exampleCzech = vocabularySentenceCzech(entry)
+        )
+    } + readingEntries.distinctBy { it.id }
+        .filterNot { it.word.trim().lowercase() in catalogNormalized }
+        .map { entry ->
+            ActiveVocabularyQuestion(
+                id = stableReviewId("active_reading_word", entry.id),
+                sourceTitle = "Slova z četby · ${entry.sourceLevel}",
+                czechPrompt = entry.meaning,
+                answerGerman = entry.word,
+                exampleGerman = entry.exampleGerman,
+                exampleCzech = entry.meaning
+            )
+        }
+    return questions.shuffled(random).take(count)
+}
+
+internal enum class PersonalNotebookPracticeMode { RECOGNITION, ACTIVE_RECALL }
+
 @androidx.compose.runtime.Composable
 internal fun PersonalNotebookPracticeScreen(
     onBack: () -> Unit,
@@ -189,18 +239,28 @@ internal fun PersonalNotebookPracticeScreen(
     val speaker = rememberGermanSpeechPlayer()
     val catalogEntries = VocabularyNotebookStore.entries(context)
     val readingEntries = ReadingWordNotebookStore.entries(context)
+    var mode by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<PersonalNotebookPracticeMode?>(null) }
     var questions by androidx.compose.runtime.remember(catalogEntries.map { it.id }, readingEntries.map { it.id }) {
-        androidx.compose.runtime.mutableStateOf(
-            buildPersonalNotebookQuestions(catalogEntries, readingEntries)
-        )
+        androidx.compose.runtime.mutableStateOf(buildPersonalNotebookQuestions(catalogEntries, readingEntries))
     }
     var questionIndex by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(0) }
     var selectedAnswer by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<Int?>(null) }
     var score by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(0) }
     var finished by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
-    val question = questions.getOrNull(questionIndex)
 
-    fun restart() {
+    var activeQuestions by androidx.compose.runtime.remember(catalogEntries.map { it.id }, readingEntries.map { it.id }) {
+        androidx.compose.runtime.mutableStateOf(buildActiveVocabularyQuestions(catalogEntries, readingEntries))
+    }
+    var activeIndex by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(0) }
+    var activeAnswer by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
+    var activeChecked by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    var activeWasCorrect by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    var activeScore by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(0) }
+    var activeFinished by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    val question = questions.getOrNull(questionIndex)
+    val activeQuestion = activeQuestions.getOrNull(activeIndex)
+
+    fun restartRecognition() {
         questions = buildPersonalNotebookQuestions(
             VocabularyNotebookStore.entries(context),
             ReadingWordNotebookStore.entries(context)
@@ -209,6 +269,19 @@ internal fun PersonalNotebookPracticeScreen(
         selectedAnswer = null
         score = 0
         finished = false
+    }
+
+    fun restartActiveRecall() {
+        activeQuestions = buildActiveVocabularyQuestions(
+            VocabularyNotebookStore.entries(context),
+            ReadingWordNotebookStore.entries(context)
+        )
+        activeIndex = 0
+        activeAnswer = ""
+        activeChecked = false
+        activeWasCorrect = false
+        activeScore = 0
+        activeFinished = false
     }
 
     androidx.compose.material3.Surface(
@@ -224,7 +297,7 @@ internal fun PersonalNotebookPracticeScreen(
         ) {
             AppScreenHeader(title = "Procvičování mého slovníčku", onBack = onBack, onHome = onHome)
 
-            if (questions.isEmpty()) {
+            if (catalogEntries.isEmpty() && readingEntries.isEmpty()) {
                 androidx.compose.material3.Card(
                     modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
                     shape = androidx.compose.foundation.shape.RoundedCornerShape(18.dp),
@@ -236,122 +309,323 @@ internal fun PersonalNotebookPracticeScreen(
                         color = Muted, fontSize = 14.sp, lineHeight = 21.sp
                     )
                 }
-            } else if (finished) {
+            } else if (mode == null) {
+                androidx.compose.material3.Text(
+                    "Vyber způsob procvičování",
+                    color = Ink, fontSize = 24.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                )
+                androidx.compose.material3.Text(
+                    "Nejprve si můžeš ověřit, zda slovům rozumíš. Potom si je zkus vybavit bez nabídnutých odpovědí.",
+                    color = Muted, fontSize = 14.sp, lineHeight = 21.sp
+                )
                 androidx.compose.material3.Card(
                     modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp),
-                    colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = Forest)
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(18.dp),
+                    colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = CardSurface)
                 ) {
                     androidx.compose.foundation.layout.Column(
-                        modifier = androidx.compose.ui.Modifier.padding(22.dp),
-                        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(9.dp),
-                        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+                        modifier = androidx.compose.ui.Modifier.padding(17.dp),
+                        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(7.dp)
                     ) {
-                        androidx.compose.material3.Text("Vlastní slovníček procvičen", color = Color.White, fontSize = 22.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-                        androidx.compose.material3.Text("$score z ${questions.size} správně", color = Gold, fontSize = 27.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-                        androidx.compose.material3.Text(
-                            "Odpovědi se uložily do dlouhodobého opakování, takže se k obtížnějším slovům můžeš vrátit.",
-                            color = Color(0xFFE0EAE5), fontSize = 13.sp, lineHeight = 20.sp
-                        )
+                        androidx.compose.material3.Text("Rozpoznání významu", color = Ink, fontSize = 17.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                        androidx.compose.material3.Text("Uvidíš německé slovo a vybereš správný český význam. Vhodné pro zopakování slovní zásoby.", color = Muted, fontSize = 13.sp, lineHeight = 19.sp)
+                        androidx.compose.material3.Button(
+                            onClick = { restartRecognition(); mode = PersonalNotebookPracticeMode.RECOGNITION },
+                            modifier = androidx.compose.ui.Modifier.fillMaxWidth().heightIn(min = 50.dp),
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(13.dp)
+                        ) { androidx.compose.material3.Text("Procvičit rozpoznání", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) }
                     }
                 }
-                androidx.compose.material3.Button(
-                    onClick = { restart() },
-                    modifier = androidx.compose.ui.Modifier.fillMaxWidth().heightIn(min = 52.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(13.dp)
-                ) { androidx.compose.material3.Text("Procvičit znovu", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) }
-                androidx.compose.material3.Button(
-                    onClick = onBack,
-                    modifier = androidx.compose.ui.Modifier.fillMaxWidth().heightIn(min = 52.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(13.dp)
-                ) { androidx.compose.material3.Text("Zpět do slovníčku", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) }
-            } else if (question != null) {
-                androidx.compose.material3.Text(
-                    "OTÁZKA ${questionIndex + 1} Z ${questions.size}",
-                    color = ForestText, fontSize = 12.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, letterSpacing = 1.sp
-                )
-                androidx.compose.material3.LinearProgressIndicator(
-                    progress = { (questionIndex + 1).toFloat() / questions.size.toFloat() },
-                    modifier = androidx.compose.ui.Modifier.fillMaxWidth()
-                )
-                androidx.compose.material3.Text(question.prompt, color = Ink, fontSize = 22.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-                question.choices.forEachIndexed { index, choice ->
-                    val background = when {
-                        selectedAnswer == null -> OptionSurface
-                        index == question.correctIndex -> Correct
-                        index == selectedAnswer -> Incorrect
-                        else -> OptionSurface
-                    }
-                    androidx.compose.material3.Card(
-                        onClick = {
-                            if (selectedAnswer == null) {
-                                selectedAnswer = index
-                                val correct = index == question.correctIndex
-                                if (correct) score += 1
-                                LearningReviewStore.recordAnswer(context, question, correct)
-                            }
-                        },
-                        modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(15.dp),
-                        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = background)
+                androidx.compose.material3.Card(
+                    modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(18.dp),
+                    colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = Mint)
+                ) {
+                    androidx.compose.foundation.layout.Column(
+                        modifier = androidx.compose.ui.Modifier.padding(17.dp),
+                        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(7.dp)
                     ) {
-                        androidx.compose.material3.Text(
-                            choice,
-                            modifier = androidx.compose.ui.Modifier.fillMaxWidth().padding(16.dp),
-                            color = Ink, fontSize = 16.sp,
-                            fontWeight = if (selectedAnswer != null && index == question.correctIndex) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Medium
-                        )
+                        androidx.compose.material3.Text("Aktivní vybavení", color = ForestText, fontSize = 17.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                        androidx.compose.material3.Text("Dostaneš český význam a sám/sama napíšeš německé slovo. U podstatných jmen bude součástí odpovědi také správný člen.", color = ForestText, fontSize = 13.sp, lineHeight = 19.sp)
+                        androidx.compose.material3.Button(
+                            onClick = { restartActiveRecall(); mode = PersonalNotebookPracticeMode.ACTIVE_RECALL },
+                            modifier = androidx.compose.ui.Modifier.fillMaxWidth().heightIn(min = 50.dp),
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(13.dp)
+                        ) { androidx.compose.material3.Text("Procvičit aktivní vybavení", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) }
                     }
                 }
-                if (selectedAnswer != null) {
+            } else if (mode == PersonalNotebookPracticeMode.RECOGNITION) {
+                if (finished) {
                     androidx.compose.material3.Card(
                         modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
-                        colors = androidx.compose.material3.CardDefaults.cardColors(
-                            containerColor = if (selectedAnswer == question.correctIndex) Correct else Incorrect
-                        )
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp),
+                        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = Forest)
                     ) {
                         androidx.compose.foundation.layout.Column(
-                            modifier = androidx.compose.ui.Modifier.padding(15.dp),
-                            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(7.dp)
+                            modifier = androidx.compose.ui.Modifier.padding(22.dp),
+                            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(9.dp),
+                            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
                         ) {
+                            androidx.compose.material3.Text("Vlastní slovníček procvičen", color = Color.White, fontSize = 22.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                            androidx.compose.material3.Text("$score z ${questions.size} správně", color = Gold, fontSize = 27.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
                             androidx.compose.material3.Text(
-                                if (selectedAnswer == question.correctIndex) "Správně! Gut gemacht!" else "Správná odpověď: ${question.choices[question.correctIndex]}",
-                                color = ForestText, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                "Odpovědi se uložily do dlouhodobého opakování. Pro ověření, že si slova opravdu vybavíš, můžeš pokračovat aktivním psaním.",
+                                color = Color(0xFFE0EAE5), fontSize = 13.sp, lineHeight = 20.sp
                             )
-                            if (question.germanSentence.isNotBlank()) {
-                                androidx.compose.material3.Text(question.germanSentence, color = Ink, fontSize = 16.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
-                                GermanAudioControls(player = speaker, text = question.germanSentence)
-                            }
-                            if (question.translation.isNotBlank()) {
-                                androidx.compose.material3.Text(question.translation, color = Muted, fontSize = 14.sp)
-                            }
-                            androidx.compose.material3.Text(question.explanation, color = Muted, fontSize = 13.sp, lineHeight = 19.sp)
                         }
                     }
                     androidx.compose.material3.Button(
-                        onClick = {
-                            if (questionIndex < questions.lastIndex) {
-                                questionIndex += 1
-                                selectedAnswer = null
-                            } else {
-                                finished = true
-                                onComplete(score, questions.size)
-                            }
-                        },
-                        modifier = androidx.compose.ui.Modifier.fillMaxWidth().heightIn(min = 54.dp),
+                        onClick = { restartActiveRecall(); mode = PersonalNotebookPracticeMode.ACTIVE_RECALL },
+                        modifier = androidx.compose.ui.Modifier.fillMaxWidth().heightIn(min = 52.dp),
                         colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
                         shape = androidx.compose.foundation.shape.RoundedCornerShape(13.dp)
-                    ) {
-                        androidx.compose.material3.Text(
-                            if (questionIndex < questions.lastIndex) "Další slovo" else "Dokončit",
-                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-                        )
+                    ) { androidx.compose.material3.Text("Vyzkoušet aktivní vybavení", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) }
+                    androidx.compose.material3.Button(
+                        onClick = { restartRecognition() },
+                        modifier = androidx.compose.ui.Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = OptionSurface, contentColor = Ink),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(13.dp)
+                    ) { androidx.compose.material3.Text("Procvičit znovu", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) }
+                    androidx.compose.material3.Button(
+                        onClick = { mode = null },
+                        modifier = androidx.compose.ui.Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(13.dp)
+                    ) { androidx.compose.material3.Text("Zpět k výběru", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) }
+                } else if (question != null) {
+                    androidx.compose.material3.Text(
+                        "ROZPOZNÁNÍ · OTÁZKA ${questionIndex + 1} Z ${questions.size}",
+                        color = ForestText, fontSize = 12.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, letterSpacing = 1.sp
+                    )
+                    androidx.compose.material3.LinearProgressIndicator(
+                        progress = { (questionIndex + 1).toFloat() / questions.size.toFloat() },
+                        modifier = androidx.compose.ui.Modifier.fillMaxWidth()
+                    )
+                    androidx.compose.material3.Text(question.prompt, color = Ink, fontSize = 22.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                    question.choices.forEachIndexed { index, choice ->
+                        val background = when {
+                            selectedAnswer == null -> OptionSurface
+                            index == question.correctIndex -> Correct
+                            index == selectedAnswer -> Incorrect
+                            else -> OptionSurface
+                        }
+                        androidx.compose.material3.Card(
+                            onClick = {
+                                if (selectedAnswer == null) {
+                                    selectedAnswer = index
+                                    val correct = index == question.correctIndex
+                                    if (correct) score += 1
+                                    LearningReviewStore.recordAnswer(context, question, correct)
+                                }
+                            },
+                            modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(15.dp),
+                            colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = background)
+                        ) {
+                            androidx.compose.material3.Text(
+                                choice,
+                                modifier = androidx.compose.ui.Modifier.fillMaxWidth().padding(16.dp),
+                                color = Ink, fontSize = 16.sp,
+                                fontWeight = if (selectedAnswer != null && index == question.correctIndex) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Medium
+                            )
+                        }
+                    }
+                    if (selectedAnswer != null) {
+                        androidx.compose.material3.Card(
+                            modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                            colors = androidx.compose.material3.CardDefaults.cardColors(
+                                containerColor = if (selectedAnswer == question.correctIndex) Correct else Incorrect
+                            )
+                        ) {
+                            androidx.compose.foundation.layout.Column(
+                                modifier = androidx.compose.ui.Modifier.padding(15.dp),
+                                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(7.dp)
+                            ) {
+                                androidx.compose.material3.Text(
+                                    if (selectedAnswer == question.correctIndex) "Správně! Gut gemacht!" else "Správná odpověď: ${question.choices[question.correctIndex]}",
+                                    color = ForestText, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                )
+                                if (question.germanSentence.isNotBlank()) {
+                                    androidx.compose.material3.Text(question.germanSentence, color = Ink, fontSize = 16.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+                                    GermanAudioControls(player = speaker, text = question.germanSentence)
+                                }
+                                if (question.translation.isNotBlank()) {
+                                    androidx.compose.material3.Text(question.translation, color = Muted, fontSize = 14.sp)
+                                }
+                                androidx.compose.material3.Text(question.explanation, color = Muted, fontSize = 13.sp, lineHeight = 19.sp)
+                            }
+                        }
+                        androidx.compose.material3.Button(
+                            onClick = {
+                                if (questionIndex < questions.lastIndex) {
+                                    questionIndex += 1
+                                    selectedAnswer = null
+                                } else {
+                                    finished = true
+                                    onComplete(score, questions.size)
+                                }
+                            },
+                            modifier = androidx.compose.ui.Modifier.fillMaxWidth().heightIn(min = 54.dp),
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(13.dp)
+                        ) {
+                            androidx.compose.material3.Text(
+                                if (questionIndex < questions.lastIndex) "Další slovo" else "Dokončit",
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                            )
+                        }
                     }
                 }
+            } else if (mode == PersonalNotebookPracticeMode.ACTIVE_RECALL) {
+                if (activeFinished) {
+                    androidx.compose.material3.Card(
+                        modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp),
+                        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = Forest)
+                    ) {
+                        androidx.compose.foundation.layout.Column(
+                            modifier = androidx.compose.ui.Modifier.padding(22.dp),
+                            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(9.dp),
+                            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+                        ) {
+                            androidx.compose.material3.Text("Aktivní procvičení dokončeno", color = Color.White, fontSize = 22.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                            androidx.compose.material3.Text("$activeScore z ${activeQuestions.size} správně", color = Gold, fontSize = 27.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                            androidx.compose.material3.Text(
+                                "Slova, která bylo obtížné si vybavit, se vrátí v dlouhodobém opakování.",
+                                color = Color(0xFFE0EAE5), fontSize = 13.sp, lineHeight = 20.sp
+                            )
+                        }
+                    }
+                    androidx.compose.material3.Button(
+                        onClick = { restartActiveRecall() },
+                        modifier = androidx.compose.ui.Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(13.dp)
+                    ) { androidx.compose.material3.Text("Procvičit aktivně znovu", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) }
+                    androidx.compose.material3.Button(
+                        onClick = { mode = null },
+                        modifier = androidx.compose.ui.Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(13.dp)
+                    ) { androidx.compose.material3.Text("Zpět k výběru", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) }
+                } else if (activeQuestion != null) {
+                    androidx.compose.material3.Text(
+                        "AKTIVNÍ VYBAVENÍ · OTÁZKA ${activeIndex + 1} Z ${activeQuestions.size}",
+                        color = ForestText, fontSize = 12.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, letterSpacing = 1.sp
+                    )
+                    androidx.compose.material3.LinearProgressIndicator(
+                        progress = { (activeIndex + 1).toFloat() / activeQuestions.size.toFloat() },
+                        modifier = androidx.compose.ui.Modifier.fillMaxWidth()
+                    )
+                    androidx.compose.material3.Text(
+                        "Jak se německy řekne:",
+                        color = Muted, fontSize = 14.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+                    )
+                    androidx.compose.material3.Text(
+                        activeQuestion.czechPrompt,
+                        color = Ink, fontSize = 25.sp, lineHeight = 33.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                    )
+                    if (activeQuestion.answerGerman.startsWith("der ") ||
+                        activeQuestion.answerGerman.startsWith("die ") ||
+                        activeQuestion.answerGerman.startsWith("das ")
+                    ) {
+                        androidx.compose.material3.Text(
+                            "Napiš podstatné jméno včetně správného členu.",
+                            color = Muted, fontSize = 13.sp, lineHeight = 18.sp
+                        )
+                    }
+                    androidx.compose.material3.OutlinedTextField(
+                        value = activeAnswer,
+                        onValueChange = { if (!activeChecked) activeAnswer = it },
+                        enabled = !activeChecked,
+                        modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        label = { androidx.compose.material3.Text("Německá odpověď") },
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                            capitalization = androidx.compose.ui.text.input.KeyboardCapitalization.Sentences,
+                            imeAction = androidx.compose.ui.text.input.ImeAction.Done
+                        )
+                    )
+                    if (!activeChecked) {
+                        androidx.compose.material3.Button(
+                            onClick = {
+                                val correct = normalizeGermanRecallAnswer(activeAnswer) ==
+                                    normalizeGermanRecallAnswer(activeQuestion.answerGerman)
+                                activeWasCorrect = correct
+                                activeChecked = true
+                                if (correct) activeScore += 1
+                                val reviewQuestion = ReviewQuestion(
+                                    id = stableReviewId("notebook_active", activeQuestion.id),
+                                    sourceKind = "vocabulary",
+                                    sourceTitle = activeQuestion.sourceTitle,
+                                    prompt = "Jak se německy řekne: ${activeQuestion.czechPrompt}?",
+                                    choices = listOf(activeQuestion.answerGerman, "Jiná odpověď"),
+                                    correctIndex = 0,
+                                    explanation = "Správně: ${activeQuestion.answerGerman}.",
+                                    germanSentence = activeQuestion.exampleGerman,
+                                    translation = activeQuestion.exampleCzech
+                                )
+                                LearningReviewStore.recordAnswer(context, reviewQuestion, correct)
+                            },
+                            enabled = activeAnswer.isNotBlank(),
+                            modifier = androidx.compose.ui.Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(13.dp)
+                        ) { androidx.compose.material3.Text("Zkontrolovat odpověď", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) }
+                    } else {
+                        androidx.compose.material3.Card(
+                            modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                            colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = if (activeWasCorrect) Correct else Incorrect)
+                        ) {
+                            androidx.compose.foundation.layout.Column(
+                                modifier = androidx.compose.ui.Modifier.padding(15.dp),
+                                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(7.dp)
+                            ) {
+                                androidx.compose.material3.Text(
+                                    if (activeWasCorrect) "Správně! Gut gemacht!" else "Správná odpověď: ${activeQuestion.answerGerman}",
+                                    color = ForestText, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                )
+                                if (activeQuestion.exampleGerman.isNotBlank()) {
+                                    androidx.compose.material3.Text(activeQuestion.exampleGerman, color = Ink, fontSize = 16.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+                                    GermanAudioControls(player = speaker, text = activeQuestion.exampleGerman)
+                                }
+                                if (activeQuestion.exampleCzech.isNotBlank()) {
+                                    androidx.compose.material3.Text(activeQuestion.exampleCzech, color = Muted, fontSize = 14.sp)
+                                }
+                            }
+                        }
+                        androidx.compose.material3.Button(
+                            onClick = {
+                                if (activeIndex < activeQuestions.lastIndex) {
+                                    activeIndex += 1
+                                    activeAnswer = ""
+                                    activeChecked = false
+                                    activeWasCorrect = false
+                                } else {
+                                    activeFinished = true
+                                    onComplete(activeScore, activeQuestions.size)
+                                }
+                            },
+                            modifier = androidx.compose.ui.Modifier.fillMaxWidth().heightIn(min = 54.dp),
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(13.dp)
+                        ) {
+                            androidx.compose.material3.Text(
+                                if (activeIndex < activeQuestions.lastIndex) "Další slovo" else "Dokončit",
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                            )
+                        }
+                    }
+                } else {
+                    androidx.compose.material3.Text("Ve slovníčku zatím nejsou žádná slova k aktivnímu procvičení.", color = Muted, fontSize = 14.sp)
+                }
             }
+
+            androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.heightIn(min = 4.dp))
         }
     }
 }
