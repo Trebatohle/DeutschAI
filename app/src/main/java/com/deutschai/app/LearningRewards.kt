@@ -135,7 +135,7 @@ internal fun RewardPointsCard(
                     )
                 }
                 Text(
-                    "\${progress.displayedPoints}/$LICENSE_DISCOUNT_TARGET_POINTS",
+                    "${progress.displayedPoints}/$LICENSE_DISCOUNT_TARGET_POINTS",
                     color = ForestText,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
@@ -153,7 +153,7 @@ internal fun RewardPointsCard(
                 text = if (progress.discountUnlocked) {
                     "Odměna dosažena: $LICENSE_DISCOUNT_PERCENT % sleva na licenci."
                 } else {
-                    "Ještě \${progress.pointsRemaining} \${czechPointWord(progress.pointsRemaining)} do $LICENSE_DISCOUNT_PERCENT % slevy na licenci."
+                    "Ještě ${progress.pointsRemaining} ${czechPointWord(progress.pointsRemaining)} do $LICENSE_DISCOUNT_PERCENT % slevy na licenci."
                 },
                 color = if (progress.discountUnlocked) ForestText else Muted,
                 fontSize = 11.sp,
