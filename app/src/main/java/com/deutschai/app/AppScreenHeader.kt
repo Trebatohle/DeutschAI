@@ -38,11 +38,11 @@ internal fun AppScreenHeader(
             onClick = onBack,
             colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
             shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.size(width = 112.dp, height = 50.dp),
-            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)
+            modifier = Modifier.size(width = 100.dp, height = 44.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
         ) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Zpět", modifier = Modifier.size(20.dp))
-            Text("Zpět", maxLines = 1, softWrap = false)
+            Icon(Icons.Default.ArrowBack, contentDescription = "Zpět", modifier = Modifier.size(18.dp))
+            Text("Zpět", maxLines = 1, softWrap = false, fontSize = 13.sp)
         }
         Column(
             modifier = Modifier.weight(1f),
