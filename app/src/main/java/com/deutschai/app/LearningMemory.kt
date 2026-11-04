@@ -279,9 +279,10 @@ internal fun calculateNextReviewIntervalDays(
                 accuracy >= 0.90f -> 2.0f
                 else -> 1.7f
             }
-            (previousIntervalDays.coerceAtLeast(14) * multiplier)
+            val previousInterval = previousIntervalDays.coerceAtLeast(14)
+            (previousInterval * multiplier)
                 .roundToInt()
-                .coerceIn(previousIntervalDays.coerceAtLeast(14) + 1, 60)
+                .coerceIn((previousInterval + 1).coerceAtMost(60), 60)
         }
     }
 }
