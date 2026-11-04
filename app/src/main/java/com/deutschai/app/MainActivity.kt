@@ -202,6 +202,7 @@ private fun BeatriceHome() {
     }
     var habitStats by remember(preferences) { mutableStateOf(StudyHabitStore.load(context)) }
     var pendingReviewCount by remember(preferences) { mutableStateOf(LearningReviewStore.pendingCount(context)) }
+    var rewardPoints by remember(preferences) { mutableStateOf(RewardPointsStore.load(context)) }
 
     var showConversation by remember { mutableStateOf(false) }
     var showDailyTraining by remember { mutableStateOf(false) }
@@ -293,6 +294,7 @@ private fun BeatriceHome() {
             "word-tools" -> showWordTools = true
             "number-practice" -> showNumberPractice = true
             "vocabulary-practice" -> showVocabularyPractice = true
+            "vocabulary-notebook" -> showVocabularyNotebook = true
             "article-quiz" -> {
                 val item = articleCategories.firstOrNull { it.id == lastActivityId }
                 if (item != null) selectedArticleCategory = item else showLearningHub = true
@@ -310,12 +312,14 @@ private fun BeatriceHome() {
         habitStats = StudyHabitStore.load(context)
         pendingReviewCount = LearningReviewStore.pendingCount(context)
         progressStats = LearningProgressStore.load(context)
+        rewardPoints = RewardPointsStore.load(context)
     }
 
     fun recordScore(score: Int, total: Int, activityKey: String) {
         if (total <= 0) return
         habitStats = StudyHabitStore.recordSession(context)
         pendingReviewCount = LearningReviewStore.pendingCount(context)
+        rewardPoints = RewardPointsStore.recordTestResult(context, activityKey, score, total)
         progressStats = if (score == total) {
             LearningProgressStore.recordPerfectSession(context, activityKey)
         } else {
@@ -760,6 +764,8 @@ private fun BeatriceHome() {
                             )
                         }
 
+                        RewardPointsCard(progress = rewardPoints)
+
                         Card(
                             onClick = {
                                 saveLastActivity("daily-training", "daily-training", "Osobní denní trénink")
@@ -820,13 +826,6 @@ private fun BeatriceHome() {
                             }
                         }
 
-                        Text("Procvičuj", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                        FeatureCard(
-                            icon = { Icon(Icons.Default.LibraryBooks, contentDescription = null, tint = ForestText) },
-                            title = "Můj slovníček",
-                            subtitle = "${VocabularyNotebookStore.count(context) + ReadingWordNotebookStore.entries(context).size} uložených slov · vlastní procvičování",
-                            onClick = { showVocabularyNotebook = true }
-                        )
                         FeatureCard(
                             icon = { Icon(Icons.Default.MenuBook, contentDescription = null, tint = ForestText) },
                             title = "Kurzy",
@@ -853,6 +852,15 @@ private fun BeatriceHome() {
                                 saveLastActivity("dialogue", "dialogue", "Řízené dialogy s Beatrice")
                                 dialogueOpenedFromHub = false
                                 showConversation = true
+                            }
+                        )
+                        FeatureCard(
+                            icon = { Icon(Icons.Default.LibraryBooks, contentDescription = null, tint = ForestText) },
+                            title = "Můj slovníček",
+                            subtitle = "${VocabularyNotebookStore.count(context) + ReadingWordNotebookStore.entries(context).size} uložených slov · vlastní procvičování",
+                            onClick = {
+                                saveLastActivity("vocabulary-notebook", "my-notebook", "Můj slovníček")
+                                showVocabularyNotebook = true
                             }
                         )
                     }
@@ -1037,6 +1045,16 @@ private fun BeatriceHome() {
                             onClick = {
                                 saveLastActivity("word-tools", "word-tools", "Slovní nástroje")
                                 showWordTools = true
+                            }
+                        )
+                        FeatureTile(
+                            modifier = Modifier.fillMaxWidth(),
+                            icon = { Icon(Icons.Default.LibraryBooks, contentDescription = null, tint = ForestText) },
+                            title = "Můj slovníček",
+                            subtitle = "${VocabularyNotebookStore.count(context) + ReadingWordNotebookStore.entries(context).size} uložených slov · vlastní procvičování",
+                            onClick = {
+                                saveLastActivity("vocabulary-notebook", "my-notebook", "Můj slovníček")
+                                showVocabularyNotebook = true
                             }
                         )
                     }
