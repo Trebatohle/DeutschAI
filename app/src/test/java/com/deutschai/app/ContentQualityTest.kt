@@ -226,6 +226,24 @@ class ContentQualityTest {
     }
 
     @Test
+    fun everySentenceCourseKeepsTwentyFiveFourChoiceIntroductionQuestions() {
+        sentenceCourseCatalog.forEach { course ->
+            val questions = sentenceCourseQuestions(course.id)
+            assertEquals("${course.id} must keep 25 introduction questions", 25, questions.size)
+            questions.forEachIndexed { index, question ->
+                assertEquals("${course.id} question $index must have four choices", 4, question.choices.size)
+                assertEquals("${course.id} question $index must have unique choices", 4, question.choices.toSet().size)
+                assertTrue(
+                    "${course.id} question $index must point to the correct German phrase",
+                    question.correctIndex in question.choices.indices &&
+                        question.choices[question.correctIndex] == question.germanSentence
+                )
+                assertTrue("${course.id} question $index needs a Czech prompt", question.prompt.isNotBlank())
+            }
+        }
+    }
+
+    @Test
     fun writtenGermanAnswersAreStrictExceptForHarmlessWhitespaceAndExplicitAlternatives() {
         val question = LessonQuestion(
             prompt = "Přelož do němčiny.",
