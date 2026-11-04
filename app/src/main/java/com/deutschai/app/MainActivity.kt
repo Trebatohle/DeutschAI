@@ -206,6 +206,7 @@ private fun BeatriceHome() {
 
     var showConversation by remember { mutableStateOf(false) }
     var showDailyTraining by remember { mutableStateOf(false) }
+    var dailyTrainingReturnToOverview by remember { mutableStateOf(false) }
     var showPlacementAssessment by remember { mutableStateOf(false) }
     var showLearningOverview by remember { mutableStateOf(false) }
     var showWordTools by remember { mutableStateOf(false) }
@@ -241,6 +242,7 @@ private fun BeatriceHome() {
     fun navigateHome() {
         showConversation = false
         showDailyTraining = false
+        dailyTrainingReturnToOverview = false
         showPlacementAssessment = false
         showLearningOverview = false
         showWordTools = false
@@ -347,7 +349,12 @@ private fun BeatriceHome() {
         LearningOverviewScreen(
             onBack = { showLearningOverview = false; selectedTab = "Pokroky" },
             onPlacementTest = { showLearningOverview = false; showPlacementAssessment = true },
-            onHome = { navigateHome() }
+            onHome = { navigateHome() },
+            onStartTraining = {
+                dailyTrainingReturnToOverview = true
+                showLearningOverview = false
+                showDailyTraining = true
+            }
         )
         return
     }
@@ -376,7 +383,13 @@ private fun BeatriceHome() {
 
     if (showDailyTraining) {
         DailyTrainingScreen(
-            onBack = { showDailyTraining = false },
+            onBack = {
+                showDailyTraining = false
+                if (dailyTrainingReturnToOverview) {
+                    dailyTrainingReturnToOverview = false
+                    showLearningOverview = true
+                }
+            },
             onHome = { navigateHome() },
             onComplete = { score, total ->
                 CourseResultStore.save(context, "daily_training", score, total)
