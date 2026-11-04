@@ -36,7 +36,8 @@ import androidx.compose.ui.unit.sp
 internal fun LearningOverviewScreen(
     onBack: () -> Unit,
     onPlacementTest: () -> Unit,
-    onHome: () -> Unit = onBack
+    onHome: () -> Unit = onBack,
+    onStartTraining: () -> Unit
 ) {
     val context = LocalContext.current
     val skillStats = LearningReviewStore.skillStats(context)
@@ -228,6 +229,17 @@ internal fun LearningOverviewScreen(
                             }
                         }
                     }
+                }
+            }
+
+            if (recurringMistakes.isNotEmpty() || dueCount > 0) {
+                Button(
+                    onClick = onStartTraining,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
+                    shape = RoundedCornerShape(13.dp)
+                ) {
+                    Text("Procvičit doporučené položky", fontWeight = FontWeight.Bold)
                 }
             }
 
