@@ -803,6 +803,15 @@ class ContentQualityTest {
         assertTrue(questions.any { it.czechPrompt == table.czech && it.answerGerman == "der Tisch" })
         assertTrue(questions.any { it.czechPrompt == "rozhodnout" && it.answerGerman == "entscheiden" })
         assertTrue(questions.all { it.exampleGerman.isNotBlank() })
+        questions.forEach { question ->
+            assertTrue(question.reviewChoices.size >= 2)
+            assertEquals(
+                "The correct German term must appear among review choices",
+                1,
+                question.reviewChoices.count { it == question.answerGerman }
+            )
+            assertTrue("Review choices must be unique", question.reviewChoices.size == question.reviewChoices.toSet().size)
+        }
     }
 
     @Test
@@ -933,6 +942,29 @@ class ContentQualityTest {
             assertEquals(question.source.courseTitle, question.choices[question.correctIndex])
             assertTrue(question.listeningText.split(Regex("\\s+")).size > 5)
         }
+    }
+
+    @Test
+    fun listeningModesKeepIndependentReviewHistoryForTheSamePhrase() {
+        val meaning = buildListeningQuestions(
+            "A1",
+            ListeningExerciseMode.MEANING,
+            count = 10,
+            random = kotlin.random.Random(301)
+        )
+        val gap = buildListeningQuestions(
+            "A1",
+            ListeningExerciseMode.GAP,
+            count = 10,
+            random = kotlin.random.Random(302)
+        )
+        val sharedPhrase = meaning.firstOrNull { candidate ->
+            gap.any { it.source.courseId == candidate.source.courseId && it.source.itemIndex == candidate.source.itemIndex }
+        } ?: error("The deterministic listening sets should share at least one phrase")
+        val matchingGap = gap.single {
+            it.source.courseId == sharedPhrase.source.courseId && it.source.itemIndex == sharedPhrase.source.itemIndex
+        }
+        assertNotEquals(sharedPhrase.id, matchingGap.id)
     }
 
     @Test
