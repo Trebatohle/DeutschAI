@@ -202,6 +202,38 @@ class ContentQualityTest {
     }
 
     @Test
+    fun rewardPointsAreOnlyEarnedForPerfectResultsAndOnlyOncePerUniqueTest() {
+        assertFalse(qualifiesForRewardPoint(9, 10))
+        assertFalse(qualifiesForRewardPoint(10, 0))
+        assertTrue(qualifiesForRewardPoint(10, 10))
+
+        val firstAward = addRewardedTest(emptySet(), "sentence_a1_greetings")
+        assertEquals(1, firstAward.size)
+
+        val sameTestAgain = addRewardedTest(firstAward, "sentence_a1_greetings")
+        assertEquals("Repeating the same test must not award another point", 1, sameTestAgain.size)
+
+        val secondTest = addRewardedTest(sameTestAgain, "sentence_a1_shopping")
+        assertEquals(2, secondTest.size)
+    }
+
+    @Test
+    fun fifteenUniquePerfectTestsUnlockTheFifteenPercentLicenseReward() {
+        val beforeUnlock = RewardPointsProgress(14)
+        assertEquals(14, beforeUnlock.displayedPoints)
+        assertEquals(1, beforeUnlock.pointsRemaining)
+        assertEquals(14f / 15f, beforeUnlock.progressFraction, 0.0001f)
+        assertFalse(beforeUnlock.discountUnlocked)
+
+        val unlocked = RewardPointsProgress(15)
+        assertEquals(15, unlocked.displayedPoints)
+        assertEquals(0, unlocked.pointsRemaining)
+        assertEquals(1f, unlocked.progressFraction)
+        assertTrue(unlocked.discountUnlocked)
+        assertEquals(15, LICENSE_DISCOUNT_PERCENT)
+    }
+
+    @Test
     fun sentenceLessonPracticeUsesFiveWritingAndFiveDifferentDictationQuestions() {
         val course = sentenceCourseCatalog.first { it.level == "A1" }
         val questions = sentenceCourseQuestions(course.id)
