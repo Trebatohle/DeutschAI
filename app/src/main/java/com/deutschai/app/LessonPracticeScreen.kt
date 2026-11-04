@@ -63,10 +63,12 @@ internal fun LessonPracticeScreen(
         mutableStateOf(selection.introduction.map { LessonExercise(it, LessonExerciseMode.INTRODUCTION) })
     }
     var questionIndex by remember(lesson.id) { mutableStateOf(0) }
+    var selectedChoice by remember(lesson.id) { mutableStateOf<Int?>(null) }
     var answer by remember(lesson.id) { mutableStateOf(TextFieldValue("")) }
     var answerChecked by remember(lesson.id) { mutableStateOf(false) }
     var answerCorrect by remember(lesson.id) { mutableStateOf(false) }
 
+    var introductionScore by remember(lesson.id) { mutableStateOf(0) }
     var writingScore by remember(lesson.id) { mutableStateOf(0) }
     var dictationScore by remember(lesson.id) { mutableStateOf(0) }
     var wrongTasks by remember(lesson.id) { mutableStateOf(emptyList<LessonExercise>()) }
@@ -75,6 +77,7 @@ internal fun LessonPracticeScreen(
     var completionRecorded by remember(lesson.id) { mutableStateOf(false) }
 
     fun clearAnswer() {
+        selectedChoice = null
         answer = TextFieldValue("")
         answerChecked = false
         answerCorrect = false
@@ -83,9 +86,9 @@ internal fun LessonPracticeScreen(
     fun finishLesson() {
         stage = LessonPracticeStage.COMPLETE
         if (!completionRecorded) {
-            val totalCorrect = writingScore + dictationScore
-            CourseResultStore.save(context, "sentence_${lesson.id}", totalCorrect, 10)
-            onComplete(totalCorrect, 10)
+            val totalCorrect = introductionScore + writingScore + dictationScore
+            CourseResultStore.save(context, "sentence_${lesson.id}", totalCorrect, 35)
+            onComplete(totalCorrect, 35)
             completionRecorded = true
         }
     }
@@ -97,6 +100,7 @@ internal fun LessonPracticeScreen(
         }
         stage = LessonPracticeStage.INTRODUCTION
         questionIndex = 0
+        introductionScore = 0
         writingScore = 0
         dictationScore = 0
         wrongTasks = emptyList()
@@ -146,6 +150,47 @@ internal fun LessonPracticeScreen(
                 finishLesson()
             }
             LessonPracticeStage.COMPLETE -> Unit
+        }
+    }
+
+    fun chooseMultipleChoiceAnswer(choiceIndex: Int) {
+        if (selectedChoice != null) return
+        val task = tasks.getOrNull(questionIndex) ?: return
+        if (task.mode != LessonExerciseMode.INTRODUCTION) return
+
+        val question = task.question
+        val correct = choiceIndex == question.correctIndex
+        selectedChoice = choiceIndex
+
+        when (stage) {
+            LessonPracticeStage.INTRODUCTION -> {
+                if (correct) introductionScore += 1 else wrongTasks = wrongTasks + task
+            }
+            LessonPracticeStage.REVIEW -> {
+                if (!correct) reviewRoundMistakes = reviewRoundMistakes + task
+            }
+            else -> Unit
+        }
+
+        val sourceIndex = lesson.questions.indexOfFirst {
+            it.germanSentence == question.germanSentence &&
+                it.translation == question.translation
+        }
+        if (sourceIndex >= 0) {
+            val reviewQuestion = question.toReviewQuestion(
+                id = stableReviewId("sentence", lesson.id, sourceIndex.toString()),
+                sourceKind = "sentences",
+                sourceTitle = lesson.title
+            )
+            LearningReviewStore.recordAnswer(
+                context = context,
+                question = reviewQuestion,
+                wasCorrect = correct,
+                isMistakeReview = stage == LessonPracticeStage.REVIEW
+            )
+            if (!correct) {
+                markPhraseNeedsReview(context, lesson.level, lesson.id, sourceIndex)
+            }
         }
     }
 
@@ -269,13 +314,19 @@ internal fun LessonPracticeScreen(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            "${writingScore + dictationScore} z 10",
+                            "${introductionScore + writingScore + dictationScore} z 35",
                             color = Gold,
                             fontSize = 32.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            "Psaní: $writingScore z 5  ·  Poslech: $dictationScore z 5",
+                            "Úvodní test: $introductionScore / 25",
+                            color = Color(0xFFE0EAE5),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            "Psaní: $writingScore / 5  ·  Poslech: $dictationScore / 5",
                             color = Color(0xFFE0EAE5),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold
@@ -328,8 +379,7 @@ internal fun LessonPracticeScreen(
             } else if (currentTask != null && currentQuestion != null) {
                 Text(
                     text = when (stage) {
-                        LessonPracticeStage.INTRODUCTION ->
-                            "Věty ${questionIndex + 1}–${minOf(questionIndex + 5, tasks.size)} z ${tasks.size}"
+                        LessonPracticeStage.INTRODUCTION -> "Otázka ${questionIndex + 1} z ${tasks.size}"
                         LessonPracticeStage.REVIEW -> "Chyba ${questionIndex + 1} z ${tasks.size}"
                         else -> "Otázka ${questionIndex + 1} z ${tasks.size}"
                     },
@@ -338,91 +388,123 @@ internal fun LessonPracticeScreen(
                     fontWeight = FontWeight.Bold
                 )
 
-                if (stage == LessonPracticeStage.INTRODUCTION) {
-                    val pageTasks = tasks.drop(questionIndex).take(5)
+                if (currentTask.mode == LessonExerciseMode.INTRODUCTION) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(22.dp),
+                        shape = RoundedCornerShape(24.dp),
                         colors = CardDefaults.cardColors(containerColor = CardSurface)
                     ) {
                         Column(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                            verticalArrangement = Arrangement.spacedBy(5.dp)
+                            modifier = Modifier.padding(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            pageTasks.forEachIndexed { index, item ->
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 6.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Column(
-                                        modifier = Modifier.weight(1f),
-                                        verticalArrangement = Arrangement.spacedBy(3.dp)
-                                    ) {
-                                        Text(
-                                            item.question.germanSentence,
-                                            color = Ink,
-                                            fontSize = 16.sp,
-                                            lineHeight = 22.sp,
-                                            fontWeight = FontWeight.SemiBold
-                                        )
-                                        Text(
-                                            item.question.translation,
-                                            color = Muted,
-                                            fontSize = 13.sp,
-                                            lineHeight = 18.sp
-                                        )
-                                    }
-                                    IconButton(
-                                        onClick = { speaker.speak(item.question.germanSentence) },
-                                        enabled = speaker.status == GermanVoiceStatus.READY
-                                    ) {
-                                        Icon(
-                                            Icons.Default.VolumeUp,
-                                            contentDescription = "Přehrát německou větu",
-                                            tint = ActionColor,
-                                            modifier = Modifier.size(23.dp)
-                                        )
-                                    }
+                            Text(
+                                currentQuestion.prompt,
+                                color = Ink,
+                                fontSize = 21.sp,
+                                lineHeight = 28.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            currentQuestion.choices.forEachIndexed { index, choice ->
+                                val choiceColor = when {
+                                    selectedChoice == null -> OptionSurface
+                                    index == currentQuestion.correctIndex -> Correct
+                                    index == selectedChoice -> Incorrect
+                                    else -> OptionSurface
                                 }
-                                if (index < pageTasks.lastIndex) {
-                                    Box(
+                                Card(
+                                    onClick = { chooseMultipleChoiceAnswer(index) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(14.dp),
+                                    colors = CardDefaults.cardColors(containerColor = choiceColor)
+                                ) {
+                                    Text(
+                                        text = choice,
+                                        color = Ink,
+                                        fontSize = 16.sp,
+                                        fontWeight = if (
+                                            selectedChoice != null && index == currentQuestion.correctIndex
+                                        ) FontWeight.Bold else FontWeight.Medium,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(1.dp)
-                                            .background(OptionSurface)
+                                            .padding(horizontal = 16.dp, vertical = 15.dp)
                                     )
                                 }
                             }
                         }
                     }
 
-                    if (speaker.status != GermanVoiceStatus.READY) {
-                        Text(
-                            "Pro přehrávání je potřeba dostupný offline německý hlas (de-DE).",
-                            color = Muted,
-                            fontSize = 12.sp,
-                            lineHeight = 17.sp
-                        )
-                    }
-
-                    Button(
-                        onClick = {
-                            if (questionIndex + 5 < tasks.size) {
-                                questionIndex += 5
-                            } else {
-                                beginWriting()
+                    if (selectedChoice != null) {
+                        val wasCorrect = selectedChoice == currentQuestion.correctIndex
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(18.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (wasCorrect) Correct else Incorrect
+                            )
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    if (wasCorrect) "Správně! Gut gemacht!" else "To nevadí — učíme se.",
+                                    color = ForestText,
+                                    fontSize = 17.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    "Celá věta:",
+                                    color = ForestText,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    currentQuestion.germanSentence,
+                                    color = Ink,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    lineHeight = 25.sp
+                                )
+                                GermanAudioControls(
+                                    player = speaker,
+                                    text = currentQuestion.germanSentence
+                                )
+                                Text(
+                                    "Česky:",
+                                    color = ForestText,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    currentQuestion.translation,
+                                    color = Ink,
+                                    fontSize = 15.sp,
+                                    lineHeight = 22.sp
+                                )
                             }
-                        },
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
-                        shape = RoundedCornerShape(14.dp)
-                    ) {
+                        }
+
+                        Button(
+                            onClick = { advance() },
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = ActionColor,
+                                contentColor = ActionText
+                            ),
+                            shape = RoundedCornerShape(14.dp)
+                        ) {
+                            Text(
+                                if (questionIndex == tasks.lastIndex) "Pokračovat k psaní" else "Další otázka",
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    } else {
                         Text(
-                            if (questionIndex + 5 < tasks.size) "Další skupina" else "Začít psaní",
-                            fontWeight = FontWeight.Bold
+                            "Vyber jednu odpověď. Po výběru uvidíš správnou větu i její překlad.",
+                            color = Muted,
+                            fontSize = 13.sp,
+                            lineHeight = 19.sp
                         )
                     }
                 } else {
