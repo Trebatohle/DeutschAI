@@ -950,13 +950,13 @@ class ContentQualityTest {
             "A1",
             ListeningExerciseMode.MEANING,
             count = 10,
-            random = kotlin.random.Random(301)
+            random = kotlin.random.Random(300)
         )
         val gap = buildListeningQuestions(
             "A1",
             ListeningExerciseMode.GAP,
             count = 10,
-            random = kotlin.random.Random(302)
+            random = kotlin.random.Random(300)
         )
         val sharedPhrase = meaning.firstOrNull { candidate ->
             gap.any { it.source.courseId == candidate.source.courseId && it.source.itemIndex == candidate.source.itemIndex }
