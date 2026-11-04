@@ -5,6 +5,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.security.MessageDigest
 import java.time.LocalDate
+import kotlin.math.roundToInt
 
 internal data class ReviewQuestion(
     val id: String,
@@ -48,6 +49,25 @@ internal object LearningReviewStore {
     fun due(context: Context, nowMillis: Long = System.currentTimeMillis()): List<ReviewMemoryEntry> =
         all(context).filter { it.dueAtMillis <= nowMillis }
 
+    /** Prioritizes items that repeatedly caused difficulty, while keeping older due items first within a tie. */
+    fun prioritizedDue(context: Context, nowMillis: Long = System.currentTimeMillis()): List<ReviewMemoryEntry> =
+        due(context, nowMillis).sortedWith(
+            compareByDescending<ReviewMemoryEntry> { it.wrongCount }
+                .thenBy { it.dueAtMillis }
+                .thenBy { it.lastAnsweredAtMillis }
+        )
+
+    /** Repeatedly missed items surfaced in the knowledge overview. */
+    fun recurringMistakes(context: Context, limit: Int = 5): List<ReviewMemoryEntry> =
+        all(context)
+            .filter { it.wrongCount >= 2 }
+            .sortedWith(
+                compareByDescending<ReviewMemoryEntry> { it.wrongCount }
+                    .thenBy { it.correctStreak }
+                    .thenByDescending { it.lastAnsweredAtMillis }
+            )
+            .take(limit.coerceAtLeast(0))
+
     /** Number of questions currently ready to be reviewed across all learning areas. */
     fun pendingCount(context: Context, nowMillis: Long = System.currentTimeMillis()): Int =
         due(context, nowMillis).size
@@ -75,8 +95,13 @@ internal object LearningReviewStore {
 
         val updated = if (wasCorrect) {
             val nextStreak = (previous?.correctStreak ?: 0) + 1
-            val schedule = listOf(1, 3, 7, 14, 30)
-            val nextInterval = schedule[(nextStreak - 1).coerceIn(schedule.indices)]
+            val nextInterval = calculateNextReviewIntervalDays(
+                correctStreak = previous?.correctStreak ?: 0,
+                previousIntervalDays = previous?.intervalDays ?: 0,
+                wrongCount = wrong,
+                attemptCount = previous?.attemptCount ?: 0,
+                correctCount = previous?.correctCount ?: 0
+            )
             ReviewMemoryEntry(
                 question = question,
                 wrongCount = wrong,
@@ -92,8 +117,10 @@ internal object LearningReviewStore {
                 question = question,
                 wrongCount = wrong + 1,
                 correctStreak = 0,
-                intervalDays = if (isMistakeReview) 1 else 0,
-                dueAtMillis = if (isMistakeReview) nowMillis + DAY_MILLIS else nowMillis,
+                intervalDays = 0,
+                // A normal quiz mistake gets a short cooldown; a mistake already reviewed
+                // in the daily session returns tomorrow instead of looping immediately.
+                dueAtMillis = nowMillis + if (isMistakeReview) DAY_MILLIS else 10L * 60L * 1000L,
                 attemptCount = attempts,
                 correctCount = correct,
                 lastAnsweredAtMillis = nowMillis
@@ -224,6 +251,38 @@ internal object LearningReviewStore {
             germanSentence = optString("germanSentence", ""),
             translation = optString("translation", "")
         )
+    }
+}
+
+/**
+ * Gradually lengthens successful review intervals. Early steps stay predictable;
+ * later steps adapt to the learner's historical accuracy and recurring mistakes.
+ */
+internal fun calculateNextReviewIntervalDays(
+    correctStreak: Int,
+    previousIntervalDays: Int,
+    wrongCount: Int,
+    attemptCount: Int,
+    correctCount: Int
+): Int {
+    val nextStreak = correctStreak + 1
+    return when (nextStreak) {
+        1 -> 1
+        2 -> 3
+        3 -> 7
+        4 -> 14
+        else -> {
+            val accuracy = if (attemptCount <= 0) 1f
+                else (correctCount.toFloat() / attemptCount.toFloat()).coerceIn(0f, 1f)
+            val multiplier = when {
+                wrongCount >= 3 || accuracy < 0.65f -> 1.35f
+                accuracy >= 0.90f -> 2.0f
+                else -> 1.7f
+            }
+            (previousIntervalDays.coerceAtLeast(14) * multiplier)
+                .roundToInt()
+                .coerceIn(previousIntervalDays.coerceAtLeast(14) + 1, 60)
+        }
     }
 }
 
