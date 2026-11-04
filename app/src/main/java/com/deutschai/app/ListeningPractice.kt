@@ -40,6 +40,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.random.Random
 
+internal fun markPhraseNeedsReview(
+    context: Context,
+    level: String,
+    courseId: String,
+    itemIndex: Int
+) {
+    val key = "${level}_${courseId}_${itemIndex}"
+    val prefs = context.applicationContext.getSharedPreferences(
+        "deutschai_smart_phrase_review",
+        Context.MODE_PRIVATE
+    )
+    prefs.edit()
+        .putLong("${key}_due", System.currentTimeMillis())
+        .putInt("${key}_mistakes", prefs.getInt("${key}_mistakes", 0) + 1)
+        .apply()
+}
+
 internal enum class ListeningExerciseMode(
     val title: String,
     val description: String
