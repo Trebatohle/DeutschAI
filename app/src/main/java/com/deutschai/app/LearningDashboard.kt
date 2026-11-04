@@ -43,6 +43,7 @@ internal fun LearningOverviewScreen(
     val totalAnswered = LearningReviewStore.totalAnswered(context)
     val masteredCount = LearningReviewStore.masteredCount(context)
     val dueCount = LearningReviewStore.pendingCount(context)
+    val recurringMistakes = LearningReviewStore.recurringMistakes(context, limit = 5)
     val placement = PlacementAssessmentStore.load(context)
     val weakest = skillStats.filter { it.attempts >= 5 }.minByOrNull { it.accuracyPercent }
 
@@ -147,6 +148,84 @@ internal fun LearningOverviewScreen(
                                 },
                                 color = Muted, fontSize = 12.sp, lineHeight = 17.sp
                             )
+                        }
+                    }
+                }
+            }
+
+            Text("Opakující se chyby", color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(
+                "Tady se zobrazují položky, u kterých se chyba opakovala. Jsou zahrnuté také v dlouhodobém opakování a denní trénink jim dává přednost.",
+                color = Muted, fontSize = 13.sp, lineHeight = 19.sp
+            )
+            if (recurringMistakes.isEmpty()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(17.dp),
+                    colors = CardDefaults.cardColors(containerColor = CardSurface)
+                ) {
+                    Text(
+                        "Zatím nemáme zaznamenanou opakující se chybu. Jakmile se některá položka objeví jako problém opakovaně, zobrazí se zde.",
+                        modifier = Modifier.padding(16.dp),
+                        color = Muted, fontSize = 13.sp, lineHeight = 20.sp
+                    )
+                }
+            } else {
+                recurringMistakes.forEach { entry ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(17.dp),
+                        colors = CardDefaults.cardColors(containerColor = CardSurface)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(15.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    entry.question.sourceTitle,
+                                    color = ForestText,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    "Chyby: ${entry.wrongCount}×",
+                                    color = Muted,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                            Text(
+                                entry.question.prompt,
+                                color = Ink,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                lineHeight = 20.sp
+                            )
+                            if (entry.question.germanSentence.isNotBlank()) {
+                                Text(
+                                    entry.question.germanSentence,
+                                    color = Ink,
+                                    fontSize = 14.sp,
+                                    lineHeight = 20.sp
+                                )
+                            }
+                            val correctAnswer = entry.question.choices.getOrNull(entry.question.correctIndex)
+                            if (!correctAnswer.isNullOrBlank()) {
+                                Text(
+                                    "Správná odpověď: $correctAnswer",
+                                    color = ForestText,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                            if (entry.question.translation.isNotBlank()) {
+                                Text(entry.question.translation, color = Muted, fontSize = 12.sp)
+                            }
                         }
                     }
                 }
