@@ -389,6 +389,23 @@ internal fun LessonPracticeScreen(
                 )
 
                 if (currentTask.mode == LessonExerciseMode.INTRODUCTION) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        repeat(tasks.size) { index ->
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(6.dp)
+                                    .background(
+                                        color = if (index <= questionIndex) Forest else Color(0xFFE3E5DF),
+                                        shape = CircleShape
+                                    )
+                            )
+                        }
+                    }
+
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(24.dp),
