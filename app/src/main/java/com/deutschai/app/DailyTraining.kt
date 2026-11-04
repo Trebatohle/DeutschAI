@@ -112,13 +112,17 @@ internal fun makeDailyTrainingQuestions(
     context: android.content.Context,
     nowMillis: Long = System.currentTimeMillis()
 ): List<ReviewQuestion> {
-    val due = LearningReviewStore.due(context, nowMillis)
-        .map { it.question }
-        .distinctBy { it.id }
-        .take(6)
+    val history = LearningReviewStore.all(context).associateBy { it.question.id }
+    val dueEntries = LearningReviewStore.prioritizedDue(context, nowMillis).take(6)
+    val due = dueEntries.map { it.question }.distinctBy { it.id }
     val needed = (10 - due.size).coerceAtLeast(0)
     val dueIds = due.map { it.id }.toSet()
-    val available = buildDailyTrainingPool().filterNot { it.id in dueIds }.shuffled().toMutableList()
+    val availablePool = buildDailyTrainingPool().filterNot { it.id in dueIds }
+    // Prefer unseen material first; previously practiced material remains available for variety.
+    val available = (
+        availablePool.filterNot { it.id in history } +
+            availablePool.filter { it.id in history }.shuffled()
+        ).toMutableList()
     val kindOrder = listOf("sentences", "wordtools", "articles", "verbs", "wordtools", "sentences", "articles", "verbs", "sentences", "wordtools")
     val fresh = mutableListOf<ReviewQuestion>()
 
@@ -131,7 +135,8 @@ internal fun makeDailyTrainingQuestions(
     if (fresh.size < needed) {
         fresh += available.filterNot { candidate -> fresh.any { it.id == candidate.id } }.take(needed - fresh.size)
     }
-    return (due + fresh).shuffled().take(10)
+    // Keep scheduled reviews at the beginning so the learner sees their due material first.
+    return (due + fresh).take(10)
 }
 
 @Composable
