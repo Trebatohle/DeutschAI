@@ -1099,11 +1099,11 @@ private fun BeatriceHome() {
             }
 
             Surface(
-                modifier = Modifier.fillMaxWidth().height(62.dp),
+                modifier = Modifier.fillMaxWidth().height(68.dp),
                 color = CardSurface
             ) {
                 Row(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 3.dp),
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 2.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     MainBottomTab(
@@ -1732,7 +1732,7 @@ private fun MainBottomTab(
         verticalArrangement = Arrangement.Center
     ) {
         Box(
-            modifier = Modifier.size(width = 58.dp, height = 29.dp)
+            modifier = Modifier.size(width = 64.dp, height = 34.dp)
                 .background(if (selected) Mint else Color.Transparent, RoundedCornerShape(18.dp)),
             contentAlignment = Alignment.Center
         ) {
@@ -1740,14 +1740,14 @@ private fun MainBottomTab(
                 imageVector = icon,
                 contentDescription = label,
                 tint = if (selected) ForestText else Muted,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(24.dp)
             )
         }
         Text(
             label,
             color = if (selected) ForestText else Muted,
-            fontSize = 10.sp,
-            lineHeight = 12.sp,
+            fontSize = 12.sp,
+            lineHeight = 14.sp,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
         )
     }
