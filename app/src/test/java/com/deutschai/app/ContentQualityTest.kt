@@ -1087,4 +1087,138 @@ class ContentQualityTest {
         assertFalse(enriched.choices.contains("Jiná odpověď"))
     }
 
+
+    @Test
+    fun homeRecommendationPrioritizesDueReviewsFromTheNextDueSkill() {
+        val dueArticle = studyPlanTestEntry(
+            id = "due-article",
+            sourceKind = "articles",
+            attempts = 3,
+            correct = 1,
+            wrongCount = 2
+        )
+        val dueSentence = studyPlanTestEntry(
+            id = "due-sentence",
+            sourceKind = "sentences",
+            attempts = 2,
+            correct = 1,
+            wrongCount = 1
+        )
+
+        val recommendation = buildHomeStudyRecommendation(
+            allEntries = listOf(dueArticle, dueSentence),
+            dueEntries = listOf(dueArticle, dueSentence),
+            hasPlacementResult = true,
+            hasLastActivity = true
+        )
+
+        assertEquals(HomeRecommendationType.REVIEW_DUE, recommendation.type)
+        assertEquals("articles", recommendation.sourceKind)
+        assertEquals(2, recommendation.dueCount)
+        assertEquals("Spustit denní trénink", recommendation.actionLabel)
+        assertTrue(recommendation.explanation.contains("opakovaně pletly"))
+    }
+
+    @Test
+    fun homeRecommendationSelectsWeakSkillOnlyFromRecordedAccuracy() {
+        val weakerArticles = (1..4).map { index ->
+            studyPlanTestEntry(
+                id = "article-$index",
+                sourceKind = "articles",
+                attempts = 1,
+                correct = 0,
+                wrongCount = 1
+            )
+        }
+        val strongerVocabulary = (1..5).map { index ->
+            studyPlanTestEntry(
+                id = "vocabulary-$index",
+                sourceKind = "vocabulary",
+                attempts = 1,
+                correct = 1,
+                wrongCount = 0
+            )
+        }
+
+        val summaries = summarizeLearningSkillPerformance(weakerArticles + strongerVocabulary)
+        assertEquals(4, summaries.first().attempts)
+        assertEquals(0, summaries.first().accuracyPercent)
+
+        val recommendation = buildHomeStudyRecommendation(
+            allEntries = weakerArticles + strongerVocabulary,
+            dueEntries = emptyList(),
+            hasPlacementResult = true,
+            hasLastActivity = false
+        )
+
+        assertEquals(HomeRecommendationType.FOCUS_SKILL, recommendation.type)
+        assertEquals("articles", recommendation.sourceKind)
+        assertEquals(0, recommendation.accuracyPercent)
+        assertTrue(recommendation.explanation.contains("4 odpovědí"))
+    }
+
+    @Test
+    fun homeRecommendationNeverInventsAWeakSkillFromLegacyEntriesWithoutAttemptCounts() {
+        val legacyEntry = studyPlanTestEntry(
+            id = "legacy-article",
+            sourceKind = "articles",
+            attempts = 0,
+            correct = 0,
+            wrongCount = 4
+        )
+
+        val recommendation = buildHomeStudyRecommendation(
+            allEntries = listOf(legacyEntry),
+            dueEntries = emptyList(),
+            hasPlacementResult = true,
+            hasLastActivity = false
+        )
+
+        assertEquals(HomeRecommendationType.EXPLORE_LIBRARY, recommendation.type)
+        assertEquals(null, recommendation.accuracyPercent)
+        assertTrue(summarizeLearningSkillPerformance(listOf(legacyEntry)).isEmpty())
+    }
+
+    @Test
+    fun homeRecommendationStartsWithPlacementWhenThereIsNoLearningEvidence() {
+        val recommendation = buildHomeStudyRecommendation(
+            allEntries = emptyList(),
+            dueEntries = emptyList(),
+            hasPlacementResult = false,
+            hasLastActivity = false
+        )
+
+        assertEquals(HomeRecommendationType.PLACEMENT, recommendation.type)
+        assertEquals("Zjistit svou úroveň", recommendation.actionLabel)
+        assertEquals(8, recommendation.estimatedMinutes)
+    }
+
+    private fun studyPlanTestEntry(
+        id: String,
+        sourceKind: String,
+        attempts: Int,
+        correct: Int,
+        wrongCount: Int
+    ): ReviewMemoryEntry {
+        val question = ReviewQuestion(
+            id = id,
+            sourceKind = sourceKind,
+            sourceTitle = "Test",
+            prompt = "Vyber správnou odpověď.",
+            choices = listOf("A", "B"),
+            correctIndex = 0,
+            explanation = "Testovací vysvětlení."
+        )
+        return ReviewMemoryEntry(
+            question = question,
+            wrongCount = wrongCount,
+            correctStreak = if (correct > 0) 1 else 0,
+            intervalDays = if (correct > 0) 1 else 0,
+            dueAtMillis = 1L,
+            attemptCount = attempts,
+            correctCount = correct,
+            lastAnsweredAtMillis = 100L
+        )
+    }
+
 }
