@@ -954,6 +954,37 @@ class ContentQualityTest {
     }
 
     @Test
+    fun listeningConfidenceOffersExactlyThreeFixedIntervals() {
+        val options = listeningConfidenceOptions()
+        assertEquals(3, options.size)
+        assertEquals(
+            listOf(10L * 60L * 1000L, 24L * 60L * 60L * 1000L, 14L * 24L * 60L * 60L * 1000L),
+            options.map { it.intervalMillis }
+        )
+        assertEquals(listOf("Zatím ne", "Ještě si nejsem jistý", "Umím"), options.map { it.title })
+        assertEquals(listOf("Znovu", "Zítra", "Za 14 dní"), options.map { it.subtitle })
+    }
+
+    @Test
+    fun gapListeningCreatesOnlyTheRequestedTwentyFiveQuestionSession() {
+        val questions = buildListeningQuestions(
+            level = "A1",
+            mode = ListeningExerciseMode.GAP,
+            count = 25,
+            random = kotlin.random.Random(404)
+        )
+        assertEquals(25, questions.size)
+        assertEquals(25, questions.map { it.id }.toSet().size)
+        questions.forEach { question ->
+            assertEquals(4, question.choices.size)
+            assertEquals(4, question.choices.toSet().size)
+            assertTrue(question.correctIndex in question.choices.indices)
+            assertEquals(question.answerText, question.choices[question.correctIndex])
+            assertTrue(question.displayWithGap.contains("_____"))
+        }
+    }
+
+    @Test
     fun listeningDictationNormalizationIgnoresCapitalizationAndPunctuationButKeepsUmlauts() {
         assertEquals(
             normalizeListeningDictation("Ich habe heute Zeit."),
