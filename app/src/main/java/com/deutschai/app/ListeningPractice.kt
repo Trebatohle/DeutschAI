@@ -57,6 +57,21 @@ internal fun markPhraseNeedsReview(
         .apply()
 }
 
+internal data class ListeningConfidenceOption(
+    val title: String,
+    val subtitle: String,
+    val intervalMillis: Long
+)
+
+internal fun listeningConfidenceOptions(): List<ListeningConfidenceOption> {
+    val dayMillis = 24L * 60L * 60L * 1000L
+    return listOf(
+        ListeningConfidenceOption("Zatím ne", "Znovu", 10L * 60L * 1000L),
+        ListeningConfidenceOption("Ještě si nejsem jistý", "Zítra", dayMillis),
+        ListeningConfidenceOption("Umím", "Za 14 dní", 14L * dayMillis)
+    )
+}
+
 internal enum class ListeningExerciseMode(
     val title: String,
     val description: String
@@ -539,12 +554,7 @@ internal fun ListeningPracticeScreen(
 
                     Text("Jak jistě jsi poslechu porozuměl/a?", color = Ink, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     val phraseKey = "${level}_${question.source.courseId}_${question.source.itemIndex}"
-                    val dayMillis = 24L * 60L * 60L * 1000L
-                    val ratings = listOf(
-                        Triple("Zatím ne", "Znovu", 10L * 60L * 1000L),
-                        Triple("Ještě si nejsem jistý", "Zítra", dayMillis),
-                        Triple("Umím", "Za 14 dní", 14L * dayMillis)
-                    )
+                    val ratings = listeningConfidenceOptions()
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -555,7 +565,7 @@ internal fun ListeningPracticeScreen(
                                     saveListeningConfidence(
                                         context = context,
                                         phraseKey = phraseKey,
-                                        intervalMillis = rating.third,
+                                        intervalMillis = rating.intervalMillis,
                                         reviewQuestion = listeningReviewQuestion(question),
                                         wasCorrect = answerWasCorrect
                                     )
@@ -579,13 +589,13 @@ internal fun ListeningPracticeScreen(
                                     verticalArrangement = Arrangement.spacedBy(3.dp)
                                 ) {
                                     Text(
-                                        rating.first,
+                                        rating.title,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 10.sp,
                                         maxLines = 2,
                                         softWrap = true
                                     )
-                                    Text(rating.second, fontSize = 10.sp, maxLines = 1, softWrap = false)
+                                    Text(rating.subtitle, fontSize = 10.sp, maxLines = 1, softWrap = false)
                                 }
                             }
                         }
