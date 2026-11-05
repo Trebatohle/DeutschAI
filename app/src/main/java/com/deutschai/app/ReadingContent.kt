@@ -140,6 +140,10 @@ private val coreGermanGlossary = mapOf(
     "der Unterschied" to "rozdíl", "die Gemeinsamkeit" to "společný rys", "die Möglichkeit" to "možnost"
 )
 
+private val bundledVocabularyTranslations: Map<String, String> by lazy(LazyThreadSafetyMode.PUBLICATION) {
+    vocabularyCatalog.associate { it.word.lowercase() to it.czech }
+}
+
 internal fun lookupReadingWordTranslation(article: ReadingArticle, rawWord: String): String? {
     val original = rawWord.trim().trim(',', '.', '!', '?', ';', ':', '„', '“', '"', '\'', '(', ')')
     if (original.isBlank()) return null
@@ -186,6 +190,7 @@ internal fun lookupReadingWordTranslation(article: ReadingArticle, rawWord: Stri
         findDictionaryMeaning(article.glossary, candidate)?.let { return it }
         coreGermanGlossary.entries.firstOrNull { it.key.equals(candidate, ignoreCase = true) }?.value?.let { return it }
         findDictionaryMeaning(coreGermanGlossary, candidate)?.let { return it }
+        bundledVocabularyTranslations[candidate]?.let { return it }
     }
     return null
 }
