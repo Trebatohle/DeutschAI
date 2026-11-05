@@ -227,15 +227,19 @@ internal fun buildActiveVocabularyQuestions(
                 reviewChoices = emptyList()
             )
         }
-    val answerPool = baseQuestions.map { it.answerGerman }.distinct()
+    // Use the bundled vocabulary catalogue as a distractor source too, so even a
+    // notebook with a single saved word still produces a real four-option question.
+    val answerPool = (
+        baseQuestions.map { it.answerGerman } +
+            vocabularyCatalog.map { "${it.article} ${it.word}" }
+        ).distinct()
     return baseQuestions.map { question ->
         val distractors = answerPool
             .filterNot { it.equals(question.answerGerman, ignoreCase = true) }
+            .distinctBy { it.lowercase() }
             .shuffled(random)
             .take(3)
         val choices = (distractors + question.answerGerman).shuffled(random)
-            .ifEmpty { listOf(question.answerGerman) }
-            .let { if (it.size == 1) it + "Nevím" else it }
         question.copy(reviewChoices = choices)
     }.shuffled(random).take(count)
 }
