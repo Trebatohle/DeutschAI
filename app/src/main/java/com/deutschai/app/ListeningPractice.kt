@@ -67,7 +67,7 @@ internal fun listeningConfidenceOptions(): List<ListeningConfidenceOption> {
     val dayMillis = 24L * 60L * 60L * 1000L
     return listOf(
         ListeningConfidenceOption("Zatím ne", "Znovu", 10L * 60L * 1000L),
-        ListeningConfidenceOption("Ještě si nejsem jistý", "Zítra", dayMillis),
+        ListeningConfidenceOption("Nejsem si jistý", "Zítra", dayMillis),
         ListeningConfidenceOption("Umím", "Za 14 dní", 14L * dayMillis)
     )
 }
@@ -591,11 +591,19 @@ internal fun ListeningPracticeScreen(
                                     Text(
                                         rating.title,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 10.sp,
-                                        maxLines = 2,
-                                        softWrap = true
+                                        fontSize = 12.sp,
+                                        maxLines = 1,
+                                        softWrap = false,
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                        letterSpacing = (-0.2).sp
                                     )
-                                    Text(rating.subtitle, fontSize = 10.sp, maxLines = 1, softWrap = false)
+                                    Text(
+                                        rating.subtitle,
+                                        fontSize = 11.sp,
+                                        maxLines = 1,
+                                        softWrap = false,
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                    )
                                 }
                             }
                         }
