@@ -66,14 +66,14 @@ internal fun ReadingLibraryScreen(
     val articles = readingArticles.filter { it.level == selectedLevel }
     val context = LocalContext.current
     var translationModelReady by remember { mutableStateOf(false) }
-    var translationModelStatus by remember { mutableStateOf("Při prvním použití připravíme offline překladový slovník.") }
+    var translationModelStatus by remember { mutableStateOf("Při prvním použití stáhneme překladový model. Potom přeložíš libovolné slovo i bez internetu.") }
     LaunchedEffect(Unit) {
         OfflineWordTranslator.prepare(context.applicationContext) { ready ->
             translationModelReady = ready
             translationModelStatus = if (ready) {
-                "Offline překladový model je připraven. Neznámá slova lze překládat bez internetu."
+                "Překladový model je připraven. Přeložit můžeš libovolné slovo přímo v telefonu."
             } else {
-                "Pro automatický překlad neznámých slov je potřeba stáhnout model přes Wi-Fi (přibližně 30 MB). Potom překlady fungují přímo v telefonu."
+                "Model se zatím nepodařilo stáhnout. Připoj se k internetu a zkus překlad znovu; stažení je jednorázové (přibližně 30 MB)."
             }
         }
     }
@@ -103,7 +103,7 @@ internal fun ReadingLibraryScreen(
             ) {
                 Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        if (translationModelReady) "Offline překlady připraveny" else "Příprava offline překladů",
+                        if (translationModelReady) "Překlady připraveny" else "Offline překladový model",
                         color = ForestText, fontWeight = FontWeight.Bold, fontSize = 14.sp
                     )
                     Text(translationModelStatus, color = Muted, fontSize = 12.sp, lineHeight = 18.sp)
@@ -142,7 +142,7 @@ internal fun ReadingLibraryScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text("Slovníček pod prstem", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                         Text(
-                            "Překlady jsou dostupné offline. U méně běžného slova, které ještě ve slovníčku není, to aplikace výslovně oznámí.",
+                            "Podrž prst na libovolném slovu. Vestavěný slovník pokrývá 2 000 běžných slov; ostatní výrazy přeloží offline model.",
                             color = ForestText,
                             fontSize = 12.sp,
                             lineHeight = 18.sp
@@ -351,7 +351,7 @@ internal fun ReadingArticleScreen(
                                                             ReadingWordNotebookStore.isSaved(context, word, it)
                                                         } ?: false
                                                         pressedMeaning = word to (
-                                                            translated ?: "Automatický překlad není právě dostupný. Otevři knihovnu čtení na Wi-Fi, aby se model stáhl nebo znovu připravil."
+                                                            translated ?: "Překlad se nepodařilo načíst. Zkontroluj připojení k internetu a podrž slovo znovu."
                                                         )
                                                     }
                                                 }
