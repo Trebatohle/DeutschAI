@@ -60,6 +60,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -201,6 +202,8 @@ private fun BeatriceHome() {
     }
     var habitStats by remember(preferences) { mutableStateOf(StudyHabitStore.load(context)) }
     var pendingReviewCount by remember(preferences) { mutableStateOf(LearningReviewStore.pendingCount(context)) }
+    var reviewEntries by remember(preferences) { mutableStateOf(LearningReviewStore.all(context)) }
+    var dueReviewEntries by remember(preferences) { mutableStateOf(LearningReviewStore.prioritizedDue(context)) }
     var rewardPoints by remember(preferences) { mutableStateOf(RewardPointsStore.load(context)) }
 
     var showConversation by remember { mutableStateOf(false) }
@@ -312,6 +315,8 @@ private fun BeatriceHome() {
     fun refreshLearningMetrics() {
         habitStats = StudyHabitStore.load(context)
         pendingReviewCount = LearningReviewStore.pendingCount(context)
+        reviewEntries = LearningReviewStore.all(context)
+        dueReviewEntries = LearningReviewStore.prioritizedDue(context)
         progressStats = LearningProgressStore.load(context)
         rewardPoints = RewardPointsStore.load(context)
     }
@@ -320,6 +325,8 @@ private fun BeatriceHome() {
         if (total <= 0) return
         habitStats = StudyHabitStore.recordSession(context)
         pendingReviewCount = LearningReviewStore.pendingCount(context)
+        reviewEntries = LearningReviewStore.all(context)
+        dueReviewEntries = LearningReviewStore.prioritizedDue(context)
         rewardPoints = RewardPointsStore.recordTestResult(context, activityKey, score, total)
         progressStats = if (score == total) {
             LearningProgressStore.recordPerfectSession(context, activityKey)
@@ -593,7 +600,7 @@ private fun BeatriceHome() {
         ListeningPracticeScreen(
             level = selectedListeningLevel!!,
             onHome = { navigateHome() },
-            onBack = { selectedListeningLevel = null; showLessonLibrary = true }
+            onBack = { selectedListeningLevel = null; showLessonLibrary = true; refreshLearningMetrics() }
         )
         return
     }
@@ -633,6 +640,16 @@ private fun BeatriceHome() {
         return
     }
 
+    val placementResultExists = PlacementAssessmentStore.load(context) != null
+    val homeRecommendation = remember(reviewEntries, dueReviewEntries, placementResultExists, lastActivityType) {
+        buildHomeStudyRecommendation(
+            allEntries = reviewEntries,
+            dueEntries = dueReviewEntries,
+            hasPlacementResult = placementResultExists,
+            hasLastActivity = lastActivityType.isNotBlank()
+        )
+    }
+
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(modifier = Modifier.fillMaxSize()) {
             Column(
@@ -661,16 +678,23 @@ private fun BeatriceHome() {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                        Text("BEATRICE", color = ForestText, fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-                        Text(
-                            when (selectedTab) {
-                                "Pokroky" -> "Tvůj pokrok, krok za krokem."
-                                "Knihovna" -> "Vyber si, co dnes procvičíš."
-                                else -> "Němčina vlastním tempem."
-                            },
-                            color = Muted, fontSize = 13.sp
-                        )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        GermanFlagMark()
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text("DeutschAI", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                when (selectedTab) {
+                                    "Pokroky" -> "Tvůj pokrok, krok za krokem."
+                                    "Knihovna" -> "Vše pro tvoje další studium."
+                                    else -> "Osobní plán němčiny."
+                                },
+                                color = Muted,
+                                fontSize = 12.sp
+                            )
+                        }
                     }
                     IconButton(
                         onClick = {
@@ -679,7 +703,7 @@ private fun BeatriceHome() {
                                 .edit().putBoolean("dark_mode", nextTheme).apply()
                             applyBeatriceTheme(nextTheme)
                         },
-                        modifier = Modifier.size(46.dp).background(Mint, CircleShape)
+                        modifier = Modifier.size(44.dp).background(Mint, CircleShape)
                     ) {
                         Icon(
                             imageVector = if (IsDarkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
@@ -691,201 +715,176 @@ private fun BeatriceHome() {
 
                 when (selectedTab) {
                     "Domů" -> {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(22.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = if (IsDarkTheme) Color(0xFF192A23) else Forest
-                            )
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(15.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(7.dp)
-                                ) {
-                                    Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = Gold, modifier = Modifier.size(15.dp))
-                                    Text(
-                                        "TVŮJ OSOBNÍ JAZYKOVÝ PRŮVODCE",
-                                        color = Color(0xFFC7DFD3),
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        letterSpacing = 1.sp
-                                    )
-                                }
+                        Column(verticalArrangement = Arrangement.spacedBy(13.dp)) {
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Text(
-                                    if (lastActivityTitle.isNotBlank()) "Pokračuj tam, kde jsi skončil." else "Začni svou další lekci.",
-                                    color = Color.White,
-                                    fontSize = 21.sp,
-                                    lineHeight = 25.sp,
+                                    "Guten Tag!",
+                                    color = ForestText,
+                                    fontSize = 16.sp,
                                     fontWeight = FontWeight.SemiBold
                                 )
                                 Text(
-                                    if (lastActivityTitle.isNotBlank()) "Naposledy: $lastActivityTitle" else "Pár minut denně. Vlastní tempo.",
-                                    color = Color(0xFFE0EAE5),
-                                    fontSize = 12.sp,
-                                    lineHeight = 16.sp,
-                                    maxLines = 2
+                                    "Dnes se posuneš zase o krok dál.",
+                                    color = Ink,
+                                    fontSize = 24.sp,
+                                    lineHeight = 29.sp,
+                                    fontWeight = FontWeight.Bold
                                 )
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Button(
-                                        onClick = {
-                                            if (lastActivityType.isNotBlank()) continueLastActivity()
-                                            else showLearningHub = true
-                                        },
-                                        modifier = Modifier.weight(1f).heightIn(min = 44.dp),
-                                        colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = GoldText),
-                                        shape = RoundedCornerShape(12.dp),
-                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
-                                    ) {
-                                        Text("Pokračovat", fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false, fontSize = 13.sp)
-                                    }
-                                    Button(
-                                        onClick = { showLearningHub = true },
-                                        modifier = Modifier.weight(1f).heightIn(min = 44.dp),
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = OptionSurface,
-                                            contentColor = Ink
-                                        ),
-                                        shape = RoundedCornerShape(12.dp),
-                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
-                                    ) {
-                                        Text("Vybrat lekci", fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false, fontSize = 13.sp)
+                                Text(
+                                    "Tvůj plán vychází z toho, co už umíš a co potřebuješ upevnit.",
+                                    color = Muted,
+                                    fontSize = 13.sp,
+                                    lineHeight = 19.sp
+                                )
+                            }
+
+                            HomeRecommendationCard(
+                                recommendation = homeRecommendation,
+                                onAction = {
+                                    when (homeRecommendation.type) {
+                                        HomeRecommendationType.REVIEW_DUE -> {
+                                            saveLastActivity("daily-training", "daily-training", "Osobní denní trénink")
+                                            showDailyTraining = true
+                                        }
+                                        HomeRecommendationType.FOCUS_SKILL -> {
+                                            when (homeRecommendation.sourceKind) {
+                                                "sentences", "phrases" -> {
+                                                    lessonLibraryOpenedFromHub = false
+                                                    showLessonLibrary = true
+                                                }
+                                                "articles" -> showArticleCategories = true
+                                                "verbs" -> showVerbCategories = true
+                                                "wordtools" -> showWordTools = true
+                                                "numbers" -> showWordTools = true
+                                                "listening" -> {
+                                                    lessonLibraryOpenedFromHub = false
+                                                    showLessonLibrary = true
+                                                }
+                                                "reading" -> {
+                                                    readingLibraryOpenedFromHub = false
+                                                    showReadingLibrary = true
+                                                }
+                                                "vocabulary" -> showVocabularyPractice = true
+                                                else -> showLearningHub = true
+                                            }
+                                        }
+                                        HomeRecommendationType.PLACEMENT -> showPlacementAssessment = true
+                                        HomeRecommendationType.CONTINUE_ACTIVITY -> continueLastActivity()
+                                        HomeRecommendationType.EXPLORE_LIBRARY -> selectedTab = "Knihovna"
                                     }
                                 }
-                            }
-                        }
+                            )
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.Top
-                        ) {
-                            ProgressCard(
-                                modifier = Modifier.weight(1f),
-                                title = "Dokončeno",
-                                value = progressStats.successfullyCompletedActivities.toString(),
-                                detail = "aktivit"
-                            )
-                            ProgressCard(
-                                modifier = Modifier.weight(1f),
-                                title = "Série dní",
-                                value = habitStats.currentStreakDays.toString(),
-                                detail = "v řadě"
-                            )
-                            ProgressCard(
-                                modifier = Modifier.weight(1f),
-                                title = "Týdenní cíl",
-                                value = "${habitStats.studyDaysInLastWeek}/5",
-                                detail = if (habitStats.studyDaysInLastWeek >= 5) "Cíl splněn ✓" else "z 7 dní"
-                            )
-                        }
-
-                        RewardPointsCard(progress = rewardPoints)
-
-                        Card(
-                            onClick = {
-                                saveLastActivity("daily-training", "daily-training", "Osobní denní trénink")
-                                showDailyTraining = true
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(19.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = if (IsDarkTheme) ActionColor else Mint
-                            )
-                        ) {
                             Row(
-                                modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 13.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(11.dp)
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.Top
                             ) {
-                                Box(
-                                    modifier = Modifier.size(42.dp).background(
-                                        if (IsDarkTheme) Color(0xFF244334) else Forest,
-                                        RoundedCornerShape(13.dp)
-                                    ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        Icons.Default.CalendarToday,
-                                        contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(21.dp)
-                                    )
-                                }
-                                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                                    Text(
-                                        "Denní trénink",
-                                        color = if (IsDarkTheme) ActionText else ForestText,
-                                        fontSize = 15.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text(
-                                        "10 otázek · chytré opakování · offline",
-                                        color = if (IsDarkTheme) Color(0xFF244334) else Ink,
-                                        fontSize = 11.sp,
-                                        lineHeight = 15.sp,
-                                        maxLines = 2
-                                    )
-                                    Text(
-                                        "$pendingReviewCount chyb připravených k procvičení",
-                                        color = if (IsDarkTheme) Color(0xFF315142) else Muted,
-                                        fontSize = 10.sp,
-                                        maxLines = 1
-                                    )
-                                }
-                                Icon(
-                                    Icons.Default.ArrowBack,
-                                    contentDescription = null,
-                                    tint = if (IsDarkTheme) ActionText else ForestText,
-                                    modifier = Modifier.size(18.dp).rotate(180f)
+                                ProgressCard(
+                                    modifier = Modifier.weight(1f),
+                                    title = "Zvládnuté",
+                                    value = LearningReviewStore.masteredCount(context).toString(),
+                                    detail = "položek"
+                                )
+                                ProgressCard(
+                                    modifier = Modifier.weight(1f),
+                                    title = "K opakování",
+                                    value = dueReviewEntries.size.toString(),
+                                    detail = "připraveno"
+                                )
+                                ProgressCard(
+                                    modifier = Modifier.weight(1f),
+                                    title = "Série dní",
+                                    value = habitStats.currentStreakDays.toString(),
+                                    detail = "v řadě"
                                 )
                             }
-                        }
 
-                        FeatureCard(
-                            icon = { Icon(Icons.Default.MenuBook, contentDescription = null, tint = ForestText) },
-                            title = "Kurzy",
-                            subtitle = "Věty a gramatika",
-                            onClick = { showLearningHub = true }
-                        )
-                        FeatureCard(
-                            icon = { Icon(Icons.Default.VolumeUp, contentDescription = null, tint = ForestText) },
-                            title = "Poslech",
-                            subtitle = "Poslech a porozumění A1–B2",
-                            onClick = { lessonLibraryOpenedFromHub = false; showLessonLibrary = true }
-                        )
-                        FeatureCard(
-                            icon = { Icon(Icons.Default.MenuBook, contentDescription = null, tint = ForestText) },
-                            title = "Čtení",
-                            subtitle = "Příběhy a texty podle úrovně",
-                            onClick = { readingLibraryOpenedFromHub = false; showReadingLibrary = true }
-                        )
-                        FeatureCard(
-                            icon = { Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = ForestText) },
-                            title = "Dialogy",
-                            subtitle = "Konverzace s Beatrice",
-                            onClick = {
-                                saveLastActivity("dialogue", "dialogue", "Řízené dialogy s Beatrice")
-                                dialogueOpenedFromHub = false
-                                showConversation = true
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(19.dp),
+                                colors = CardDefaults.cardColors(containerColor = CardSurface)
+                            ) {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth().padding(15.dp),
+                                    verticalArrangement = Arrangement.spacedBy(9.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text("Tvůj studijní rytmus", color = Ink, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                                        Text(
+                                            habitStats.studyDaysInLastWeek.toString() + "/5 dní",
+                                            color = ForestText,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                    LinearProgressIndicator(
+                                        progress = { (habitStats.studyDaysInLastWeek / 5f).coerceIn(0f, 1f) },
+                                        modifier = Modifier.fillMaxWidth().height(7.dp),
+                                        color = ForestText,
+                                        trackColor = Mint
+                                    )
+                                    Text(
+                                        if (habitStats.studyDaysInLastWeek >= 5) {
+                                            "Týdenní cíl máš splněný. Udrž si pravidelnost."
+                                        } else {
+                                            "Stačí krátké soustředěné studium alespoň 5 dní v týdnu."
+                                        },
+                                        color = Muted,
+                                        fontSize = 12.sp,
+                                        lineHeight = 17.sp
+                                    )
+                                }
                             }
-                        )
-                        FeatureCard(
-                            icon = { Icon(Icons.Default.LibraryBooks, contentDescription = null, tint = ForestText) },
-                            title = "Můj slovníček",
-                            subtitle = "${VocabularyNotebookStore.count(context) + ReadingWordNotebookStore.entries(context).size} uložených slov · vlastní procvičování",
-                            onClick = {
-                                saveLastActivity("vocabulary-notebook", "my-notebook", "Můj slovníček")
-                                showVocabularyNotebook = true
+
+                            if (lastActivityTitle.isNotBlank() &&
+                                homeRecommendation.type != HomeRecommendationType.CONTINUE_ACTIVITY
+                            ) {
+                                Card(
+                                    onClick = { continueLastActivity() },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(16.dp),
+                                    colors = CardDefaults.cardColors(containerColor = CardSurface)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(11.dp)
+                                    ) {
+                                        Icon(Icons.Default.Assessment, contentDescription = null, tint = ForestText)
+                                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                            Text("Pokračovat v poslední aktivitě", color = Ink, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                            Text(lastActivityTitle, color = Muted, fontSize = 12.sp, maxLines = 1)
+                                        }
+                                        Icon(Icons.Default.ArrowBack, contentDescription = null, tint = ForestText, modifier = Modifier.rotate(180f))
+                                    }
+                                }
                             }
-                        )
+
+                            Card(
+                                onClick = { selectedTab = "Knihovna" },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(containerColor = if (IsDarkTheme) Color(0xFF1A2C24) else Mint)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    Icon(Icons.Default.LibraryBooks, contentDescription = null, tint = ForestText, modifier = Modifier.size(22.dp))
+                                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                        Text("Knihovna kurzů a materiálů", color = ForestText, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                        Text("Kurzy, poslech, četba, dialogy a slovní zásoba", color = Muted, fontSize = 11.sp, lineHeight = 15.sp)
+                                    }
+                                    Icon(Icons.Default.ArrowBack, contentDescription = null, tint = ForestText, modifier = Modifier.rotate(180f))
+                                }
+                            }
+                        }
                     }
 
                     "Pokroky" -> {
@@ -1128,6 +1127,102 @@ private fun BeatriceHome() {
                         onClick = { selectedTab = "Knihovna" }
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun GermanFlagMark() {
+    Column(
+        modifier = Modifier.size(29.dp).clip(CircleShape)
+    ) {
+        Box(modifier = Modifier.weight(1f).fillMaxWidth().background(Color(0xFF111111)))
+        Box(modifier = Modifier.weight(1f).fillMaxWidth().background(Color(0xFFDD0000)))
+        Box(modifier = Modifier.weight(1f).fillMaxWidth().background(Color(0xFFFFCE00)))
+    }
+}
+
+@Composable
+private fun HomeRecommendationCard(
+    recommendation: HomeStudyRecommendation,
+    onAction: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (IsDarkTheme) Color(0xFF192A23) else Forest
+        )
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(9.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(7.dp)
+            ) {
+                Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = Gold, modifier = Modifier.size(17.dp))
+                Text(
+                    "DOPORUČENÝ DALŠÍ KROK",
+                    color = Color(0xFFC7DFD3),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                )
+            }
+            Text(
+                recommendation.title,
+                color = Color.White,
+                fontSize = 21.sp,
+                lineHeight = 26.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                recommendation.explanation,
+                color = Color(0xFFE0EAE5),
+                fontSize = 13.sp,
+                lineHeight = 19.sp
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(7.dp)
+            ) {
+                Icon(Icons.Default.CalendarToday, contentDescription = null, tint = Gold, modifier = Modifier.size(14.dp))
+                Text(
+                    "Přibližně " + recommendation.estimatedMinutes + " min",
+                    color = Color(0xFFE0EAE5),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                if (recommendation.dueCount > 0) {
+                    Text("·", color = Color(0xFFE0EAE5), fontSize = 12.sp)
+                    Text(
+                        recommendation.dueCount.toString() + " položek k opakování",
+                        color = Color(0xFFE0EAE5),
+                        fontSize = 11.sp
+                    )
+                } else if (recommendation.accuracyPercent != null) {
+                    Text("·", color = Color(0xFFE0EAE5), fontSize = 12.sp)
+                    Text(
+                        "Úspěšnost " + recommendation.accuracyPercent + " %",
+                        color = Color(0xFFE0EAE5),
+                        fontSize = 11.sp
+                    )
+                }
+            }
+            Button(
+                onClick = onAction,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Gold,
+                    contentColor = GoldText
+                ),
+                shape = RoundedCornerShape(13.dp)
+            ) {
+                Text(recommendation.actionLabel, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             }
         }
     }
