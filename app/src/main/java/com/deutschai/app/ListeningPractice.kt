@@ -561,7 +561,7 @@ internal fun ListeningPracticeScreen(
                                     ratingSaved = true
                                 },
                                 enabled = !ratingSaved,
-                                modifier = Modifier.weight(1f).heightIn(min = 70.dp),
+                                modifier = Modifier.weight(1f).heightIn(min = 76.dp, max = 76.dp),
                                 contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 2.dp, vertical = 6.dp),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = when (index) {
@@ -580,7 +580,7 @@ internal fun ListeningPracticeScreen(
                                     Text(
                                         rating.first,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 11.sp,
+                                        fontSize = 10.sp,
                                         maxLines = 2,
                                         softWrap = true
                                     )
