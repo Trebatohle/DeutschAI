@@ -186,6 +186,8 @@ internal fun saveListeningConfidence(
     context: Context,
     phraseKey: String,
     intervalMillis: Long,
+    reviewQuestion: ReviewQuestion,
+    wasCorrect: Boolean,
     nowMillis: Long = System.currentTimeMillis()
 ) {
     val prefs = context.applicationContext.getSharedPreferences(PHRASE_REVIEW_PREFS, Context.MODE_PRIVATE)
@@ -198,16 +200,15 @@ internal fun saveListeningConfidence(
         .putLong("${phraseKey}_due", dueAt)
         .apply()
 
-    val card = allPhraseReviewCards().firstOrNull { it.id == phraseKey }
-    if (card != null) {
-        LearningReviewStore.recordRecall(
-            context = context,
-            question = phraseReviewQuestion(card),
-            remembered = intervalMillis > 10L * 60L * 1000L,
-            nowMillis = nowMillis,
-            nextDueAtMillis = dueAt
-        )
-    }
+    // Save the answer and the learner-selected interval as one entry, so the daily
+    // trainer does not create a conflicting earlier due date for the same listening item.
+    LearningReviewStore.recordAnswer(
+        context = context,
+        question = reviewQuestion,
+        wasCorrect = wasCorrect,
+        nowMillis = nowMillis,
+        nextDueAtMillis = dueAt
+    )
     StudyHabitStore.recordSession(context)
 }
 
