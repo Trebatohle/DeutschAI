@@ -85,7 +85,8 @@ internal object LearningReviewStore {
         question: ReviewQuestion,
         wasCorrect: Boolean,
         isMistakeReview: Boolean = false,
-        nowMillis: Long = System.currentTimeMillis()
+        nowMillis: Long = System.currentTimeMillis(),
+        nextDueAtMillis: Long? = null
     ) {
         val entries = readEntries(context)
         val previous = entries[question.id]
@@ -127,7 +128,9 @@ internal object LearningReviewStore {
             )
         }
 
-        entries[question.id] = updated
+        entries[question.id] = updated.copy(
+            dueAtMillis = nextDueAtMillis ?: updated.dueAtMillis
+        )
         val trimmed = entries.values
             .sortedWith(compareBy<ReviewMemoryEntry> { it.dueAtMillis }.thenByDescending { it.wrongCount })
             .take(MAX_ITEMS)
