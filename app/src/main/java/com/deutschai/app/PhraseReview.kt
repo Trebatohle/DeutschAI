@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -45,7 +46,7 @@ import kotlin.math.roundToInt
 
 private const val PHRASE_REVIEW_PREFS = "deutschai_smart_phrase_review"
 
-private data class PhraseReviewCard(
+internal data class PhraseReviewCard(
     val id: String,
     val courseTitle: String,
     val prompt: String,
@@ -55,11 +56,11 @@ private data class PhraseReviewCard(
 
 internal enum class PhraseRating { AGAIN, HARD, GOOD, EASY }
 
-private fun phraseReviewCards(level: String): List<PhraseReviewCard> =
-    sentenceCourseCatalog.filter { it.level == level }.flatMap { course ->
+private fun allPhraseReviewCards(): List<PhraseReviewCard> =
+    sentenceCourseCatalog.flatMap { course ->
         course.items.mapIndexed { index, item ->
             PhraseReviewCard(
-                id = "${level}_${course.id}_${index}",
+                id = "${course.level}_${course.id}_${index}",
                 courseTitle = course.title,
                 prompt = item.prompt,
                 german = item.german,
@@ -68,14 +69,51 @@ private fun phraseReviewCards(level: String): List<PhraseReviewCard> =
         }
     }
 
+private fun phraseReviewCards(level: String): List<PhraseReviewCard> =
+    allPhraseReviewCards().filter { it.id.startsWith("${level}_") }
+
+internal fun phraseReviewQuestion(card: PhraseReviewCard): ReviewQuestion {
+    val distractors = sentenceCourseCatalog.asSequence()
+        .flatMap { it.items.asSequence() }
+        .map { it.german }
+        .filterNot { it.equals(card.german, ignoreCase = true) }
+        .distinct()
+        .take(60)
+        .toList()
+        .shuffled(kotlin.random.Random(card.id.hashCode()))
+        .take(3)
+    val choices = (distractors + card.german)
+        .distinct()
+        .shuffled(kotlin.random.Random("${card.id}_answers".hashCode()))
+    return ReviewQuestion(
+        id = stableReviewId("phrases", card.id),
+        sourceKind = "phrases",
+        sourceTitle = card.courseTitle,
+        prompt = card.prompt,
+        choices = choices,
+        correctIndex = choices.indexOf(card.german),
+        explanation = "${card.german} = ${card.czech}",
+        germanSentence = card.german,
+        translation = card.czech
+    )
+}
+
 private fun duePhraseCards(
     context: Context,
     cards: List<PhraseReviewCard>,
     now: Long = System.currentTimeMillis()
 ): List<PhraseReviewCard> {
     val prefs = context.getSharedPreferences(PHRASE_REVIEW_PREFS, Context.MODE_PRIVATE)
+    val tracked = LearningReviewStore.all(context)
+        .filter { it.question.sourceKind == "phrases" }
+        .associateBy { it.question.id }
     return cards.filter { card ->
-        !prefs.contains("${card.id}_due") || prefs.getLong("${card.id}_due", 0L) <= now
+        val entry = tracked[stableReviewId("phrases", card.id)]
+        when {
+            entry != null -> entry.dueAtMillis <= now
+            !prefs.contains("${card.id}_due") -> true
+            else -> prefs.getLong("${card.id}_due", 0L) <= now
+        }
     }
 }
 
@@ -128,12 +166,54 @@ internal fun savePhraseRating(
         .putFloat("${phraseKey}_interval", intervalDays.toFloat())
         .putLong("${phraseKey}_due", now + (intervalDays * 24.0 * 60.0 * 60.0 * 1000.0).roundToInt())
         .apply()
+
+    // Keep phrase recall inside the same cross-app memory as grammar, vocabulary and listening.
+    val card = allPhraseReviewCards().firstOrNull { it.id == phraseKey }
+    if (card != null) {
+        LearningReviewStore.recordRecall(
+            context = context,
+            question = phraseReviewQuestion(card),
+            remembered = rating != PhraseRating.AGAIN,
+            nowMillis = now,
+            nextDueAtMillis = now + (intervalDays * 24.0 * 60.0 * 60.0 * 1000.0).roundToInt()
+        )
+    }
     // Rating a phrase counts as a real study day for the rolling weekly goal.
     StudyHabitStore.recordSession(context)
 }
 
+internal fun saveListeningConfidence(
+    context: Context,
+    phraseKey: String,
+    intervalMillis: Long,
+    reviewQuestion: ReviewQuestion,
+    wasCorrect: Boolean,
+    nowMillis: Long = System.currentTimeMillis()
+) {
+    val prefs = context.applicationContext.getSharedPreferences(PHRASE_REVIEW_PREFS, Context.MODE_PRIVATE)
+    val oldRepetitions = prefs.getInt("${phraseKey}_reps", 0)
+    val intervalDays = intervalMillis.toDouble() / (24.0 * 60.0 * 60.0 * 1000.0)
+    val dueAt = nowMillis + intervalMillis
+    prefs.edit()
+        .putInt("${phraseKey}_reps", if (intervalMillis <= 10L * 60L * 1000L) 0 else oldRepetitions + 1)
+        .putFloat("${phraseKey}_interval", intervalDays.toFloat())
+        .putLong("${phraseKey}_due", dueAt)
+        .apply()
+
+    // Save the answer and the learner-selected interval as one entry, so the daily
+    // trainer does not create a conflicting earlier due date for the same listening item.
+    LearningReviewStore.recordAnswer(
+        context = context,
+        question = reviewQuestion,
+        wasCorrect = wasCorrect,
+        nowMillis = nowMillis,
+        nextDueAtMillis = dueAt
+    )
+    StudyHabitStore.recordSession(context)
+}
+
 @Composable
-internal fun PhraseReviewScreen(level: String, onBack: () -> Unit) {
+internal fun PhraseReviewScreen(level: String, onBack: () -> Unit, onHome: () -> Unit = onBack) {
     val context = LocalContext.current
     val speaker = rememberGermanSpeechPlayer()
     val cards = remember(level) { phraseReviewCards(level) }
@@ -156,11 +236,9 @@ internal fun PhraseReviewScreen(level: String, onBack: () -> Unit) {
 
     val current = session.getOrNull(index)
     val remainingDue = duePhraseCards(context, cards).size
-    val nextDueAt = cards.mapNotNull { card ->
-        val prefs = context.getSharedPreferences(PHRASE_REVIEW_PREFS, Context.MODE_PRIVATE)
-        val key = "${card.id}_due"
-        if (prefs.contains(key)) prefs.getLong(key, 0L).takeIf { it > System.currentTimeMillis() } else null
-    }.minOrNull()
+    val nextDueAt = LearningReviewStore.all(context)
+        .filter { it.question.sourceKind == "phrases" && it.dueAtMillis > System.currentTimeMillis() }
+        .minOfOrNull { it.dueAtMillis }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
@@ -169,20 +247,7 @@ internal fun PhraseReviewScreen(level: String, onBack: () -> Unit) {
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(
-                    onClick = onBack,
-                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Zpět")
-                    Text("Zpět")
-                }
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("DEUTSCHAI", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
-                    Text("Chytré opakování · $level", color = Muted, fontSize = 13.sp)
-                }
-            }
+            AppScreenHeader(title = "Chytré opakování · $level", onBack = onBack, onHome = onHome)
 
             Text("Zapamatuj si užitečné fráze", color = Ink, fontSize = 26.sp, lineHeight = 31.sp, fontWeight = FontWeight.Bold)
             Text(
@@ -234,29 +299,37 @@ internal fun PhraseReviewScreen(level: String, onBack: () -> Unit) {
                         PhraseRating.GOOD to ("Dobře" to "za 1–3 dny"),
                         PhraseRating.EASY to ("Snadné" to "za 3–6 dní")
                     )
-                    ratings.forEach { (rating, labels) ->
-                        Button(
-                            onClick = {
-                                savePhraseRating(context, current, rating)
-                                completed += 1
-                                index += 1
-                                revealed = false
-                            },
-                            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = when (rating) {
-                                    PhraseRating.AGAIN -> Incorrect
-                                    PhraseRating.HARD -> RatingHard
-                                    PhraseRating.GOOD -> RatingGood
-                                    PhraseRating.EASY -> RatingEasy
-                                },
-                                contentColor = if (rating == PhraseRating.EASY && IsDarkTheme) ActionText else Ink
-                            ),
-                            shape = RoundedCornerShape(13.dp)
+                    ratings.chunked(2).forEach { ratingRow ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(9.dp)
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(1.dp)) {
-                                Text(labels.first, fontWeight = FontWeight.Bold)
-                                Text(labels.second, fontSize = 11.sp)
+                            ratingRow.forEach { (rating, labels) ->
+                                Button(
+                                    onClick = {
+                                        savePhraseRating(context, current, rating)
+                                        completed += 1
+                                        index += 1
+                                        revealed = false
+                                    },
+                                    modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+                                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 8.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = when (rating) {
+                                            PhraseRating.AGAIN -> Incorrect
+                                            PhraseRating.HARD -> RatingHard
+                                            PhraseRating.GOOD -> RatingGood
+                                            PhraseRating.EASY -> RatingEasy
+                                        },
+                                        contentColor = if (rating == PhraseRating.EASY && IsDarkTheme) ActionText else Ink
+                                    ),
+                                    shape = RoundedCornerShape(13.dp)
+                                ) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                                        Text(labels.first, fontWeight = FontWeight.Bold)
+                                        Text(labels.second, fontSize = 11.sp)
+                                    }
+                                }
                             }
                         }
                     }

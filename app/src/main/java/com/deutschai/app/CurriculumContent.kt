@@ -969,7 +969,7 @@ private val a1SentenceCourseCatalog = listOf(
     )
 )
 
-internal val sentenceCourseCatalog = a1SentenceCourseCatalog + expandedSentenceCourseCatalog
+internal val sentenceCourseCatalog = a1SentenceCourseCatalog + expandedSentenceCourseCatalog + additionalA1SentenceCourseCatalog + additionalA2SentenceCourseCatalog
 
 internal fun sentenceCourseQuestions(courseId: String): List<LessonQuestion> {
     val course = sentenceCourseCatalog.firstOrNull { it.id == courseId } ?: return emptyList()

@@ -5,6 +5,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.security.MessageDigest
 import java.time.LocalDate
+import kotlin.math.roundToInt
 
 internal data class ReviewQuestion(
     val id: String,
@@ -29,14 +30,17 @@ internal data class ReviewMemoryEntry(
     val wrongCount: Int,
     val correctStreak: Int,
     val intervalDays: Int,
-    val dueAtMillis: Long
+    val dueAtMillis: Long,
+    val attemptCount: Int = 0,
+    val correctCount: Int = 0,
+    val lastAnsweredAtMillis: Long = 0L
 )
 
 /** Compact, local-only spaced repetition. The queue never leaves the device. */
 internal object LearningReviewStore {
     private const val PREFS = "deutschai_long_term_memory"
     private const val ITEMS = "items_v1"
-    private const val MAX_ITEMS = 300
+    private const val MAX_ITEMS = 3000
     private const val DAY_MILLIS = 24L * 60L * 60L * 1000L
 
     fun all(context: Context): List<ReviewMemoryEntry> =
@@ -45,44 +49,133 @@ internal object LearningReviewStore {
     fun due(context: Context, nowMillis: Long = System.currentTimeMillis()): List<ReviewMemoryEntry> =
         all(context).filter { it.dueAtMillis <= nowMillis }
 
-    fun pendingCount(context: Context): Int = readEntries(context).size
+    /** Prioritizes items that repeatedly caused difficulty, while keeping older due items first within a tie. */
+    fun prioritizedDue(context: Context, nowMillis: Long = System.currentTimeMillis()): List<ReviewMemoryEntry> =
+        due(context, nowMillis).sortedWith(
+            compareByDescending<ReviewMemoryEntry> { it.wrongCount }
+                .thenBy { it.dueAtMillis }
+                .thenBy { it.lastAnsweredAtMillis }
+        )
+
+    /** Repeatedly missed items surfaced in the knowledge overview. */
+    fun recurringMistakes(context: Context, limit: Int = 5): List<ReviewMemoryEntry> =
+        all(context)
+            .filter { it.wrongCount >= 2 && !(it.correctStreak >= 3 && it.intervalDays >= 7) }
+            .sortedWith(
+                compareByDescending<ReviewMemoryEntry> { it.wrongCount }
+                    .thenBy { it.correctStreak }
+                    .thenByDescending { it.lastAnsweredAtMillis }
+            )
+            .take(limit.coerceAtLeast(0))
+
+    /** Number of questions currently ready to be reviewed across all learning areas. */
+    fun pendingCount(context: Context, nowMillis: Long = System.currentTimeMillis()): Int =
+        due(context, nowMillis).size
+
+    fun totalAnswered(context: Context): Int = all(context).sumOf { it.attemptCount }
+
+    fun masteredCount(context: Context): Int =
+        all(context).count { it.correctStreak >= 3 && it.intervalDays >= 7 }
+
+    fun isTracked(context: Context, id: String): Boolean =
+        readEntries(context).containsKey(id)
 
     fun recordAnswer(
         context: Context,
         question: ReviewQuestion,
         wasCorrect: Boolean,
         isMistakeReview: Boolean = false,
-        nowMillis: Long = System.currentTimeMillis()
+        nowMillis: Long = System.currentTimeMillis(),
+        nextDueAtMillis: Long? = null
     ) {
         val entries = readEntries(context)
         val previous = entries[question.id]
+        val attempts = (previous?.attemptCount ?: 0) + 1
+        val correct = (previous?.correctCount ?: 0) + if (wasCorrect) 1 else 0
+        val wrong = previous?.wrongCount ?: 0
 
-        if (wasCorrect) {
-            if (previous == null) return
-            val nextStreak = previous.correctStreak + 1
-            val schedule = listOf(1, 3, 7, 14, 30)
-            val nextInterval = schedule[(nextStreak - 1).coerceIn(schedule.indices)]
-            entries[question.id] = previous.copy(
+        val updated = if (wasCorrect) {
+            val nextStreak = (previous?.correctStreak ?: 0) + 1
+            val nextInterval = calculateNextReviewIntervalDays(
+                correctStreak = previous?.correctStreak ?: 0,
+                previousIntervalDays = previous?.intervalDays ?: 0,
+                wrongCount = wrong,
+                attemptCount = previous?.attemptCount ?: 0,
+                correctCount = previous?.correctCount ?: 0
+            )
+            ReviewMemoryEntry(
                 question = question,
+                wrongCount = wrong,
                 correctStreak = nextStreak,
                 intervalDays = nextInterval,
-                dueAtMillis = nowMillis + nextInterval * DAY_MILLIS
+                dueAtMillis = nowMillis + nextInterval * DAY_MILLIS,
+                attemptCount = attempts,
+                correctCount = correct,
+                lastAnsweredAtMillis = nowMillis
             )
         } else {
-            entries[question.id] = ReviewMemoryEntry(
+            ReviewMemoryEntry(
                 question = question,
-                wrongCount = (previous?.wrongCount ?: 0) + 1,
+                wrongCount = wrong + 1,
                 correctStreak = 0,
-                intervalDays = if (isMistakeReview) 1 else 0,
-                dueAtMillis = if (isMistakeReview) nowMillis + DAY_MILLIS else nowMillis
+                intervalDays = 0,
+                // A normal quiz mistake gets a short cooldown; a mistake already reviewed
+                // in the daily session returns tomorrow instead of looping immediately.
+                dueAtMillis = nowMillis + if (isMistakeReview) DAY_MILLIS else 10L * 60L * 1000L,
+                attemptCount = attempts,
+                correctCount = correct,
+                lastAnsweredAtMillis = nowMillis
             )
         }
 
+        entries[question.id] = updated.copy(
+            dueAtMillis = nextDueAtMillis ?: updated.dueAtMillis
+        )
         val trimmed = entries.values
             .sortedWith(compareBy<ReviewMemoryEntry> { it.dueAtMillis }.thenByDescending { it.wrongCount })
             .take(MAX_ITEMS)
         writeEntries(context, trimmed)
     }
+
+    /** Self-rated recall used by phrase cards; kept in the same review queue as quiz answers. */
+    fun recordRecall(
+        context: Context,
+        question: ReviewQuestion,
+        remembered: Boolean,
+        nowMillis: Long = System.currentTimeMillis(),
+        nextDueAtMillis: Long? = null
+    ) {
+        recordAnswer(context, question, remembered, isMistakeReview = false, nowMillis = nowMillis)
+        val scheduledDueAt = nextDueAtMillis ?: if (!remembered) {
+            // "Again" defaults to a ten-minute retry when no custom interval is supplied.
+            nowMillis + 10L * 60L * 1000L
+        } else {
+            null
+        }
+        if (scheduledDueAt != null) {
+            val entries = readEntries(context)
+            val previous = entries[question.id] ?: return
+            entries[question.id] = previous.copy(dueAtMillis = scheduledDueAt)
+            writeEntries(context, entries.values.take(MAX_ITEMS))
+        }
+    }
+
+    fun skillStats(context: Context): List<LearningSkillStats> =
+        all(context).groupBy { it.question.sourceKind }
+            .map { (kind, entries) ->
+                val attempts = entries.sumOf { it.attemptCount }
+                val correct = entries.sumOf { it.correctCount }
+                LearningSkillStats(
+                    sourceKind = kind,
+                    title = learningSkillTitle(kind),
+                    attempts = attempts,
+                    correct = correct,
+                    accuracyPercent = if (attempts == 0) 0 else (correct * 100 / attempts),
+                    trackedItems = entries.size
+                )
+            }
+            .filter { it.attempts > 0 }
+            .sortedByDescending { it.attempts }
 
     private fun readEntries(context: Context): MutableMap<String, ReviewMemoryEntry> {
         val raw = context.applicationContext
@@ -99,10 +192,13 @@ internal object LearningReviewStore {
                         question.id,
                         ReviewMemoryEntry(
                             question = question,
-                            wrongCount = obj.optInt("wrongCount", 1).coerceAtLeast(1),
+                            wrongCount = obj.optInt("wrongCount", 0).coerceAtLeast(0),
                             correctStreak = obj.optInt("correctStreak", 0).coerceAtLeast(0),
                             intervalDays = obj.optInt("intervalDays", 0).coerceAtLeast(0),
-                            dueAtMillis = dueAt
+                            dueAtMillis = dueAt,
+                            attemptCount = obj.optInt("attemptCount", 0).coerceAtLeast(0),
+                            correctCount = obj.optInt("correctCount", 0).coerceAtLeast(0),
+                            lastAnsweredAtMillis = obj.optLong("lastAnsweredAtMillis", 0L)
                         )
                     )
                 }
@@ -130,6 +226,9 @@ internal object LearningReviewStore {
                     .put("correctStreak", entry.correctStreak)
                     .put("intervalDays", entry.intervalDays)
                     .put("dueAtMillis", entry.dueAtMillis)
+                    .put("attemptCount", entry.attemptCount)
+                    .put("correctCount", entry.correctCount)
+                    .put("lastAnsweredAtMillis", entry.lastAnsweredAtMillis)
             )
         }
         context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -155,6 +254,39 @@ internal object LearningReviewStore {
             germanSentence = optString("germanSentence", ""),
             translation = optString("translation", "")
         )
+    }
+}
+
+/**
+ * Gradually lengthens successful review intervals. Early steps stay predictable;
+ * later steps adapt to the learner's historical accuracy and recurring mistakes.
+ */
+internal fun calculateNextReviewIntervalDays(
+    correctStreak: Int,
+    previousIntervalDays: Int,
+    wrongCount: Int,
+    attemptCount: Int,
+    correctCount: Int
+): Int {
+    val nextStreak = correctStreak + 1
+    return when (nextStreak) {
+        1 -> 1
+        2 -> 3
+        3 -> 7
+        4 -> 14
+        else -> {
+            val accuracy = if (attemptCount <= 0) 1f
+                else (correctCount.toFloat() / attemptCount.toFloat()).coerceIn(0f, 1f)
+            val multiplier = when {
+                wrongCount >= 3 || accuracy < 0.65f -> 1.35f
+                accuracy >= 0.90f -> 2.0f
+                else -> 1.7f
+            }
+            val previousInterval = previousIntervalDays.coerceAtLeast(14)
+            (previousInterval * multiplier)
+                .roundToInt()
+                .coerceIn((previousInterval + 1).coerceAtMost(60), 60)
+        }
     }
 }
 
@@ -194,6 +326,29 @@ internal fun stableReviewId(vararg parts: String): String {
     val digest = MessageDigest.getInstance("SHA-256").digest(input.toByteArray(Charsets.UTF_8))
     val suffix = digest.take(12).joinToString("") { byte -> "%02x".format(byte) }
     return "${parts.firstOrNull()?.replace(Regex("[^A-Za-z0-9_-]"), "_") ?: "question"}_$suffix"
+}
+
+internal data class LearningSkillStats(
+    val sourceKind: String,
+    val title: String,
+    val attempts: Int,
+    val correct: Int,
+    val accuracyPercent: Int,
+    val trackedItems: Int
+)
+
+internal fun learningSkillTitle(kind: String): String = when (kind) {
+    "sentences" -> "Věty a gramatika"
+    "articles" -> "Členy a podstatná jména"
+    "verbs" -> "Slovesa"
+    "wordtools" -> "Slovní druhy"
+    "numbers" -> "Číslovky"
+    "vocabulary" -> "Slovní zásoba"
+    "listening" -> "Poslech"
+    "reading" -> "Čtení s porozuměním"
+    "phrases" -> "Fráze"
+    "placement" -> "Rozřazovací test"
+    else -> "Ostatní"
 }
 
 internal data class StudyHabitSnapshot(

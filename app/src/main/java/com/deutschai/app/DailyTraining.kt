@@ -108,17 +108,88 @@ internal fun buildDailyTrainingPool(): List<ReviewQuestion> {
     return result.distinctBy { it.id }.filter { it.correctIndex in it.choices.indices }
 }
 
+internal fun enrichScheduledReviewQuestion(
+    question: ReviewQuestion,
+    random: kotlin.random.Random = kotlin.random.Random(question.id.hashCode())
+): ReviewQuestion {
+    fun fourChoices(correctAnswer: String, candidates: List<String>): Pair<List<String>, Int> {
+        val distractors = candidates.asSequence()
+            .filter { it.isNotBlank() && !it.equals(correctAnswer, ignoreCase = true) }
+            .distinctBy { it.lowercase() }
+            .shuffled(random)
+            .take(3)
+            .toList()
+        val choices = (distractors + correctAnswer).shuffled(random)
+        return choices to choices.indexOf(correctAnswer)
+    }
+
+    return when {
+        // Older persisted phrase cards used a dummy "I don't remember" option.
+        // Upgrade them on display so every answer is a real, plausible German phrase.
+        question.sourceKind == "phrases" && question.germanSentence.isNotBlank() -> {
+            val (choices, correctIndex) = fourChoices(
+                question.germanSentence,
+                sentenceCourseCatalog.flatMap { course -> course.items.map { it.german } }
+            )
+            question.copy(choices = choices, correctIndex = correctIndex)
+        }
+
+        // Old dictation review entries had only "the answer" and "other answer".
+        // Turn them into a real four-option sentence recognition question in the daily quiz.
+        question.sourceKind == "listening" &&
+            question.choices.size < 3 &&
+            question.germanSentence.isNotBlank() -> {
+            val correctAnswer = question.choices.getOrNull(question.correctIndex)
+                ?.takeIf { it.isNotBlank() }
+                ?: question.germanSentence
+            val (choices, correctIndex) = fourChoices(
+                correctAnswer,
+                sentenceCourseCatalog.flatMap { course -> course.items.map { it.german } }
+            )
+            question.copy(
+                prompt = "Kterou německou větu jsi v poslechu slyšel/a?",
+                choices = choices,
+                correctIndex = correctIndex
+            )
+        }
+
+        // Active-recall notebook items saved by an earlier app version may still
+        // contain a single real answer plus a dummy fallback.
+        question.sourceKind == "vocabulary" &&
+            question.id.startsWith("notebook_active_") &&
+            question.choices.size < 4 -> {
+            val correctAnswer = question.choices[question.correctIndex]
+            val candidateWords = vocabularyCatalog.map { "${it.article} ${it.word}" } +
+                sentenceCourseCatalog.flatMap { course ->
+                    course.items.flatMap { item ->
+                        Regex("[\\p{L}ÄÖÜäöüßẞ-]{3,}").findAll(item.german).map { it.value }.toList()
+                    }
+                }
+            val (choices, correctIndex) = fourChoices(correctAnswer, candidateWords)
+            question.copy(choices = choices, correctIndex = correctIndex)
+        }
+
+        else -> question
+    }
+}
+
 internal fun makeDailyTrainingQuestions(
     context: android.content.Context,
     nowMillis: Long = System.currentTimeMillis()
 ): List<ReviewQuestion> {
-    val due = LearningReviewStore.due(context, nowMillis)
-        .map { it.question }
+    val history = LearningReviewStore.all(context).associateBy { it.question.id }
+    val dueEntries = LearningReviewStore.prioritizedDue(context, nowMillis).take(6)
+    val due = dueEntries
+        .map { enrichScheduledReviewQuestion(it.question) }
         .distinctBy { it.id }
-        .take(6)
     val needed = (10 - due.size).coerceAtLeast(0)
     val dueIds = due.map { it.id }.toSet()
-    val available = buildDailyTrainingPool().filterNot { it.id in dueIds }.shuffled().toMutableList()
+    val availablePool = buildDailyTrainingPool().filterNot { it.id in dueIds }
+    // Prefer unseen material first; previously practiced material remains available for variety.
+    val available = (
+        availablePool.filterNot { it.id in history } +
+            availablePool.filter { it.id in history }.shuffled()
+        ).toMutableList()
     val kindOrder = listOf("sentences", "wordtools", "articles", "verbs", "wordtools", "sentences", "articles", "verbs", "sentences", "wordtools")
     val fresh = mutableListOf<ReviewQuestion>()
 
@@ -131,13 +202,15 @@ internal fun makeDailyTrainingQuestions(
     if (fresh.size < needed) {
         fresh += available.filterNot { candidate -> fresh.any { it.id == candidate.id } }.take(needed - fresh.size)
     }
-    return (due + fresh).shuffled().take(10)
+    // Keep scheduled reviews at the beginning so the learner sees their due material first.
+    return (due + fresh).take(10)
 }
 
 @Composable
 internal fun DailyTrainingScreen(
     onBack: () -> Unit,
-    onComplete: (score: Int, total: Int) -> Unit
+    onComplete: (score: Int, total: Int) -> Unit,
+    onHome: () -> Unit = onBack
 ) {
     val context = LocalContext.current
     val speaker = rememberGermanSpeechPlayer()
@@ -148,6 +221,7 @@ internal fun DailyTrainingScreen(
     var finished by remember { mutableStateOf(false) }
     var wrongQuestions by remember { mutableStateOf<List<ReviewQuestion>>(emptyList()) }
     var isMistakeReview by remember { mutableStateOf(false) }
+    var heardCurrentAudio by remember { mutableStateOf(false) }
     val question = questions.getOrNull(questionIndex)
 
     fun startMistakeReview() {
@@ -156,6 +230,7 @@ internal fun DailyTrainingScreen(
         wrongQuestions = emptyList()
         questionIndex = 0
         selectedAnswer = null
+        heardCurrentAudio = false
         score = 0
         finished = false
         isMistakeReview = true
@@ -165,6 +240,7 @@ internal fun DailyTrainingScreen(
         questions = makeDailyTrainingQuestions(context)
         questionIndex = 0
         selectedAnswer = null
+        heardCurrentAudio = false
         score = 0
         finished = false
         wrongQuestions = emptyList()
@@ -177,20 +253,7 @@ internal fun DailyTrainingScreen(
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(
-                    onClick = onBack,
-                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Zpět")
-                    Text("Zpět")
-                }
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("DEUTSCHAI", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
-                    Text("Osobní denní trénink", color = Muted, fontSize = 13.sp)
-                }
-            }
+            AppScreenHeader(title = "Osobní denní trénink", onBack = onBack, onHome = onHome)
 
             if (finished) {
                 Card(
@@ -254,6 +317,30 @@ internal fun DailyTrainingScreen(
                         Text(question.prompt, color = Ink, fontSize = 20.sp, lineHeight = 28.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
+                val requiresListening = question.sourceKind == "listening" && question.germanSentence.isNotBlank()
+                if (requiresListening) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(containerColor = CardSurface)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(15.dp),
+                            verticalArrangement = Arrangement.spacedBy(7.dp)
+                        ) {
+                            Text("NEJDŘÍVE SI POSLECHNI VĚTU", color = ForestText, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            GermanAudioControls(
+                                player = speaker,
+                                text = question.germanSentence,
+                                onPlaybackCompleted = { heardCurrentAudio = true },
+                                showSlow = true
+                            )
+                            if (!heardCurrentAudio) {
+                                Text("Po dokončení přehrávání se odemknou odpovědi.", color = Muted, fontSize = 12.sp)
+                            }
+                        }
+                    }
+                }
                 question.choices.forEachIndexed { index, choice ->
                     val background = when {
                         selectedAnswer == null -> OptionSurface
@@ -263,7 +350,7 @@ internal fun DailyTrainingScreen(
                     }
                     Card(
                         onClick = {
-                            if (selectedAnswer == null) {
+                            if (selectedAnswer == null && (!requiresListening || heardCurrentAudio)) {
                                 selectedAnswer = index
                                 val correct = index == question.correctIndex
                                 if (correct) score += 1 else wrongQuestions = wrongQuestions + question
@@ -314,6 +401,7 @@ internal fun DailyTrainingScreen(
                             if (questionIndex < questions.lastIndex) {
                                 questionIndex += 1
                                 selectedAnswer = null
+                                heardCurrentAudio = false
                             } else {
                                 if (!isMistakeReview) onComplete(score, questions.size)
                                 finished = true
