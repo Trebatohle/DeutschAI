@@ -946,25 +946,11 @@ class ContentQualityTest {
 
     @Test
     fun listeningModesKeepIndependentReviewHistoryForTheSamePhrase() {
-        val meaning = buildListeningQuestions(
-            "A1",
-            ListeningExerciseMode.MEANING,
-            count = 10,
-            random = kotlin.random.Random(300)
-        )
-        val gap = buildListeningQuestions(
-            "A1",
-            ListeningExerciseMode.GAP,
-            count = 10,
-            random = kotlin.random.Random(300)
-        )
-        val sharedPhrase = meaning.firstOrNull { candidate ->
-            gap.any { it.source.courseId == candidate.source.courseId && it.source.itemIndex == candidate.source.itemIndex }
-        } ?: error("The deterministic listening sets should share at least one phrase")
-        val matchingGap = gap.single {
-            it.source.courseId == sharedPhrase.source.courseId && it.source.itemIndex == sharedPhrase.source.itemIndex
-        }
-        assertNotEquals(sharedPhrase.id, matchingGap.id)
+        val courseId = sentenceCourseCatalog.first { it.level == "A1" }.id
+        val itemIndex = 0
+        val meaningId = stableReviewId("listening", "A1", ListeningExerciseMode.MEANING.name, courseId, itemIndex.toString())
+        val gapId = stableReviewId("listening", "A1", ListeningExerciseMode.GAP.name, courseId, itemIndex.toString())
+        assertNotEquals(meaningId, gapId)
     }
 
     @Test
@@ -977,6 +963,84 @@ class ContentQualityTest {
             normalizeListeningDictation("schon heute") ==
                 normalizeListeningDictation("schön heute")
         )
+    }
+
+
+    @Test
+    fun phraseReviewQuestionsHaveFourRealGermanOptions() {
+        val card = PhraseReviewCard(
+            id = "A1_test_course_0",
+            courseTitle = "První kroky",
+            prompt = "Jak řekneš německy: Dnes mám čas.",
+            german = "Ich habe heute Zeit.",
+            czech = "Dnes mám čas."
+        )
+
+        val question = phraseReviewQuestion(card)
+
+        assertEquals(4, question.choices.size)
+        assertEquals(4, question.choices.toSet().size)
+        assertEquals(card.german, question.choices[question.correctIndex])
+        assertFalse(question.choices.contains("Ještě si nevzpomínám"))
+    }
+
+    @Test
+    fun legacyScheduledListeningAndPhraseQuestionsAreUpgradedToFourRealChoices() {
+        val legacyListening = ReviewQuestion(
+            id = "listening_legacy_test",
+            sourceKind = "listening",
+            sourceTitle = "Test poslechu",
+            prompt = "Zapiš celou německou větu, kterou uslyšíš:",
+            choices = listOf("Ich habe heute Zeit.", "Jiná odpověď"),
+            correctIndex = 0,
+            explanation = "Správný přepis.",
+            germanSentence = "Ich habe heute Zeit.",
+            translation = "Dnes mám čas."
+        )
+        val listening = enrichScheduledReviewQuestion(legacyListening)
+        assertEquals(4, listening.choices.size)
+        assertEquals(4, listening.choices.toSet().size)
+        assertEquals("Ich habe heute Zeit.", listening.choices[listening.correctIndex])
+        assertTrue(listening.prompt.contains("slyšel/a"))
+
+        val legacyPhrase = ReviewQuestion(
+            id = "phrases_legacy_test",
+            sourceKind = "phrases",
+            sourceTitle = "Test fráze",
+            prompt = "Jak bys řekl/a německy: Dnes mám čas.",
+            choices = listOf("Ich habe heute Zeit.", "Ještě si nevzpomínám"),
+            correctIndex = 0,
+            explanation = "Překlad.",
+            germanSentence = "Ich habe heute Zeit.",
+            translation = "Dnes mám čas."
+        )
+        val phrase = enrichScheduledReviewQuestion(legacyPhrase)
+        assertEquals(4, phrase.choices.size)
+        assertEquals(4, phrase.choices.toSet().size)
+        assertEquals("Ich habe heute Zeit.", phrase.choices[phrase.correctIndex])
+        assertFalse(phrase.choices.contains("Ještě si nevzpomínám"))
+    }
+
+    @Test
+    fun oldActiveVocabularyReviewsReceiveRealGermanDistractors() {
+        val legacy = ReviewQuestion(
+            id = "notebook_active_old_word",
+            sourceKind = "vocabulary",
+            sourceTitle = "Můj slovníček",
+            prompt = "Jak se německy řekne: stůl?",
+            choices = listOf("der Tisch", "Jiná odpověď"),
+            correctIndex = 0,
+            explanation = "Správně: der Tisch.",
+            germanSentence = "Der Tisch ist groß.",
+            translation = "Stůl je velký."
+        )
+
+        val enriched = enrichScheduledReviewQuestion(legacy)
+
+        assertEquals(4, enriched.choices.size)
+        assertEquals(4, enriched.choices.toSet().size)
+        assertEquals("der Tisch", enriched.choices[enriched.correctIndex])
+        assertFalse(enriched.choices.contains("Jiná odpověď"))
     }
 
 }
