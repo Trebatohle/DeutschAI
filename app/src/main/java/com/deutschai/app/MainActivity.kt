@@ -783,7 +783,7 @@ private fun BeatriceHome() {
                                 ProgressCard(
                                     modifier = Modifier.weight(1f),
                                     title = "Zvládnuté",
-                                    value = LearningReviewStore.masteredCount(context).toString(),
+                                    value = reviewEntries.count { it.correctStreak >= 3 && it.intervalDays >= 7 }.toString(),
                                     detail = "položek"
                                 )
                                 ProgressCard(
