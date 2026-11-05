@@ -46,7 +46,7 @@ import kotlin.math.roundToInt
 
 private const val PHRASE_REVIEW_PREFS = "deutschai_smart_phrase_review"
 
-private data class PhraseReviewCard(
+internal data class PhraseReviewCard(
     val id: String,
     val courseTitle: String,
     val prompt: String,
@@ -72,17 +72,31 @@ private fun allPhraseReviewCards(): List<PhraseReviewCard> =
 private fun phraseReviewCards(level: String): List<PhraseReviewCard> =
     allPhraseReviewCards().filter { it.id.startsWith("${level}_") }
 
-private fun phraseReviewQuestion(card: PhraseReviewCard): ReviewQuestion = ReviewQuestion(
-    id = stableReviewId("phrases", card.id),
-    sourceKind = "phrases",
-    sourceTitle = card.courseTitle,
-    prompt = "Jak bys řekl/a německy: ${card.prompt}",
-    choices = listOf(card.german, "Ještě si nevzpomínám"),
-    correctIndex = 0,
-    explanation = "${card.german} = ${card.czech}",
-    germanSentence = card.german,
-    translation = card.czech
-)
+internal fun phraseReviewQuestion(card: PhraseReviewCard): ReviewQuestion {
+    val distractors = sentenceCourseCatalog.asSequence()
+        .flatMap { it.items.asSequence() }
+        .map { it.german }
+        .filterNot { it.equals(card.german, ignoreCase = true) }
+        .distinct()
+        .take(60)
+        .toList()
+        .shuffled(kotlin.random.Random(card.id.hashCode()))
+        .take(3)
+    val choices = (distractors + card.german)
+        .distinct()
+        .shuffled(kotlin.random.Random("${card.id}_answers".hashCode()))
+    return ReviewQuestion(
+        id = stableReviewId("phrases", card.id),
+        sourceKind = "phrases",
+        sourceTitle = card.courseTitle,
+        prompt = card.prompt,
+        choices = choices,
+        correctIndex = choices.indexOf(card.german),
+        explanation = "${card.german} = ${card.czech}",
+        germanSentence = card.german,
+        translation = card.czech
+    )
+}
 
 private fun duePhraseCards(
     context: Context,
@@ -165,6 +179,35 @@ internal fun savePhraseRating(
         )
     }
     // Rating a phrase counts as a real study day for the rolling weekly goal.
+    StudyHabitStore.recordSession(context)
+}
+
+internal fun saveListeningConfidence(
+    context: Context,
+    phraseKey: String,
+    intervalMillis: Long,
+    nowMillis: Long = System.currentTimeMillis()
+) {
+    val prefs = context.applicationContext.getSharedPreferences(PHRASE_REVIEW_PREFS, Context.MODE_PRIVATE)
+    val oldRepetitions = prefs.getInt("${phraseKey}_reps", 0)
+    val intervalDays = intervalMillis.toDouble() / (24.0 * 60.0 * 60.0 * 1000.0)
+    val dueAt = nowMillis + intervalMillis
+    prefs.edit()
+        .putInt("${phraseKey}_reps", if (intervalMillis <= 10L * 60L * 1000L) 0 else oldRepetitions + 1)
+        .putFloat("${phraseKey}_interval", intervalDays.toFloat())
+        .putLong("${phraseKey}_due", dueAt)
+        .apply()
+
+    val card = allPhraseReviewCards().firstOrNull { it.id == phraseKey }
+    if (card != null) {
+        LearningReviewStore.recordRecall(
+            context = context,
+            question = phraseReviewQuestion(card),
+            remembered = intervalMillis > 10L * 60L * 1000L,
+            nowMillis = nowMillis,
+            nextDueAtMillis = dueAt
+        )
+    }
     StudyHabitStore.recordSession(context)
 }
 
