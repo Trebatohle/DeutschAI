@@ -79,13 +79,18 @@ internal fun buildHomeStudyRecommendation(
         val skillTitle = learningSkillTitle(sourceKind)
         val matchingDueCount = dueEntries.count { it.question.sourceKind == sourceKind }
         val repeatedMistake = nextDue.wrongCount >= 2
+        val dueExplanation = if (matchingDueCount == 1) {
+            "1 položka z této oblasti je připravená k opakování."
+        } else {
+            matchingDueCount.toString() + " položky z této oblasti jsou připravené k opakování."
+        }
         return HomeStudyRecommendation(
             type = HomeRecommendationType.REVIEW_DUE,
-            title = "Opakuj: $skillTitle",
+            title = "Opakuj: " + skillTitle,
             explanation = if (repeatedMistake) {
                 "V této oblasti se ti už některé otázky opakovaně pletly. Teď je vhodný čas vrátit se k nim a upevnit si správné řešení."
             } else {
-                "$matchingDueCount \${if (matchingDueCount == 1) "položka je" else "položky jsou"} připravené k opakování. Krátký návrat pomůže přesunout znalosti do dlouhodobé paměti."
+                dueExplanation + " Krátký návrat pomůže přesunout znalosti do dlouhodobé paměti."
             },
             actionLabel = "Spustit denní trénink",
             sourceKind = sourceKind,
@@ -100,8 +105,10 @@ internal fun buildHomeStudyRecommendation(
     if (weakestSkill != null) {
         return HomeStudyRecommendation(
             type = HomeRecommendationType.FOCUS_SKILL,
-            title = "Zaměř se na: \${weakestSkill.title}",
-            explanation = "V uložených odpovědích máš v této oblasti úspěšnost \${weakestSkill.accuracyPercent} % (\${weakestSkill.attempts} odpovědí). Doporučuji krátké cílené procvičení, než přejdeš k další látce.",
+            title = "Zaměř se na: " + weakestSkill.title,
+            explanation = "V uložených odpovědích máš v této oblasti úspěšnost " +
+                weakestSkill.accuracyPercent + " % (" + weakestSkill.attempts +
+                " odpovědí). Doporučuji krátké cílené procvičení, než přejdeš k další látce.",
             actionLabel = "Procvičit tuto oblast",
             sourceKind = weakestSkill.sourceKind,
             accuracyPercent = weakestSkill.accuracyPercent,
