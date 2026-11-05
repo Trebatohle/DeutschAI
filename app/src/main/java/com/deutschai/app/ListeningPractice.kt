@@ -319,11 +319,6 @@ internal fun ListeningPracticeScreen(
         answerWasCorrect = correct
         answerChecked = true
         if (correct) score += 1
-        LearningReviewStore.recordAnswer(
-            context = context,
-            question = listeningReviewQuestion(current),
-            wasCorrect = correct
-        )
     }
 
     fun moveToNextQuestion() {
@@ -557,7 +552,13 @@ internal fun ListeningPracticeScreen(
                         ratings.forEachIndexed { index, rating ->
                             Button(
                                 onClick = {
-                                    saveListeningConfidence(context, phraseKey, rating.third)
+                                    saveListeningConfidence(
+                                        context = context,
+                                        phraseKey = phraseKey,
+                                        intervalMillis = rating.third,
+                                        reviewQuestion = listeningReviewQuestion(question),
+                                        wasCorrect = answerWasCorrect
+                                    )
                                     ratingSaved = true
                                 },
                                 enabled = !ratingSaved,
