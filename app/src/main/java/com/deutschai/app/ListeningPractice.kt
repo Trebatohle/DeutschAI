@@ -104,9 +104,10 @@ private val listeningGapStopWords = setOf(
     "ich", "im", "in", "ist", "mit", "nicht", "sie", "sind", "und", "wir", "zu"
 )
 
+private val listeningWordRegex = Regex("[\\p{L}ÄÖÜäöüßẞ-]{3,}")
+
 private fun listeningWords(sentence: String): List<String> =
-    Regex("[\\p{L}ÄÖÜäöüßẞ-]{3,}")
-        .findAll(sentence)
+    listeningWordRegex.findAll(sentence)
         .map { it.value }
         .toList()
 
@@ -155,20 +156,27 @@ internal fun buildListeningQuestions(
         }
 
         ListeningExerciseMode.GAP -> {
-            val tokenPool = sources.flatMap { listeningWords(it.item.german) }
+            // Build the vocabulary pool once, then process only the 25 questions shown in the session.
+            // The previous implementation mapped every phrase and re-filtered/shuffled the whole pool
+            // for every phrase before taking 25, which caused long UI-thread stalls and Android ANRs.
+            val tokenPool = sources.asSequence()
+                .flatMap { listeningWords(it.item.german).asSequence() }
                 .distinctBy { it.lowercase() }
-            sources.shuffled(random).mapNotNull { source ->
-                val matches = Regex("[\\p{L}ÄÖÜäöüßẞ-]{3,}").findAll(source.item.german).toList()
+                .toList()
+            val shuffledTokens = tokenPool.shuffled(random)
+            val selectedSources = sources.shuffled(random).take(count)
+            selectedSources.mapNotNull { source ->
+                val matches = listeningWordRegex.findAll(source.item.german).toList()
                 val selected = matches.lastOrNull {
                     it.value.lowercase() !in listeningGapStopWords
                 } ?: matches.lastOrNull()
                 if (selected == null) return@mapNotNull null
                 val answer = selected.value
-                val distractors = tokenPool
+                val distractors = shuffledTokens.asSequence()
                     .filterNot { it.equals(answer, ignoreCase = true) }
                     .distinctBy { it.lowercase() }
-                    .shuffled(random)
                     .take(3)
+                    .toList()
                 if (distractors.size < 3) return@mapNotNull null
                 val options = (distractors + answer).shuffled(random)
                 ListeningQuestion(
@@ -182,7 +190,7 @@ internal fun buildListeningQuestions(
                     answerText = answer,
                     displayWithGap = source.item.german.replaceRange(selected.range, "_____")
                 )
-            }.take(count)
+            }
         }
 
         ListeningExerciseMode.DICTATION -> sources.shuffled(random).take(count).map { source ->
@@ -535,49 +543,48 @@ internal fun ListeningPracticeScreen(
                     }
 
                     Text("Jak jistě jsi poslechu porozuměl/a?", color = Ink, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    Text(
-                        "Tvoje hodnocení pomůže určit, kdy se tato fráze znovu objeví v opakování.",
-                        color = Muted, fontSize = 12.sp, lineHeight = 18.sp
-                    )
                     val phraseKey = "${level}_${question.source.courseId}_${question.source.itemIndex}"
+                    val dayMillis = 24L * 60L * 60L * 1000L
                     val ratings = listOf(
-                        PhraseRating.AGAIN to ("Zatím ne" to "znovu za 10 min"),
-                        PhraseRating.HARD to ("Ještě si nejsem jistý/á" to "Zopakovat zítra"),
-                        PhraseRating.GOOD to ("Umím" to "za 1–3 dny"),
-                        PhraseRating.EASY to ("Umím dobře" to "za 3–6 dní")
+                        Triple("Zatím ne", "Znovu", 10L * 60L * 1000L),
+                        Triple("Ještě si nejsem jistý", "Zítra", dayMillis),
+                        Triple("Umím", "Za 14 dní", 14L * dayMillis)
                     )
-                    ratings.chunked(2).forEach { ratingRow ->
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            ratingRow.forEach { (rating, labels) ->
-                                Button(
-                                    onClick = {
-                                        savePhraseRating(context, phraseKey, rating)
-                                        ratingSaved = true
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        ratings.forEachIndexed { index, rating ->
+                            Button(
+                                onClick = {
+                                    saveListeningConfidence(context, phraseKey, rating.third)
+                                    ratingSaved = true
+                                },
+                                enabled = !ratingSaved,
+                                modifier = Modifier.weight(1f).heightIn(min = 70.dp),
+                                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 2.dp, vertical = 6.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = when (index) {
+                                        0 -> Incorrect
+                                        1 -> RatingHard
+                                        else -> RatingGood
                                     },
-                                    enabled = !ratingSaved,
-                                    modifier = Modifier.weight(1f).heightIn(min = 58.dp),
-                                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp, vertical = 7.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = when (rating) {
-                                            PhraseRating.AGAIN -> Incorrect
-                                            PhraseRating.HARD -> RatingHard
-                                            PhraseRating.GOOD -> RatingGood
-                                            PhraseRating.EASY -> RatingEasy
-                                        },
-                                        contentColor = if (rating == PhraseRating.EASY && IsDarkTheme) ActionText else Ink
-                                    ),
-                                    shape = RoundedCornerShape(12.dp)
+                                    contentColor = Ink
+                                ),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(3.dp)
                                 ) {
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                        Text(
-                                            labels.first,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = if (rating == PhraseRating.HARD) 10.sp else 12.sp,
-                                            maxLines = 1,
-                                            softWrap = false
-                                        )
-                                        Text(labels.second, fontSize = 10.sp, maxLines = 1)
-                                    }
+                                    Text(
+                                        rating.first,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.sp,
+                                        maxLines = 2,
+                                        softWrap = true
+                                    )
+                                    Text(rating.second, fontSize = 10.sp, maxLines = 1, softWrap = false)
                                 }
                             }
                         }
