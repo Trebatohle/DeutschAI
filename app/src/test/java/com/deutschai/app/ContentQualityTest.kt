@@ -726,6 +726,19 @@ class ContentQualityTest {
     }
 
     @Test
+    fun readingTranslationFallsBackToTheFullBundledVocabulary() {
+        val uncommon = vocabularyCatalog.first { it.word == "Raclette-Grill" }
+        val article = ReadingArticle(
+            id = "translation-test",
+            level = "A1",
+            title = "Test",
+            subtitle = "",
+            body = "Das ist ein Test."
+        )
+        assertEquals(uncommon.czech, lookupReadingWordTranslation(article, uncommon.word))
+    }
+
+    @Test
     fun vocabularyNounsGenerateGermanAndCzechExampleSentences() {
         vocabularyCatalog.forEach { entry ->
             val german = vocabularySentenceGerman(entry)
@@ -961,7 +974,7 @@ class ContentQualityTest {
             listOf(10L * 60L * 1000L, 24L * 60L * 60L * 1000L, 14L * 24L * 60L * 60L * 1000L),
             options.map { it.intervalMillis }
         )
-        assertEquals(listOf("Zatím ne", "Ještě si nejsem jistý", "Umím"), options.map { it.title })
+        assertEquals(listOf("Zatím ne", "Nejsem si jistý", "Umím"), options.map { it.title })
         assertEquals(listOf("Znovu", "Zítra", "Za 14 dní"), options.map { it.subtitle })
     }
 
