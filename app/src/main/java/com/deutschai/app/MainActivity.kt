@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,9 +42,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.IconButton
@@ -60,6 +58,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -640,11 +639,22 @@ private fun BeatriceHome() {
                 modifier = Modifier
                     .weight(1f)
                     .then(
-                        if (selectedTab == "Pokroky") Modifier
+                        if (selectedTab == "Pokroky" || selectedTab == "Knihovna") Modifier
                         else Modifier.verticalScroll(rememberScrollState())
                     )
-                    .padding(start = 18.dp, top = 12.dp, end = 18.dp, bottom = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(if (selectedTab == "Domů") 10.dp else 12.dp)
+                    .padding(
+                        start = if (selectedTab == "Knihovna") 15.dp else 18.dp,
+                        top = if (selectedTab == "Knihovna") 8.dp else 12.dp,
+                        end = if (selectedTab == "Knihovna") 15.dp else 18.dp,
+                        bottom = if (selectedTab == "Knihovna") 8.dp else 12.dp
+                    ),
+                verticalArrangement = Arrangement.spacedBy(
+                    when (selectedTab) {
+                        "Domů" -> 10.dp
+                        "Knihovna" -> 8.dp
+                        else -> 12.dp
+                    }
+                )
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -1013,34 +1023,44 @@ private fun BeatriceHome() {
                     }
 
                     else -> {
-                        Text("Knihovna učení", color = Ink, fontSize = 25.sp, fontWeight = FontWeight.Bold)
-                        Text("Vše, co potřebuješ k procvičování němčiny, na jednom místě.", color = Muted, fontSize = 14.sp, lineHeight = 20.sp)
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(11.dp)) {
+                        Text("Knihovna učení", color = Ink, fontSize = 23.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            "Všechny části aplikace na jednom místě.",
+                            color = Muted,
+                            fontSize = 12.sp,
+                            lineHeight = 16.sp,
+                            maxLines = 1
+                        )
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                             FeatureTile(
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(1f).height(116.dp),
+                                compact = true,
                                 icon = { Icon(Icons.Default.MenuBook, contentDescription = null, tint = ForestText) },
                                 title = "Kurzy",
                                 subtitle = "Věty a gramatika",
                                 onClick = { showLearningHub = true }
                             )
                             FeatureTile(
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(1f).height(116.dp),
+                                compact = true,
                                 icon = { Icon(Icons.Default.VolumeUp, contentDescription = null, tint = ForestText) },
                                 title = "Poslech",
                                 subtitle = "Cvičení A1–B2",
                                 onClick = { showLessonLibrary = true }
                             )
                         }
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(11.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                             FeatureTile(
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(1f).height(116.dp),
+                                compact = true,
                                 icon = { Icon(Icons.Default.MenuBook, contentDescription = null, tint = ForestText) },
                                 title = "Čtení",
                                 subtitle = "Příběhy a texty",
                                 onClick = { showReadingLibrary = true }
                             )
                             FeatureTile(
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(1f).height(116.dp),
+                                compact = true,
                                 icon = { Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = ForestText) },
                                 title = "Dialogy",
                                 subtitle = "Konverzace",
@@ -1050,74 +1070,64 @@ private fun BeatriceHome() {
                                 }
                             )
                         }
-                        FeatureTile(
-                            modifier = Modifier.fillMaxWidth(),
-                            icon = { Icon(Icons.Default.School, contentDescription = null, tint = ForestText) },
-                            title = "Slovní nástroje",
-                            subtitle = "Slovíčka, tvary a chytré procvičování",
-                            onClick = {
-                                saveLastActivity("word-tools", "word-tools", "Slovní nástroje")
-                                showWordTools = true
-                            }
-                        )
-                        FeatureTile(
-                            modifier = Modifier.fillMaxWidth(),
-                            icon = { Icon(Icons.Default.LibraryBooks, contentDescription = null, tint = ForestText) },
-                            title = "Můj slovníček",
-                            subtitle = "${VocabularyNotebookStore.count(context) + ReadingWordNotebookStore.entries(context).size} uložených slov · vlastní procvičování",
-                            onClick = {
-                                saveLastActivity("vocabulary-notebook", "my-notebook", "Můj slovníček")
-                                showVocabularyNotebook = true
-                            }
-                        )
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                            FeatureTile(
+                                modifier = Modifier.weight(1f).height(116.dp),
+                                compact = true,
+                                icon = { Icon(Icons.Default.School, contentDescription = null, tint = ForestText) },
+                                title = "Slovní nástroje",
+                                subtitle = "Slovíčka a gramatika",
+                                onClick = {
+                                    saveLastActivity("word-tools", "word-tools", "Slovní nástroje")
+                                    showWordTools = true
+                                }
+                            )
+                            FeatureTile(
+                                modifier = Modifier.weight(1f).height(116.dp),
+                                compact = true,
+                                icon = { Icon(Icons.Default.LibraryBooks, contentDescription = null, tint = ForestText) },
+                                title = "Můj slovníček",
+                                subtitle = "${VocabularyNotebookStore.count(context) + ReadingWordNotebookStore.entries(context).size} uložených slov",
+                                onClick = {
+                                    saveLastActivity("vocabulary-notebook", "my-notebook", "Můj slovníček")
+                                    showVocabularyNotebook = true
+                                }
+                            )
+                        }
                     }
                 }
             }
 
-            NavigationBar(
-                containerColor = CardSurface,
-                contentColor = Ink,
-                tonalElevation = 0.dp
+            Surface(
+                modifier = Modifier.fillMaxWidth().height(62.dp),
+                color = CardSurface
             ) {
-                NavigationBarItem(
-                    selected = selectedTab == "Domů",
-                    onClick = { selectedTab = "Domů" },
-                    icon = { Icon(Icons.Default.Home, contentDescription = null) },
-                    label = { Text("Domů") },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = ForestText,
-                        selectedTextColor = ForestText,
-                        indicatorColor = Mint,
-                        unselectedIconColor = Muted,
-                        unselectedTextColor = Muted
+                Row(
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 3.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    MainBottomTab(
+                        modifier = Modifier.weight(1f),
+                        selected = selectedTab == "Domů",
+                        icon = Icons.Default.Home,
+                        label = "Domů",
+                        onClick = { selectedTab = "Domů" }
                     )
-                )
-                NavigationBarItem(
-                    selected = selectedTab == "Pokroky",
-                    onClick = { selectedTab = "Pokroky" },
-                    icon = { Icon(Icons.Default.BarChart, contentDescription = null) },
-                    label = { Text("Pokroky") },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = ForestText,
-                        selectedTextColor = ForestText,
-                        indicatorColor = Mint,
-                        unselectedIconColor = Muted,
-                        unselectedTextColor = Muted
+                    MainBottomTab(
+                        modifier = Modifier.weight(1f),
+                        selected = selectedTab == "Pokroky",
+                        icon = Icons.Default.BarChart,
+                        label = "Pokroky",
+                        onClick = { selectedTab = "Pokroky" }
                     )
-                )
-                NavigationBarItem(
-                    selected = selectedTab == "Knihovna",
-                    onClick = { selectedTab = "Knihovna" },
-                    icon = { Icon(Icons.Default.LibraryBooks, contentDescription = null) },
-                    label = { Text("Knihovna") },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = ForestText,
-                        selectedTextColor = ForestText,
-                        indicatorColor = Mint,
-                        unselectedIconColor = Muted,
-                        unselectedTextColor = Muted
+                    MainBottomTab(
+                        modifier = Modifier.weight(1f),
+                        selected = selectedTab == "Knihovna",
+                        icon = Icons.Default.LibraryBooks,
+                        label = "Knihovna",
+                        onClick = { selectedTab = "Knihovna" }
                     )
-                )
+                }
             }
         }
     }
@@ -1709,11 +1719,47 @@ private fun FeatureCard(
 }
 
 @Composable
+private fun MainBottomTab(
+    modifier: Modifier = Modifier,
+    selected: Boolean,
+    icon: ImageVector,
+    label: String,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = modifier.fillMaxSize().clickable(onClick = onClick).padding(vertical = 2.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Box(
+            modifier = Modifier.size(width = 58.dp, height = 29.dp)
+                .background(if (selected) Mint else Color.Transparent, RoundedCornerShape(18.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = if (selected) ForestText else Muted,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+        Text(
+            label,
+            color = if (selected) ForestText else Muted,
+            fontSize = 10.sp,
+            lineHeight = 12.sp,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
+        )
+    }
+}
+
+@Composable
 private fun FeatureTile(
     modifier: Modifier = Modifier,
     icon: @Composable () -> Unit,
     title: String,
     subtitle: String,
+    compact: Boolean = false,
     onClick: () -> Unit
 ) {
     Card(
@@ -1723,17 +1769,30 @@ private fun FeatureTile(
         colors = CardDefaults.cardColors(containerColor = CardSurface)
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(15.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            modifier = Modifier.fillMaxWidth().padding(if (compact) 11.dp else 15.dp),
+            verticalArrangement = Arrangement.spacedBy(if (compact) 6.dp else 10.dp)
         ) {
             Box(
-                modifier = Modifier.size(38.dp).background(Mint, RoundedCornerShape(12.dp)),
+                modifier = Modifier.size(if (compact) 30.dp else 38.dp)
+                    .background(Mint, RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 icon()
             }
-            Text(title, color = Ink, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-            Text(subtitle, color = Muted, fontSize = 12.sp, lineHeight = 16.sp)
+            Text(
+                title,
+                color = Ink,
+                fontSize = if (compact) 14.sp else 15.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1
+            )
+            Text(
+                subtitle,
+                color = Muted,
+                fontSize = if (compact) 11.sp else 12.sp,
+                lineHeight = if (compact) 14.sp else 16.sp,
+                maxLines = 2
+            )
         }
     }
 }
