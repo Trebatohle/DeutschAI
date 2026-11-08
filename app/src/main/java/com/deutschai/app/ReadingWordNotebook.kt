@@ -82,7 +82,8 @@ internal fun buildPersonalNotebookQuestions(
                 correctIndex = choices.indexOf(entry.meaning),
                 explanation = "${entry.word} = ${entry.meaning}. Uloženo při čtení příběhu „${entry.sourceTitle}“.",
                 germanSentence = entry.exampleGerman,
-                translation = entry.meaning
+                translation = entry.meaning,
+                cefrLevel = entry.sourceLevel
             )
         }
     }
