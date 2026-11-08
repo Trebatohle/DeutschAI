@@ -911,6 +911,7 @@ class ContentQualityTest {
             assertEquals(4, question.choices.size)
             assertTrue(question.correctIndex in question.choices.indices)
             assertEquals(question.source.item.czech, question.answerText)
+            assertEquals("A1", listeningReviewQuestion(question).cefrLevel)
         }
 
         val gaps = buildListeningQuestions(
@@ -926,6 +927,7 @@ class ContentQualityTest {
             assertTrue(question.correctIndex in question.choices.indices)
             assertEquals(question.answerText, question.choices[question.correctIndex])
             assertTrue(question.displayWithGap.contains("_____"))
+            assertEquals("A1", listeningReviewQuestion(question).cefrLevel)
         }
 
         val dictation = buildListeningQuestions(
@@ -939,6 +941,7 @@ class ContentQualityTest {
             assertEquals(ListeningExerciseMode.DICTATION, question.mode)
             assertTrue(question.choices.isEmpty())
             assertEquals(question.listeningText, question.answerText)
+            assertEquals("A1", listeningReviewQuestion(question).cefrLevel)
         }
 
         val context = buildListeningQuestions(
@@ -954,6 +957,7 @@ class ContentQualityTest {
             assertTrue(question.correctIndex in question.choices.indices)
             assertEquals(question.source.courseTitle, question.choices[question.correctIndex])
             assertTrue(question.listeningText.split(Regex("\\s+")).size > 5)
+            assertEquals("A1", listeningReviewQuestion(question).cefrLevel)
         }
     }
 
@@ -1025,6 +1029,7 @@ class ContentQualityTest {
         assertEquals(4, question.choices.size)
         assertEquals(4, question.choices.toSet().size)
         assertEquals(card.german, question.choices[question.correctIndex])
+        assertEquals("A1", question.cefrLevel)
         assertFalse(question.choices.contains("Ještě si nevzpomínám"))
     }
 
