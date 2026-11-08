@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -33,6 +34,76 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
+private fun CefrKnowledgeLevelCard(
+    modifier: Modifier = Modifier,
+    knowledge: CefrLevelKnowledge
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(17.dp),
+        colors = CardDefaults.cardColors(containerColor = CardSurface)
+    ) {
+        Column(
+            modifier = Modifier.padding(13.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    knowledge.level,
+                    color = ForestText,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    knowledge.accuracyPercent?.let { "$it %" } ?: "—",
+                    color = if (knowledge.accuracyPercent == null) Muted else Ink,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            if (knowledge.accuracyPercent != null) {
+                LinearProgressIndicator(
+                    progress = { (knowledge.accuracyPercent / 100f).coerceIn(0f, 1f) },
+                    modifier = Modifier.fillMaxWidth(),
+                    color = ForestText,
+                    trackColor = Mint
+                )
+            } else {
+                Text("Bez výsledků", color = Muted, fontSize = 11.sp)
+            }
+            Text(
+                knowledge.statusLabel,
+                color = when {
+                    knowledge.accuracyPercent == null -> Muted
+                    knowledge.answeredQuestions < 5 -> Muted
+                    knowledge.accuracyPercent >= 85 -> ForestText
+                    knowledge.accuracyPercent < 65 -> Color(0xFFB56A45)
+                    else -> Ink
+                },
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 2
+            )
+            Text(
+                if (knowledge.accuracyPercent == null) {
+                    "Zatím neověřeno"
+                } else {
+                    "${knowledge.correctAnswers}/${knowledge.answeredQuestions} · ${knowledge.sourceLabel}"
+                },
+                color = Muted,
+                fontSize = 10.sp,
+                lineHeight = 14.sp,
+                maxLines = 2
+            )
+        }
+    }
+}
+
+@Composable
 internal fun LearningOverviewScreen(
     onBack: () -> Unit,
     onPlacementTest: () -> Unit,
@@ -41,6 +112,7 @@ internal fun LearningOverviewScreen(
 ) {
     val context = LocalContext.current
     val skillStats = LearningReviewStore.skillStats(context)
+    val cefrMap = buildCefrKnowledgeMap(LearningReviewStore.all(context), PlacementAssessmentStore.load(context))
     val totalAnswered = LearningReviewStore.totalAnswered(context)
     val masteredCount = LearningReviewStore.masteredCount(context)
     val dueCount = LearningReviewStore.pendingCount(context)
@@ -121,6 +193,34 @@ internal fun LearningOverviewScreen(
                     }
                 }
             }
+
+            Text("Mapa znalostí A1–C2", color = Ink, fontSize = 19.sp, fontWeight = FontWeight.Bold)
+            Text(
+                placement?.let { "Výchozí úroveň podle posledního rozřazovacího testu: ${it.estimatedLevel}. Jednotlivé úrovně se dále zpřesňují podle výsledků kurzů, poslechu a četby." }
+                    ?: "Postupně si zde vytvoříš přehled toho, jak zvládáš jednotlivé úrovně. Výsledky se počítají z reálných odpovědí v aplikaci.",
+                color = Muted, fontSize = 13.sp, lineHeight = 19.sp
+            )
+            cefrMap.chunked(2).forEach { rowLevels ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    rowLevels.forEach { level ->
+                        CefrKnowledgeLevelCard(
+                            modifier = Modifier.weight(1f),
+                            knowledge = level
+                        )
+                    }
+                    if (rowLevels.size == 1) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+            Text(
+                "Procenta vyjadřují úspěšnost zaznamenaných odpovědí, nikoli oficiální CEFR certifikaci. Úrovně bez dostatku dat zůstávají označené jako neověřené.",
+                color = Muted, fontSize = 11.sp, lineHeight = 17.sp
+            )
 
             Text("Znalosti podle oblastí", color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             if (skillStats.isEmpty()) {
