@@ -410,7 +410,8 @@ internal fun PlacementAssessmentScreen(
                                         correctIndex = current.correctIndex,
                                         explanation = current.explanation,
                                         germanSentence = current.germanSentence,
-                                        translation = current.translation
+                                        translation = current.translation,
+                                        cefrLevel = current.level
                                     ),
                                     wasCorrect = correct
                                 )
