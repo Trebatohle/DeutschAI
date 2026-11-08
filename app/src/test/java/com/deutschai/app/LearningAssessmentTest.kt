@@ -167,4 +167,12 @@ class LearningAssessmentTest {
         )
     }
 
+
+    @Test
+    fun courseMistakeCorrectionIsOfferedOnlyAsAnOptionalStepWhenThereAreErrors() {
+        assertTrue(!shouldOfferOptionalMistakeReview(0))
+        assertTrue(shouldOfferOptionalMistakeReview(1))
+        assertTrue(shouldOfferOptionalMistakeReview(25))
+    }
+
 }
