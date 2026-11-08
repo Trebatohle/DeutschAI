@@ -110,7 +110,8 @@ internal data class ListeningQuestion(
     val choices: List<String>,
     val correctIndex: Int,
     val answerText: String,
-    val displayWithGap: String = ""
+    val displayWithGap: String = "",
+    val cefrLevel: String = ""
 )
 
 private val listeningGapStopWords = setOf(
@@ -166,7 +167,8 @@ internal fun buildListeningQuestions(
                 taskPrompt = "Co znamená věta, kterou uslyšíš?",
                 choices = options,
                 correctIndex = options.indexOf(source.item.czech),
-                answerText = source.item.czech
+                answerText = source.item.czech,
+                cefrLevel = level
             )
         }
 
@@ -203,7 +205,8 @@ internal fun buildListeningQuestions(
                     choices = options,
                     correctIndex = options.indexOf(answer),
                     answerText = answer,
-                    displayWithGap = source.item.german.replaceRange(selected.range, "_____")
+                    displayWithGap = source.item.german.replaceRange(selected.range, "_____"),
+                    cefrLevel = level
                 )
             }
         }
@@ -217,7 +220,8 @@ internal fun buildListeningQuestions(
                 taskPrompt = "Zapiš celou německou větu, kterou uslyšíš:",
                 choices = emptyList(),
                 correctIndex = -1,
-                answerText = source.item.german
+                answerText = source.item.german,
+                cefrLevel = level
             )
         }
 
@@ -252,7 +256,8 @@ internal fun buildListeningQuestions(
                     taskPrompt = "O jaké situaci se v poslechu mluvilo?",
                     choices = options,
                     correctIndex = options.indexOf(course.title),
-                    answerText = course.title
+                    answerText = course.title,
+                    cefrLevel = level
                 )
             }
         }
@@ -289,7 +294,8 @@ internal fun listeningReviewQuestion(question: ListeningQuestion): ReviewQuestio
             question.answerText
         } else {
             question.source.item.czech
-        }
+        },
+        cefrLevel = question.cefrLevel
     )
 }
 
