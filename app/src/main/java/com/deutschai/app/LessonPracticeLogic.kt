@@ -70,3 +70,7 @@ internal fun isGermanWrittenAnswerCorrect(
         expected.isNotBlank() && normalizeGermanWrittenAnswer(expected) == normalizedSubmission
     }
 }
+
+/** The post-lesson error review is available only when at least one answer was missed. */
+internal fun shouldOfferOptionalMistakeReview(mistakeCount: Int): Boolean = mistakeCount > 0
+
