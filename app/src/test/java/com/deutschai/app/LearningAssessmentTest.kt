@@ -78,4 +78,93 @@ class LearningAssessmentTest {
         assertEquals(6, report.levelResults.size)
         assertEquals(2, report.skillResults.size)
     }
+
+    @Test
+    fun cefrKnowledgeMapSummarizesRealPracticeSeparatelyForEveryLevel() {
+        val entries = listOf(
+            cefrTestEntry("a1-1", "A1", attempts = 3, correct = 2),
+            cefrTestEntry("a1-2", "A1", attempts = 2, correct = 2),
+            cefrTestEntry("b1-1", "B1", attempts = 4, correct = 1)
+        )
+
+        val map = buildCefrKnowledgeMap(entries)
+
+        assertEquals(listOf("A1", "A2", "B1", "B2", "C1", "C2"), map.map { it.level })
+        val a1 = map.single { it.level == "A1" }
+        assertEquals(80, a1.accuracyPercent)
+        assertEquals(5, a1.answeredQuestions)
+        assertEquals("Procvičování", a1.sourceLabel)
+        assertEquals("Rozvíjíš", a1.statusLabel)
+
+        val a2 = map.single { it.level == "A2" }
+        assertEquals(null, a2.accuracyPercent)
+        assertEquals("Zatím neověřeno", a2.statusLabel)
+
+        val b1 = map.single { it.level == "B1" }
+        assertEquals(25, b1.accuracyPercent)
+        assertEquals("První výsledky", b1.statusLabel)
+    }
+
+    @Test
+    fun cefrKnowledgeMapFallsBackToThePlacementReportForLegacyUnlabelledEntries() {
+        val placement = PlacementAssessmentReport(
+            estimatedLevel = "B1",
+            assessedAtMillis = 1234L,
+            totalQuestions = 24,
+            correctAnswers = 15,
+            levelResults = mapOf(
+                "A1" to PlacementSkillResult(4, 4),
+                "A2" to PlacementSkillResult(3, 4),
+                "B1" to PlacementSkillResult(2, 4)
+            ),
+            skillResults = emptyMap()
+        )
+        val legacy = cefrTestEntry("legacy", "", attempts = 1, correct = 1)
+
+        val map = buildCefrKnowledgeMap(listOf(legacy), placement)
+
+        assertEquals(100, map.single { it.level == "A1" }.accuracyPercent)
+        assertEquals(75, map.single { it.level == "A2" }.accuracyPercent)
+        assertEquals("Vstupní test", map.single { it.level == "A2" }.sourceLabel)
+        assertEquals(null, map.single { it.level == "B2" }.accuracyPercent)
+    }
+
+    @Test
+    fun legacyPracticeWithoutLevelIsNeverAssignedToAnA1ToC2BandByGuesswork() {
+        val legacy = cefrTestEntry("old-record", "", attempts = 20, correct = 18)
+
+        val map = buildCefrKnowledgeMap(listOf(legacy))
+
+        assertTrue(map.all { it.accuracyPercent == null })
+        assertTrue(map.all { it.answeredQuestions == 0 })
+    }
+
+    private fun cefrTestEntry(
+        id: String,
+        level: String,
+        attempts: Int,
+        correct: Int
+    ): ReviewMemoryEntry {
+        val question = ReviewQuestion(
+            id = id,
+            sourceKind = "sentences",
+            sourceTitle = "Testovací kurz",
+            prompt = "Vyber správnou odpověď.",
+            choices = listOf("A", "B"),
+            correctIndex = 0,
+            explanation = "Testovací vysvětlení.",
+            cefrLevel = level
+        )
+        return ReviewMemoryEntry(
+            question = question,
+            wrongCount = attempts - correct,
+            correctStreak = 0,
+            intervalDays = 0,
+            dueAtMillis = 0L,
+            attemptCount = attempts,
+            correctCount = correct,
+            lastAnsweredAtMillis = 1L
+        )
+    }
+
 }
