@@ -569,7 +569,8 @@ internal fun ReadingArticleScreen(
                                         prompt = currentComprehensionQuestion.prompt,
                                         choices = currentComprehensionQuestion.choices,
                                         correctIndex = currentComprehensionQuestion.correctIndex,
-                                        explanation = currentComprehensionQuestion.explanation
+                                        explanation = currentComprehensionQuestion.explanation,
+                                        cefrLevel = article.level
                                     ),
                                     wasCorrect = correct
                                 )
