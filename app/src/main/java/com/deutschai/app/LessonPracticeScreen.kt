@@ -139,7 +139,10 @@ internal fun LessonPracticeScreen(
             LessonPracticeStage.INTRODUCTION -> beginWriting()
             LessonPracticeStage.WRITING -> beginDictation()
             LessonPracticeStage.DICTATION -> {
-                if (wrongTasks.isNotEmpty()) beginReview(wrongTasks) else finishLesson()
+                // The core lesson is complete after the introduction, writing and dictation.
+                // Error correction is offered afterwards, but never starts automatically.
+                remainingTasks = wrongTasks
+                finishLesson()
             }
             LessonPracticeStage.REVIEW -> {
                 remainingTasks = reviewRoundMistakes
@@ -176,7 +179,8 @@ internal fun LessonPracticeScreen(
             val reviewQuestion = question.toReviewQuestion(
                 id = stableReviewId("sentence", lesson.id, sourceIndex.toString()),
                 sourceKind = "sentences",
-                sourceTitle = lesson.title
+                sourceTitle = lesson.title,
+                cefrLevel = lesson.level
             )
             LearningReviewStore.recordAnswer(
                 context = context,
@@ -220,7 +224,8 @@ internal fun LessonPracticeScreen(
             val reviewQuestion = question.toReviewQuestion(
                 id = stableReviewId("sentence", lesson.id, sourceIndex.toString()),
                 sourceKind = "sentences",
-                sourceTitle = lesson.title
+                sourceTitle = lesson.title,
+                cefrLevel = lesson.level
             )
             LearningReviewStore.recordAnswer(
                 context = context,
@@ -240,14 +245,14 @@ internal fun LessonPracticeScreen(
         LessonPracticeStage.INTRODUCTION -> 0
         LessonPracticeStage.WRITING -> 1
         LessonPracticeStage.DICTATION -> 2
-        LessonPracticeStage.REVIEW -> 3
-        LessonPracticeStage.COMPLETE -> 3
+        LessonPracticeStage.REVIEW -> 2
+        LessonPracticeStage.COMPLETE -> 2
     }
     val stageName = when (stage) {
         LessonPracticeStage.INTRODUCTION -> "Úvodní test 25 vět"
         LessonPracticeStage.WRITING -> "Psaní vět"
         LessonPracticeStage.DICTATION -> "Poslechový diktát"
-        LessonPracticeStage.REVIEW -> "Opakování chyb"
+        LessonPracticeStage.REVIEW -> "Dobrovolná oprava chyb"
         LessonPracticeStage.COMPLETE -> "Výsledek lekce"
     }
 
@@ -268,7 +273,11 @@ internal fun LessonPracticeScreen(
 
             if (stage != LessonPracticeStage.COMPLETE) {
                 Text(
-                    text = "KROK ${stageIndex + 1} ZE 4  ·  ${stageName.uppercase()}",
+                    text = if (stage == LessonPracticeStage.REVIEW) {
+                        "DOBROVOLNÁ OPRAVA CHYB"
+                    } else {
+                        "KROK ${stageIndex + 1} ZE 3  ·  ${stageName.uppercase()}"
+                    },
                     color = Muted,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
@@ -278,7 +287,7 @@ internal fun LessonPracticeScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
-                    repeat(4) { index ->
+                    repeat(3) { index ->
                         Box(
                             modifier = Modifier
                                 .weight(1f)
@@ -329,9 +338,9 @@ internal fun LessonPracticeScreen(
                         )
                         Text(
                             text = if (remainingTasks.isEmpty()) {
-                                "Výborně! Všechny procvičované věty máš zvládnuté."
+                                "Výborně! Dokončil/a jsi celou lekci. Všechny odpovědi máš zvládnuté."
                             } else {
-                                "Několik vět ještě potřebuje procvičit. Můžeš si zopakovat pouze tyto chyby."
+                                "Základní lekce je hotová. Zbývá ${remainingTasks.size} chyb, které si můžeš dobrovolně opravit hned teď. Chybné odpovědi jsou zároveň uložené do dlouhodobého opakování."
                             },
                             color = Color(0xFFE0EAE5),
                             fontSize = 14.sp,
@@ -351,7 +360,7 @@ internal fun LessonPracticeScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
                         shape = RoundedCornerShape(14.dp)
                     ) {
-                        Text("Opakovat zbývající chyby (${remainingTasks.size})", fontWeight = FontWeight.Bold)
+                        Text("Ano, opravit chyby (${remainingTasks.size})", fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -370,7 +379,10 @@ internal fun LessonPracticeScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
                     shape = RoundedCornerShape(14.dp)
                 ) {
-                    Text("Vybrat jinou lekci", fontWeight = FontWeight.Bold)
+                    Text(
+                        if (remainingTasks.isNotEmpty()) "Teď ne – dokončit bez opravy" else "Vybrat jinou lekci",
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             } else if (currentTask != null && currentQuestion != null) {
                 Text(
