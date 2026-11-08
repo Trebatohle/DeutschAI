@@ -16,7 +16,8 @@ internal data class ReviewQuestion(
     val correctIndex: Int,
     val explanation: String,
     val germanSentence: String = "",
-    val translation: String = ""
+    val translation: String = "",
+    val cefrLevel: String = ""
 ) {
     init {
         require(id.isNotBlank()) { "Review question ID must not be blank." }
@@ -222,6 +223,7 @@ internal object LearningReviewStore {
                     .put("explanation", q.explanation)
                     .put("germanSentence", q.germanSentence)
                     .put("translation", q.translation)
+                    .put("cefrLevel", q.cefrLevel)
                     .put("wrongCount", entry.wrongCount)
                     .put("correctStreak", entry.correctStreak)
                     .put("intervalDays", entry.intervalDays)
@@ -252,7 +254,8 @@ internal object LearningReviewStore {
             correctIndex = correctIndex,
             explanation = optString("explanation", ""),
             germanSentence = optString("germanSentence", ""),
-            translation = optString("translation", "")
+            translation = optString("translation", ""),
+            cefrLevel = optString("cefrLevel", "")
         )
     }
 }
@@ -293,7 +296,8 @@ internal fun calculateNextReviewIntervalDays(
 internal fun LessonQuestion.toReviewQuestion(
     id: String,
     sourceKind: String,
-    sourceTitle: String
+    sourceTitle: String,
+    cefrLevel: String = ""
 ): ReviewQuestion = ReviewQuestion(
     id = id,
     sourceKind = sourceKind,
@@ -303,7 +307,8 @@ internal fun LessonQuestion.toReviewQuestion(
     correctIndex = correctIndex,
     explanation = explanation,
     germanSentence = germanSentence,
-    translation = translation
+    translation = translation,
+    cefrLevel = cefrLevel
 )
 
 internal fun WordToolQuestion.toReviewQuestion(
