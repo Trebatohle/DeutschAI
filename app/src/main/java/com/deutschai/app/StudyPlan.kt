@@ -183,12 +183,23 @@ internal fun buildCefrKnowledgeMap(
             val correct = levelEntries.sumOf {
                 it.correctCount.coerceIn(0, it.attemptCount.coerceAtLeast(0))
             }.coerceAtMost(attempts)
+            val hasPlacementAttempts = levelEntries.any {
+                it.question.sourceTitle.startsWith("Rozřazovací test")
+            }
+            val hasPracticeAttempts = levelEntries.any {
+                !it.question.sourceTitle.startsWith("Rozřazovací test")
+            }
+            val sourceLabel = when {
+                hasPlacementAttempts && hasPracticeAttempts -> "Test + procvičování"
+                hasPlacementAttempts -> "Vstupní test"
+                else -> "Procvičování"
+            }
             CefrLevelKnowledge(
                 level = level,
                 accuracyPercent = if (attempts == 0) null else (correct * 100.0 / attempts).roundToInt(),
                 answeredQuestions = attempts,
                 correctAnswers = correct,
-                sourceLabel = "Procvičování"
+                sourceLabel = sourceLabel
             )
         } else {
             val placementResult = placement?.levelResults?.get(level)
