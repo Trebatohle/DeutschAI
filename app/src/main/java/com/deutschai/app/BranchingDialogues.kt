@@ -652,7 +652,8 @@ internal fun buildBranchingDialogueReview(
             correctIndex = correctIndex,
             explanation = explanation,
             germanSentence = if (wasCorrect) selected.german else recommended.german,
-            translation = if (wasCorrect) selected.czech else recommended.czech
+            translation = if (wasCorrect) selected.czech else recommended.czech,
+            cefrLevel = topic.level
         ),
         wasCorrect = wasCorrect
     )
