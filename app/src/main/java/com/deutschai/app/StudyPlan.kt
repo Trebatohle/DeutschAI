@@ -144,3 +144,61 @@ internal fun buildHomeStudyRecommendation(
         estimatedMinutes = 5
     )
 }
+
+
+internal val cefrKnowledgeLevels = listOf("A1", "A2", "B1", "B2", "C1", "C2")
+
+internal data class CefrLevelKnowledge(
+    val level: String,
+    val accuracyPercent: Int?,
+    val answeredQuestions: Int,
+    val correctAnswers: Int,
+    val sourceLabel: String
+) {
+    val statusLabel: String
+        get() = when {
+            accuracyPercent == null -> "Zatím neověřeno"
+            answeredQuestions < 5 -> "První výsledky"
+            accuracyPercent >= 85 -> "Dobře upevněno"
+            accuracyPercent >= 65 -> "Rozvíjíš"
+            else -> "Potřebuje posílit"
+        }
+}
+
+/**
+ * Builds an A1–C2 map from questions explicitly tagged with their CEFR level.
+ * Legacy records without a level are never assigned by guesswork; when there
+ * is no tagged practice data, the most recent placement result is used instead.
+ */
+internal fun buildCefrKnowledgeMap(
+    entries: List<ReviewMemoryEntry>,
+    placement: PlacementAssessmentReport? = null
+): List<CefrLevelKnowledge> =
+    cefrKnowledgeLevels.map { level ->
+        val levelEntries = entries.filter {
+            it.question.cefrLevel.equals(level, ignoreCase = true) && it.attemptCount > 0
+        }
+        if (levelEntries.isNotEmpty()) {
+            val attempts = levelEntries.sumOf { it.attemptCount.coerceAtLeast(0) }
+            val correct = levelEntries.sumOf {
+                it.correctCount.coerceIn(0, it.attemptCount.coerceAtLeast(0))
+            }.coerceAtMost(attempts)
+            CefrLevelKnowledge(
+                level = level,
+                accuracyPercent = if (attempts == 0) null else (correct * 100.0 / attempts).roundToInt(),
+                answeredQuestions = attempts,
+                correctAnswers = correct,
+                sourceLabel = "Procvičování"
+            )
+        } else {
+            val placementResult = placement?.levelResults?.get(level)
+                ?.takeIf { it.total > 0 }
+            CefrLevelKnowledge(
+                level = level,
+                accuracyPercent = placementResult?.accuracyPercent,
+                answeredQuestions = placementResult?.total ?: 0,
+                correctAnswers = placementResult?.correct ?: 0,
+                sourceLabel = if (placementResult == null) "" else "Vstupní test"
+            )
+        }
+    }
