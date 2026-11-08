@@ -112,12 +112,12 @@ internal fun LearningOverviewScreen(
 ) {
     val context = LocalContext.current
     val skillStats = LearningReviewStore.skillStats(context)
-    val cefrMap = buildCefrKnowledgeMap(LearningReviewStore.all(context), PlacementAssessmentStore.load(context))
+    val placement = PlacementAssessmentStore.load(context)
+    val cefrMap = buildCefrKnowledgeMap(LearningReviewStore.all(context), placement)
     val totalAnswered = LearningReviewStore.totalAnswered(context)
     val masteredCount = LearningReviewStore.masteredCount(context)
     val dueCount = LearningReviewStore.pendingCount(context)
     val recurringMistakes = LearningReviewStore.recurringMistakes(context, limit = 5)
-    val placement = PlacementAssessmentStore.load(context)
     val weakest = skillStats.filter { it.attempts >= 5 }.minByOrNull { it.accuracyPercent }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
