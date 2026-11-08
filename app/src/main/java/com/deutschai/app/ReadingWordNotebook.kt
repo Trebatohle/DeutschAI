@@ -187,7 +187,8 @@ internal data class ActiveVocabularyQuestion(
     val answerGerman: String,
     val exampleGerman: String,
     val exampleCzech: String,
-    val reviewChoices: List<String>
+    val reviewChoices: List<String>,
+    val cefrLevel: String = ""
 )
 
 internal fun normalizeGermanRecallAnswer(value: String): String =
@@ -225,7 +226,8 @@ internal fun buildActiveVocabularyQuestions(
                 answerGerman = entry.word,
                 exampleGerman = entry.exampleGerman,
                 exampleCzech = entry.meaning,
-                reviewChoices = emptyList()
+                reviewChoices = emptyList(),
+                cefrLevel = entry.sourceLevel
             )
         }
     // Use the bundled vocabulary catalogue as a distractor source too, so even a
@@ -584,7 +586,8 @@ internal fun PersonalNotebookPracticeScreen(
                                     correctIndex = activeQuestion.reviewChoices.indexOf(activeQuestion.answerGerman),
                                     explanation = "Správně: ${activeQuestion.answerGerman}.",
                                     germanSentence = activeQuestion.exampleGerman,
-                                    translation = activeQuestion.exampleCzech
+                                    translation = activeQuestion.exampleCzech,
+                                    cefrLevel = activeQuestion.cefrLevel
                                 )
                                 LearningReviewStore.recordAnswer(context, reviewQuestion, correct)
                             },
