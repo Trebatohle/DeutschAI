@@ -349,7 +349,7 @@ internal fun LessonPracticeScreen(
                     }
                 }
 
-                if (remainingTasks.isNotEmpty()) {
+                if (shouldOfferOptionalMistakeReview(remainingTasks.size)) {
                     Button(
                         onClick = {
                             val retry = remainingTasks
@@ -380,7 +380,7 @@ internal fun LessonPracticeScreen(
                     shape = RoundedCornerShape(14.dp)
                 ) {
                     Text(
-                        if (remainingTasks.isNotEmpty()) "Teď ne – dokončit bez opravy" else "Vybrat jinou lekci",
+                        if (shouldOfferOptionalMistakeReview(remainingTasks.size)) "Teď ne – dokončit bez opravy" else "Vybrat jinou lekci",
                         fontWeight = FontWeight.Bold
                     )
                 }
