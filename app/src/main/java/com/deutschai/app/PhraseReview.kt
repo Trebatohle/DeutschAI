@@ -94,7 +94,8 @@ internal fun phraseReviewQuestion(card: PhraseReviewCard): ReviewQuestion {
         correctIndex = choices.indexOf(card.german),
         explanation = "${card.german} = ${card.czech}",
         germanSentence = card.german,
-        translation = card.czech
+        translation = card.czech,
+        cefrLevel = card.id.substringBefore("_").takeIf { it in cefrKnowledgeLevels }.orEmpty()
     )
 }
 
