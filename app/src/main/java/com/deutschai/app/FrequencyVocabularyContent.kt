@@ -238,7 +238,7 @@ internal val frequencyVocabularyCatalog: List<FrequencyVocabularyEntry> = listOf
     fvVerb("A2", "schließen", "zavřít / zavírat", "Der Laden schließt um sechs.", "Obchod zavírá v šest.", "schließt · schloss · hat geschlossen", "schließt"),
     fvVerb("A2", "bringen", "přinést / přivést", "Ich bringe dir morgen das Buch.", "Zítra ti přinesu knihu.", "bringt · brachte · hat gebracht", "bringe"),
     fvVerb("A2", "holen", "dojít pro / přinést", "Ich hole schnell Brot.", "Rychle dojdu pro chleba.", "holt · holte · hat geholt", "hole"),
-    fvVerb("A2", "abholen", "vyzvednout", "Ich hole dich um sieben Uhr ab.", "Vyzvednu tě v sedm hodin.", "holt ab · holte ab · hat abgeholt", "hole"),
+    fvVerb("A2", "abholen", "vyzvednout", "Ich hole dich um sieben Uhr ab.", "Vyzvednu tě v sedm hodin.", "holt ab · holte ab · hat abgeholt", "hole ab"),
     fvVerb("A2", "mitbringen", "přinést s sebou", "Kannst du bitte etwas Wasser mitbringen?", "Můžeš prosím přinést trochu vody?", "bringt mit · brachte mit · hat mitgebracht", "mitbringen"),
     fvVerb("A2", "mitkommen", "jít / jet s někým", "Möchtest du heute Abend mitkommen?", "Chceš jít dnes večer s námi?", "kommt mit · kam mit · ist mitgekommen", "mitkommen"),
     fvVerb("A2", "mitnehmen", "vzít s sebou", "Ich möchte einen Regenschirm mitnehmen.", "Chci si vzít deštník s sebou.", "nimmt mit · nahm mit · hat mitgenommen", "mitnehmen"),
@@ -256,8 +256,8 @@ internal val frequencyVocabularyCatalog: List<FrequencyVocabularyEntry> = listOf
     fvVerb("A2", "buchen", "rezervovat / objednat", "Ich möchte ein Zimmer buchen.", "Chtěl bych rezervovat pokoj.", "bucht · buchte · hat gebucht", "buchen"),
     fvVerb("A2", "reservieren", "rezervovat", "Wir möchten einen Tisch reservieren.", "Chtěli bychom rezervovat stůl.", "reserviert · reservierte · hat reserviert", "reservieren"),
     fvVerb("A2", "umsteigen", "přestoupit", "Wir müssen in Wien umsteigen.", "Musíme přestoupit ve Vídni.", "steigt um · stieg um · ist umgestiegen", "umsteigen"),
-    fvVerb("A2", "einsteigen", "nastoupit", "Bitte steigen Sie vorne ein.", "Nastupte prosím předními dveřmi.", "steigt ein · stieg ein · ist eingestiegen", "steigen"),
-    fvVerb("A2", "aussteigen", "vystoupit", "Wir steigen an der nächsten Station aus.", "Vystoupíme na příští zastávce.", "steigt aus · stieg aus · ist ausgestiegen", "steigen"),
+    fvVerb("A2", "einsteigen", "nastoupit", "Bitte steigen Sie vorne ein.", "Nastupte prosím předními dveřmi.", "steigt ein · stieg ein · ist eingestiegen", "steigen ein"),
+    fvVerb("A2", "aussteigen", "vystoupit", "Wir steigen an der nächsten Station aus.", "Vystoupíme na příští zastávce.", "steigt aus · stieg aus · ist ausgestiegen", "steigen aus"),
     fvVerb("A2", "ankommen", "dorazit / přijet", "Der Zug kommt pünktlich an.", "Vlak přijíždí včas.", "kommt an · kam an · ist angekommen", "kommt an"),
     fvVerb("A2", "abfahren", "odjet / odjíždět", "Der Bus fährt in fünf Minuten ab.", "Autobus odjíždí za pět minut.", "fährt ab · fuhr ab · ist abgefahren", "fährt ab"),
     fvVerb("A2", "kosten", "stát (o ceně)", "Wie viel kostet das Ticket?", "Kolik stojí jízdenka?", "kostet · kostete · hat gekostet", "kostet"),
@@ -317,15 +317,15 @@ internal val frequencyVocabularyCatalog: List<FrequencyVocabularyEntry> = listOf
     // B1 — opinions, work, decisions and more independent everyday communication.
     fvVerb("B1", "sich bewerben", "ucházet se o místo", "Ich bewerbe mich um eine neue Stelle.", "Ucházím se o nové pracovní místo.", "bewirbt sich · bewarb sich · hat sich beworben", "bewerbe mich"),
     fvVerb("B1", "gehören", "patřit", "Dieses Buch gehört meiner Schwester.", "Tato kniha patří mé sestře.", "gehört · gehörte · hat gehört", "gehört"),
-    fvVerb("B1", "teilnehmen", "účastnit se", "Ich nehme an einem Sprachkurs teil.", "Účastním se jazykového kurzu.", "nimmt teil · nahm teil · hat teilgenommen", "nehme"),
+    fvVerb("B1", "teilnehmen", "účastnit se", "Ich nehme an einem Sprachkurs teil.", "Účastním se jazykového kurzu.", "nimmt teil · nahm teil · hat teilgenommen", "nehme teil"),
     fvVerb("B1", "sich interessieren", "zajímat se", "Ich interessiere mich für Geschichte.", "Zajímám se o historii.", "interessiert sich · interessierte sich · hat sich interessiert", "interessiere mich"),
     fvVerb("B1", "sich kümmern", "starat se", "Ich kümmere mich um die Kinder.", "Starám se o děti.", "kümmert sich · kümmerte sich · hat sich gekümmert", "kümmere mich"),
     fvVerb("B1", "sich fühlen", "cítit se", "Heute fühle ich mich besser.", "Dnes se cítím lépe.", "fühlt sich · fühlte sich · hat sich gefühlt", "fühle mich"),
-    fvVerb("B1", "anbieten", "nabídnout", "Das Hotel bietet ein Frühstück an.", "Hotel nabízí snídani.", "bietet an · bot an · hat angeboten", "bietet"),
+    fvVerb("B1", "anbieten", "nabídnout", "Das Hotel bietet ein Frühstück an.", "Hotel nabízí snídani.", "bietet an · bot an · hat angeboten", "bietet an"),
     fvVerb("B1", "empfehlen", "doporučit", "Kannst du mir ein gutes Buch empfehlen?", "Můžeš mi doporučit dobrou knihu?", "empfiehlt · empfahl · hat empfohlen", "empfehlen"),
-    fvVerb("B1", "vorschlagen", "navrhnout", "Ich schlage ein anderes Restaurant vor.", "Navrhuji jinou restauraci.", "schlägt vor · schlug vor · hat vorgeschlagen", "schlage"),
-    fvVerb("B1", "zustimmen", "souhlasit", "Ich stimme deinem Vorschlag zu.", "Souhlasím s tvým návrhem.", "stimmt zu · stimmte zu · hat zugestimmt", "stimme"),
-    fvVerb("B1", "ablehnen", "odmítnout", "Sie lehnt das Angebot höflich ab.", "Zdvořile odmítá nabídku.", "lehnt ab · lehnte ab · hat abgelehnt", "lehnt"),
+    fvVerb("B1", "vorschlagen", "navrhnout", "Ich schlage ein anderes Restaurant vor.", "Navrhuji jinou restauraci.", "schlägt vor · schlug vor · hat vorgeschlagen", "schlage vor"),
+    fvVerb("B1", "zustimmen", "souhlasit", "Ich stimme deinem Vorschlag zu.", "Souhlasím s tvým návrhem.", "stimmt zu · stimmte zu · hat zugestimmt", "stimme zu"),
+    fvVerb("B1", "ablehnen", "odmítnout", "Sie lehnt das Angebot höflich ab.", "Zdvořile odmítá nabídku.", "lehnt ab · lehnte ab · hat abgelehnt", "lehnt ab"),
     fvVerb("B1", "vergleichen", "porovnat", "Wir vergleichen heute zwei Angebote.", "Dnes porovnáme dvě nabídky.", "vergleicht · verglich · hat verglichen", "vergleichen"),
     fvVerb("B1", "beschreiben", "popsat", "Kannst du den Weg beschreiben?", "Můžeš popsat cestu?", "beschreibt · beschrieb · hat beschrieben", "beschreiben"),
     fvVerb("B1", "entwickeln", "vyvíjet / rozvíjet", "Wir entwickeln eine neue Idee.", "Rozvíjíme nový nápad.", "entwickelt · entwickelte · hat entwickelt", "entwickeln"),
@@ -335,7 +335,7 @@ internal val frequencyVocabularyCatalog: List<FrequencyVocabularyEntry> = listOf
     fvVerb("B1", "erwarten", "očekávat", "Ich erwarte heute einen Anruf.", "Dnes očekávám telefonát.", "erwartet · erwartete · hat erwartet", "erwarte"),
     fvVerb("B1", "hoffen", "doufat", "Ich hoffe auf gutes Wetter.", "Doufám v dobré počasí.", "hofft · hoffte · hat gehofft", "hoffe"),
     fvVerb("B1", "passieren", "stát se / přihodit se", "Was ist gestern passiert?", "Co se včera stalo?", "passiert · passierte · ist passiert", "passiert"),
-    fvVerb("B1", "stattfinden", "konat se", "Das Treffen findet morgen statt.", "Setkání se koná zítra.", "findet statt · fand statt · hat stattgefunden", "findet"),
+    fvVerb("B1", "stattfinden", "konat se", "Das Treffen findet morgen statt.", "Setkání se koná zítra.", "findet statt · fand statt · hat stattgefunden", "findet statt"),
     fvVerb("B1", "gewinnen", "vyhrát / získat", "Unsere Mannschaft gewinnt das Spiel.", "Náš tým vyhraje zápas.", "gewinnt · gewann · hat gewonnen", "gewinnt"),
     fvVerb("B1", "verlieren", "ztratit / prohrát", "Ich möchte keine Zeit verlieren.", "Nechci ztrácet čas.", "verliert · verlor · hat verloren", "verlieren"),
 
@@ -386,7 +386,7 @@ internal val frequencyVocabularyCatalog: List<FrequencyVocabularyEntry> = listOf
     fvVerb("B2", "entstehen", "vzniknout", "Wie ist dieses Problem entstanden?", "Jak tento problém vznikl?", "entsteht · entstand · ist entstanden", "entstanden"),
     fvVerb("B2", "bestehen", "skládat se / existovat", "Das Team besteht aus fünf Personen.", "Tým se skládá z pěti lidí.", "besteht · bestand · hat bestanden", "besteht"),
     fvVerb("B2", "sich verhalten", "chovat se", "Wie soll ich mich in dieser Situation verhalten?", "Jak se mám v této situaci zachovat?", "verhält sich · verhielt sich · hat sich verhalten", "verhalten"),
-    fvVerb("B2", "wahrnehmen", "vnímat / zaznamenat", "Ich nehme eine Veränderung wahr.", "Vnímám změnu.", "nimmt wahr · nahm wahr · hat wahrgenommen", "nehme"),
+    fvVerb("B2", "wahrnehmen", "vnímat / zaznamenat", "Ich nehme eine Veränderung wahr.", "Vnímám změnu.", "nimmt wahr · nahm wahr · hat wahrgenommen", "nehme wahr"),
     fvVerb("B2", "vermitteln", "zprostředkovat", "Sie vermittelt zwischen den beiden Gruppen.", "Zprostředkovává komunikaci mezi oběma skupinami.", "vermittelt · vermittelte · hat vermittelt", "vermittelt"),
     fvVerb("B2", "beitragen", "přispět", "Jeder kann zu einer guten Lösung beitragen.", "Každý může přispět k dobrému řešení.", "trägt bei · trug bei · hat beigetragen", "beitragen"),
     fvVerb("B2", "bewältigen", "zvládnout", "Gemeinsam können wir diese Aufgabe bewältigen.", "Společně můžeme tento úkol zvládnout.", "bewältigt · bewältigte · hat bewältigt", "bewältigen"),
@@ -434,7 +434,7 @@ internal val frequencyVocabularyCatalog: List<FrequencyVocabularyEntry> = listOf
     fvFunction("B2", "demnach", "podle toho / tudíž", "Demnach müssen wir den Termin ändern.", "Podle toho musíme změnit termín."),
     fvFunction("B2", "einerseits", "na jedné straně", "Einerseits bin ich müde, andererseits möchte ich ausgehen.", "Na jedné straně jsem unavený, na druhé straně chci jít ven."),
     fvFunction("B2", "andererseits", "na druhé straně", "Andererseits ist die Lösung nicht teuer.", "Na druhé straně není řešení drahé.")
-).distinctBy { it.word.lowercase() }
+).distinctBy { it.kind.name + ":" + it.word.lowercase() }
 
 internal fun frequencyVocabularyForLevel(level: String, verbsOnly: Boolean = false): List<FrequencyVocabularyEntry> =
     frequencyVocabularyCatalog.filter { it.level == level && (!verbsOnly || it.kind == FrequencyWordKind.VERB) }
