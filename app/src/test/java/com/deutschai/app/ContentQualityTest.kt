@@ -265,7 +265,8 @@ class ContentQualityTest {
             assertEquals("${course.id} must keep 25 introduction questions", 25, questions.size)
             val dailyQuestions = dailySentencePool.filter { it.courseId == course.id }
             assertEquals("${course.id} must keep 25 daily-training questions", 25, dailyQuestions.size)
-            val courseQuestionsByGerman = questions.associateBy { it.germanSentence }
+            assertEquals("${course.id} must keep 25 unique German answers", 25, questions.map { it.germanSentence }.toSet().size)
+            val dailyQuestionsById = dailyQuestions.associateBy { it.id }
 
             questions.forEachIndexed { index, question ->
                 assertEquals("${course.id} question $index must have four choices", 4, question.choices.size)
@@ -278,15 +279,19 @@ class ContentQualityTest {
                 assertTrue("${course.id} question $index needs a Czech prompt", question.prompt.isNotBlank())
             }
 
-            dailyQuestions.forEach { dailyQuestion ->
-                val courseQuestion = courseQuestionsByGerman[dailyQuestion.germanSentence]
-                assertTrue("${course.id} daily question must exist in the course", courseQuestion != null)
+            questions.forEachIndexed { index, courseQuestion ->
+                val dailyQuestionId = stableReviewId("sentence", course.id, index.toString())
+                val dailyQuestion = dailyQuestionsById[dailyQuestionId]
+                assertTrue("${course.id} daily question $index must exist in the course", dailyQuestion != null)
                 assertEquals(
                     "${course.id} daily training must reuse the course-approved answer choices",
-                    courseQuestion!!.choices.toSet(),
-                    dailyQuestion.choices.toSet()
+                    courseQuestion.choices.toSet(),
+                    dailyQuestion!!.choices.toSet()
                 )
-                assertEquals(courseQuestion.correctIndex.let { courseQuestion.choices[it] }, dailyQuestion.choices[dailyQuestion.correctIndex])
+                assertEquals(
+                    courseQuestion.germanSentence,
+                    dailyQuestion.choices[dailyQuestion.correctIndex]
+                )
             }
         }
     }
