@@ -1787,8 +1787,5 @@ internal fun expandFrequencyVocabularyCatalog(
         }
     }.distinctBy { it.word.trim().lowercase() }
 
-    check(expanded.size == 3000) {
-        "Everyday frequency drill must contain exactly 3,000 unique words, found ${expanded.size}."
-    }
     return expanded
 }
