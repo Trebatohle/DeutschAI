@@ -44,29 +44,14 @@ internal fun buildDailyTrainingPool(): List<ReviewQuestion> {
     val result = mutableListOf<ReviewQuestion>()
 
     sentenceCourseCatalog.forEach { course ->
-        course.items.forEachIndexed { index, item ->
-            val options = (
-                listOf(item) +
-                    course.items.filter { it.german != item.german }
-                        .distinctBy { it.german }
-                        .shuffled()
-                        .take(3)
-                ).shuffled()
-            if (options.size >= 3) {
-                result += ReviewQuestion(
-                    id = stableReviewId("sentence", course.id, index.toString()),
-                    sourceKind = "sentences",
-                    sourceTitle = course.title,
-                    prompt = item.prompt,
-                    choices = options.map { it.german },
-                    correctIndex = options.indexOfFirst { it.german == item.german },
-                    explanation = "Správná věta znamená: ${item.czech}",
-                    germanSentence = item.german,
-                    translation = item.czech,
-                    cefrLevel = course.level,
-                    courseId = course.id
-                )
-            }
+        sentenceCourseQuestions(course.id).forEachIndexed { index, question ->
+            result += question.toReviewQuestion(
+                id = stableReviewId("sentence", course.id, index.toString()),
+                sourceKind = "sentences",
+                sourceTitle = course.title,
+                cefrLevel = course.level,
+                courseId = course.id
+            )
         }
     }
 
