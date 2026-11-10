@@ -126,6 +126,7 @@ internal fun LearningHubScreen(
     onDialogues: () -> Unit,
     onReading: () -> Unit,
     onWordTools: () -> Unit,
+    onVocabularyDrill: () -> Unit,
     onHome: () -> Unit = onBack
 ) {
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
@@ -168,6 +169,14 @@ internal fun LearningHubScreen(
                 subtitle = "Vyber si slovní téma: bydlení, jídlo, práce, cestování a další.",
                 detail = articleCategories.size.toString() + " tematických sad · 25 slov v každé",
                 onClick = onArticles
+            )
+            LearningCard(
+                icon = { Icon(Icons.Default.FlashOn, contentDescription = null, tint = Color(0xFF8A672F)) },
+                iconBackground = Color(0xFFF6EFDF),
+                title = "Dril slovní zásoby",
+                subtitle = "Uč se nová slova, vybavuj si je bez nápovědy, trénuj poslech a vracej se k obtížným výrazům.",
+                detail = "${vocabularyCatalog.size} slov · aktivní vybavování a chytré opakování",
+                onClick = onVocabularyDrill
             )
             LearningCard(
                 icon = { Icon(LearningCategoryVisual.WORD_TOOLS.image, contentDescription = null, tint = learningCategoryTint(LearningCategoryVisual.WORD_TOOLS)) },
@@ -252,8 +261,8 @@ internal fun ArticleCategoryLibraryScreen(
                 icon = { Icon(Icons.Default.FlashOn, contentDescription = null, tint = Color(0xFF8A672F)) },
                 iconBackground = Color(0xFFF6EFDF),
                 title = "Dril slovní zásoby",
-                subtitle = "Pět náhodných slov ze slovníku: nejprve vyber český význam, potom napiš německý výraz se správným členem.",
-                detail = "${vocabularyCatalog.size} slov · 5 slov ve 2 navazujících částech",
+                subtitle = "Seznam se s pěti slovy a potom si je vybav z paměti, napiš včetně členu a poznej podle poslechu.",
+                detail = "${vocabularyCatalog.size} slov · 3 způsoby vybavení a dlouhodobé opakování",
                 onClick = onDrill
             )
             articleCategories.forEachIndexed { index, category ->
