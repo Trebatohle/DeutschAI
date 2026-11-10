@@ -104,6 +104,10 @@ internal fun applyBeatriceTheme(dark: Boolean) {
     incorrectColorState.value = if (dark) Color(0xFF482E2B) else Color(0xFFF7E0DC)
 }
 
+private fun dailyTrainingDueEntries(context: Context): List<ReviewMemoryEntry> =
+    LearningReviewStore.prioritizedDue(context)
+        .filterNot { isPlacementAssessmentQuestion(it.question) }
+
 internal data class LessonQuestion(
     val prompt: String,
     val choices: List<String>,
@@ -201,9 +205,9 @@ private fun BeatriceHome() {
         mutableStateOf(LearningProgressStore.load(context))
     }
     var habitStats by remember(preferences) { mutableStateOf(StudyHabitStore.load(context)) }
-    var pendingReviewCount by remember(preferences) { mutableStateOf(LearningReviewStore.pendingCount(context)) }
+    var pendingReviewCount by remember(preferences) { mutableStateOf(dailyTrainingDueEntries(context).size) }
     var reviewEntries by remember(preferences) { mutableStateOf(LearningReviewStore.all(context)) }
-    var dueReviewEntries by remember(preferences) { mutableStateOf(LearningReviewStore.prioritizedDue(context)) }
+    var dueReviewEntries by remember(preferences) { mutableStateOf(dailyTrainingDueEntries(context)) }
     var rewardPoints by remember(preferences) { mutableStateOf(RewardPointsStore.load(context)) }
 
     var showConversation by remember { mutableStateOf(false) }
@@ -354,9 +358,9 @@ private fun BeatriceHome() {
 
     fun refreshLearningMetrics() {
         habitStats = StudyHabitStore.load(context)
-        pendingReviewCount = LearningReviewStore.pendingCount(context)
+        pendingReviewCount = dailyTrainingDueEntries(context).size
         reviewEntries = LearningReviewStore.all(context)
-        dueReviewEntries = LearningReviewStore.prioritizedDue(context)
+        dueReviewEntries = dailyTrainingDueEntries(context)
         progressStats = LearningProgressStore.load(context)
         rewardPoints = RewardPointsStore.load(context)
     }
@@ -364,9 +368,9 @@ private fun BeatriceHome() {
     fun recordScore(score: Int, total: Int, activityKey: String) {
         if (total <= 0) return
         habitStats = StudyHabitStore.recordSession(context)
-        pendingReviewCount = LearningReviewStore.pendingCount(context)
+        pendingReviewCount = dailyTrainingDueEntries(context).size
         reviewEntries = LearningReviewStore.all(context)
-        dueReviewEntries = LearningReviewStore.prioritizedDue(context)
+        dueReviewEntries = dailyTrainingDueEntries(context)
         rewardPoints = RewardPointsStore.recordTestResult(context, activityKey, score, total)
         progressStats = if (score == total) {
             LearningProgressStore.recordPerfectSession(context, activityKey)
@@ -429,7 +433,9 @@ private fun BeatriceHome() {
             onComplete = {
                 placementStartedFromWelcome = false
                 habitStats = StudyHabitStore.recordSession(context)
-                pendingReviewCount = LearningReviewStore.pendingCount(context)
+                pendingReviewCount = dailyTrainingDueEntries(context).size
+                reviewEntries = LearningReviewStore.all(context)
+                dueReviewEntries = dailyTrainingDueEntries(context)
                 progressStats = LearningProgressStore.load(context)
             }
         )
