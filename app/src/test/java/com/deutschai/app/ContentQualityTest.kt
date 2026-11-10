@@ -282,11 +282,11 @@ class ContentQualityTest {
             questions.forEachIndexed { index, courseQuestion ->
                 val dailyQuestionId = stableReviewId("sentence", course.id, index.toString())
                 val dailyQuestion = dailyQuestionsById[dailyQuestionId]
-                assertTrue("${course.id} daily question $index must exist in the course", dailyQuestion != null)
+                    ?: error("${course.id} daily question $index is missing from the pool")
                 assertEquals(
                     "${course.id} daily training must reuse the course-approved answer choices",
                     courseQuestion.choices.toSet(),
-                    dailyQuestion!!.choices.toSet()
+                    dailyQuestion.choices.toSet()
                 )
                 assertEquals(
                     courseQuestion.germanSentence,
