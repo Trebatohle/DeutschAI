@@ -25,14 +25,14 @@ import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Translate
-import androidx.compose.material.icons.filled.Autorenew
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Label
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.LibraryBooks
 import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -72,7 +72,7 @@ internal enum class LearningCategoryVisual(
         Color(0xFF263747), Color(0xFFAFCBE6)
     ),
     VERBS(
-        Icons.Default.Autorenew,
+        Icons.Default.SwapHoriz,
         Color(0xFFF6EFDF), Color(0xFF8A672F),
         Color(0xFF3C3426), Color(0xFFE4C58B)
     ),
@@ -323,14 +323,16 @@ internal fun VerbCategoryLibraryScreen(
 
             if (selectedPart == null) {
                 LearningCard(
-                    icon = { Icon(Icons.Default.Verified, contentDescription = null, tint = ForestText) },
+                    icon = { Icon(Icons.Default.TextFields, contentDescription = null, tint = learningCategoryTint(LearningCategoryVisual.VERBS)) },
+                    iconBackground = learningCategoryBackground(LearningCategoryVisual.VERBS),
                     title = "1. Základní procvičování",
                     subtitle = "Nauč se tvary pěti důležitých sloves v různých větách.",
                     detail = verbPracticeTopics.size.toString() + " lekcí · 25 otázek v každé",
                     onClick = { selectedPart = "basic" }
                 )
                 LearningCard(
-                    icon = { Icon(Icons.Default.School, contentDescription = null, tint = ForestText) },
+                    icon = { Icon(Icons.Default.School, contentDescription = null, tint = Color(0xFF315B82)) },
+                    iconBackground = Color(0xFFE8EFF7),
                     title = "2. Pokročilé procvičování",
                     subtitle = "Rozlišuj významy pěti sloves a vybírej správný tvar ze čtyř různých sloves.",
                     detail = verbPracticeTopics.size.toString() + " lekcí · 25 otázek v každé",
@@ -351,17 +353,17 @@ internal fun VerbCategoryLibraryScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Box(
-                                modifier = Modifier.size(42.dp).background(Mint, RoundedCornerShape(13.dp)),
+                                modifier = Modifier.size(42.dp).background(learningCategoryBackground(LearningCategoryVisual.VERBS), RoundedCornerShape(13.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text((index + 1).toString(), color = ForestText, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                Text((index + 1).toString(), color = learningCategoryTint(LearningCategoryVisual.VERBS), fontSize = 18.sp, fontWeight = FontWeight.Bold)
                             }
                             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Text(topic.title, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
                                 Text(topic.subtitle, color = Muted, fontSize = 13.sp, lineHeight = 18.sp)
                                 val verbNames = topic.verbIds.mapNotNull { id -> verbDefinitions.find { it.id == id }?.infinitive }
-                                Text(verbNames.joinToString(" · "), color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                                Text("25 otázek · stejných 5 sloves v sadě", color = ForestText, fontSize = 12.sp)
+                                Text(verbNames.joinToString(" · "), color = learningCategoryTint(LearningCategoryVisual.VERBS), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text("25 otázek · stejných 5 sloves v sadě", color = Muted, fontSize = 12.sp)
                                 LatestResultLine(CourseResultStore.load(context, "verbs_${topic.id}"))
                             }
                         }
