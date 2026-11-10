@@ -232,14 +232,30 @@ private fun BeatriceHome() {
     var selectedPhraseReviewLevel by remember { mutableStateOf<String?>(null) }
     var selectedListeningLevel by remember { mutableStateOf<String?>(null) }
     var selectedTab by remember { mutableStateOf("Domů") }
+    val savedLastActivityType = preferences.getString("last_activity_type", "") ?: ""
+    val savedLastActivityTitle = preferences.getString("last_activity_title", "") ?: ""
+    val savedLastActivityIsPlacement =
+        savedLastActivityType.equals("placement", ignoreCase = true) ||
+            savedLastActivityTitle.startsWith("Rozřazovací test", ignoreCase = true) ||
+            savedLastActivityTitle.startsWith("Vstupní rozřazovací test", ignoreCase = true)
     var lastActivityType by remember(preferences) {
-        mutableStateOf(preferences.getString("last_activity_type", "") ?: "")
+        mutableStateOf(if (savedLastActivityIsPlacement) "" else savedLastActivityType)
     }
     var lastActivityId by remember(preferences) {
-        mutableStateOf(preferences.getString("last_activity_id", "") ?: "")
+        mutableStateOf(if (savedLastActivityIsPlacement) "" else preferences.getString("last_activity_id", "") ?: "")
     }
     var lastActivityTitle by remember(preferences) {
-        mutableStateOf(preferences.getString("last_activity_title", "") ?: "")
+        mutableStateOf(if (savedLastActivityIsPlacement) "" else savedLastActivityTitle)
+    }
+
+    LaunchedEffect(savedLastActivityIsPlacement) {
+        if (savedLastActivityIsPlacement) {
+            preferences.edit()
+                .remove("last_activity_type")
+                .remove("last_activity_id")
+                .remove("last_activity_title")
+                .apply()
+        }
     }
 
     fun navigateHome() {
