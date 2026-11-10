@@ -1362,4 +1362,66 @@ class ContentQualityTest {
     }
 
 
+
+    @Test
+    fun vocabularyDrillCreatesTypedGermanReviewWithArticleAndAudioContext() {
+        val entry = vocabularyCatalog.single { it.word == "Hund" }
+        val question = makeVocabularyDrillReviewQuestion(
+            entry = entry,
+            random = kotlin.random.Random(23)
+        )
+
+        assertEquals(vocabularyDrillReviewId(entry), question.id)
+        assertEquals("vocabulary", question.sourceKind)
+        assertTrue(question.prompt.contains(entry.czech))
+        assertEquals("${entry.article} ${entry.word}", question.choices[question.correctIndex])
+        assertEquals(4, question.choices.size)
+        assertEquals(4, question.choices.toSet().size)
+        assertTrue(question.germanSentence.isNotBlank())
+        assertTrue(question.translation.isNotBlank())
+    }
+
+    @Test
+    fun vocabularyDrillSelectionPrioritizesDueWordsAndAvoidsDuplicates() {
+        val dog = vocabularyCatalog.single { it.word == "Hund" }
+        val cat = vocabularyCatalog.single { it.word == "Katze" }
+        val dueQuestion = makeVocabularyDrillReviewQuestion(dog, random = kotlin.random.Random(24))
+        val dueEntry = ReviewMemoryEntry(
+            question = dueQuestion,
+            wrongCount = 2,
+            correctStreak = 0,
+            intervalDays = 0,
+            dueAtMillis = 100L,
+            attemptCount = 2,
+            correctCount = 0,
+            lastAnsweredAtMillis = 50L
+        )
+
+        val selected = selectVocabularyDrillEntries(
+            entries = listOf(dog, cat),
+            reviewEntries = listOf(dueEntry),
+            count = 2,
+            nowMillis = 100L,
+            random = kotlin.random.Random(25)
+        )
+
+        assertEquals(2, selected.size)
+        assertEquals(dog.id, selected.first().id)
+        assertEquals(2, selected.map { it.id }.toSet().size)
+    }
+
+    @Test
+    fun vocabularyDrillChecksMeaningAndGermanRecallWithoutRemovingUmlauts() {
+        assertTrue(isVocabularyDrillMeaningCorrect("  ROZHODNUTÍ ", "rozhodnutí"))
+        assertFalse(isVocabularyDrillMeaningCorrect("rozmyslet", "rozhodnutí"))
+        assertEquals(
+            normalizeVocabularyDrillAnswer("der Tisch."),
+            normalizeVocabularyDrillAnswer("  DER   Tisch ")
+        )
+        assertNotEquals(
+            normalizeVocabularyDrillAnswer("schon"),
+            normalizeVocabularyDrillAnswer("schön")
+        )
+    }
+
 }
