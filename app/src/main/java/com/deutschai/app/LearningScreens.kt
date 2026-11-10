@@ -173,9 +173,9 @@ internal fun LearningHubScreen(
             LearningCard(
                 icon = { Icon(Icons.Default.FlashOn, contentDescription = null, tint = Color(0xFF8A672F)) },
                 iconBackground = Color(0xFFF6EFDF),
-                title = "Dril slovní zásoby",
-                subtitle = "Uč se nová slova, vybavuj si je bez nápovědy, trénuj poslech a vracej se k obtížným výrazům.",
-                detail = "${vocabularyCatalog.size} slov · aktivní vybavování a chytré opakování",
+                title = "Dril nejpoužívanějších slov",
+                subtitle = "Běžná mluvená němčina. V A1 a A2 dostávají přednost důležitá slovesa.",
+                detail = "${frequencyVocabularyCatalog.size} slov · úrovně A1–B2 · volba 5 nebo 10 slov",
                 onClick = onVocabularyDrill
             )
             LearningCard(
@@ -260,9 +260,9 @@ internal fun ArticleCategoryLibraryScreen(
             LearningCard(
                 icon = { Icon(Icons.Default.FlashOn, contentDescription = null, tint = Color(0xFF8A672F)) },
                 iconBackground = Color(0xFFF6EFDF),
-                title = "Dril slovní zásoby",
-                subtitle = "Seznam se s pěti slovy a potom si je vybav z paměti, napiš včetně členu a poznej podle poslechu.",
-                detail = "${vocabularyCatalog.size} slov · 3 způsoby vybavení a dlouhodobé opakování",
+                title = "Dril nejpoužívanějších slov",
+                subtitle = "Slova pro každodenní mluvu. V jedné sadě 5 nebo 10 výrazů s aktivním vybavováním a poslechem.",
+                detail = "${frequencyVocabularyCatalog.size} slov · A1–B2",
                 onClick = onDrill
             )
             articleCategories.forEachIndexed { index, category ->
@@ -299,6 +299,7 @@ internal fun ArticleCategoryLibraryScreen(
 @Composable
 internal fun VerbCategoryLibraryScreen(
     onBack: () -> Unit,
+    onFrequencyDrill: () -> Unit,
     onSelectTopic: (VerbPracticeLesson) -> Unit,
     onHome: () -> Unit = onBack
 ) {
@@ -341,6 +342,14 @@ internal fun VerbCategoryLibraryScreen(
             )
 
             if (selectedPart == null) {
+                LearningCard(
+                    icon = { Icon(Icons.Default.FlashOn, contentDescription = null, tint = Color(0xFF8A672F)) },
+                    iconBackground = Color(0xFFF6EFDF),
+                    title = "Frekvenční dril sloves A1–B2",
+                    subtitle = "Procvič nejpoužívanější slovesa v běžných větách, včetně důležitých tvarů a poslechu.",
+                    detail = frequencyVocabularyCatalog.count { it.kind == FrequencyWordKind.VERB }.toString() + " sloves · možnost 5 nebo 10",
+                    onClick = onFrequencyDrill
+                )
                 LearningCard(
                     icon = { Icon(Icons.Default.TextFields, contentDescription = null, tint = learningCategoryTint(LearningCategoryVisual.VERBS)) },
                     iconBackground = learningCategoryBackground(LearningCategoryVisual.VERBS),
