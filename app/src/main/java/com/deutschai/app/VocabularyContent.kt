@@ -2211,5 +2211,5 @@ internal val vocabularyCatalog: List<VocabularyEntry> = run {
     }
     (existing + parseVocabularyRows(vocabularyRowsPart1 + vocabularyRowsPart2))
         .distinctBy { it.word.trim().lowercase() }
-        .take(2500)
+        .take(2000)
 }
