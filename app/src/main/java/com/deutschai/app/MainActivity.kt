@@ -778,26 +778,54 @@ private fun BeatriceHome() {
                 when (selectedTab) {
                     "Domů" -> {
                         Column(verticalArrangement = Arrangement.spacedBy(13.dp)) {
-                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Text(
-                                    "Guten Tag!",
-                                    color = ForestText,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Text(
-                                    "Dnes se posuneš zase o krok dál.",
-                                    color = Ink,
-                                    fontSize = 24.sp,
-                                    lineHeight = 29.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    "Tvůj plán vychází z toho, co už umíš a co potřebuješ upevnit.",
-                                    color = Muted,
-                                    fontSize = 13.sp,
-                                    lineHeight = 19.sp
-                                )
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(23.dp),
+                                colors = CardDefaults.cardColors(containerColor = Forest)
+                            ) {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth().padding(18.dp),
+                                    verticalArrangement = Arrangement.spacedBy(7.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            "TVŮJ OSOBNÍ PLÁN",
+                                            color = Color(0xFFD3E4DA),
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            letterSpacing = 1.3.sp
+                                        )
+                                        Icon(
+                                            Icons.Default.AutoAwesome,
+                                            contentDescription = null,
+                                            tint = Gold,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                    Text(
+                                        "Guten Tag!",
+                                        color = Gold,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(
+                                        "Dnes se posuneš zase o krok dál.",
+                                        color = Color.White,
+                                        fontSize = 23.sp,
+                                        lineHeight = 28.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        "Tvůj plán vychází z toho, co už umíš a co potřebuješ upevnit.",
+                                        color = Color(0xFFD3E4DA),
+                                        fontSize = 12.sp,
+                                        lineHeight = 18.sp
+                                    )
+                                }
                             }
 
                             HomeRecommendationCard(
@@ -836,6 +864,13 @@ private fun BeatriceHome() {
                                 }
                             )
 
+                            Text(
+                                "TVŮJ PŘEHLED",
+                                color = Muted,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.2.sp
+                            )
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
