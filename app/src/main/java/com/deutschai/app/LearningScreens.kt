@@ -166,7 +166,7 @@ internal fun ArticleCategoryLibraryScreen(
             LearningCard(
                 icon = { Icon(Icons.Default.Book, contentDescription = null, tint = ForestText) },
                 title = "Slovní zásoba",
-                subtitle = "Uč se nová německá podstatná jména včetně členu nebo krátké věty s poslechem a českým překladem.",
+                subtitle = "Každá otázka ukáže pouze německý člen a podstatné jméno (der/die/das). Příkladovou větu uslyšíš až po odpovědi.",
                 detail = "${vocabularyCatalog.size} slov · náhodné sady po 25",
                 onClick = onVocabulary
             )
