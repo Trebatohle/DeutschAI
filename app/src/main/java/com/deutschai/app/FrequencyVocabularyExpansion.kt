@@ -8,31 +8,17 @@ package com.deutschai.app
 internal const val SPOKEN_FREQUENCY_ADDITION_COUNT = 1000
 
 private val spokenFrequencyRanks: Map<String, Int> = """
-102§mann
-129§weg
-137§zeit
-153§frau
 165§meinen
 178§vater
-184§tag
 188§liebe
-193§geld
 197§mutter
 219§nacht
 254§abend
-260§freund
 267§angst
 295§musik
-296§arbeit
-303§familie
-310§problem
 311§sohn
-323§hilfe
-336§kind
 341§bruder
-356§frage
 368§uhr
-369§stadt
 371§baby
 375§kopf
 380§glück
@@ -42,18 +28,15 @@ private val spokenFrequencyRanks: Map<String, Int> = """
 429§tochter
 431§idee
 432§schwester
-440§name
 463§hand
 465§jahr
 468§ruhe
-491§wasser
 502§woche
 513§zimmer
 516§gefallen
 533§seite
 538§spiel
 554§bett
-559§schule
 561§wort
 582§sorge
 591§blut
@@ -74,19 +57,15 @@ private val spokenFrequencyRanks: Map<String, Int> = """
 706§kaffee
 707§luft
 723§buch
-729§arzt
 732§straße
 740§onkel
-747§vertrauen
 753§gefühl
 763§stück
 772§himmel
-773§nachricht
 778§laut
 783§erde
 785§schlüssel
 788§eher
-808§wohnung
 811§krankenhaus
 815§klasse
 824§wenigstens
@@ -96,7 +75,6 @@ private val spokenFrequencyRanks: Map<String, Int> = """
 846§boden
 854§mund
 868§laden
-872§meinung
 878§geschäft
 888§vorher
 899§handy
@@ -105,9 +83,7 @@ private val spokenFrequencyRanks: Map<String, Int> = """
 919§nähe
 926§tisch
 937§hotel
-942§antwort
 968§auge
-977§entscheidung
 980§fenster
 990§rum
 995§bewegung
@@ -118,11 +94,9 @@ private val spokenFrequencyRanks: Map<String, Int> = """
 1034§arm
 1036§chef
 1039§erledigt
-1049§reise
 1056§jedenfalls
 1064§foto
 1070§minute
-1072§zug
 1074§wofür
 1087§brief
 1089§sucht
@@ -131,7 +105,6 @@ private val spokenFrequencyRanks: Map<String, Int> = """
 1111§zumindest
 1117§richtung
 1127§tasche
-1141§preis
 1148§firma
 1150§rücken
 1163§tante
@@ -198,7 +171,6 @@ private val spokenFrequencyRanks: Map<String, Int> = """
 1597§see
 1599§wind
 1604§wand
-1605§bus
 1614§polizist
 1618§flasche
 1622§meer
@@ -217,7 +189,6 @@ private val spokenFrequencyRanks: Map<String, Int> = """
 1721§tier
 1726§rose
 1728§geschlossen
-1735§urlaub
 1741§baum
 1745§lehrer
 1772§katze
@@ -243,7 +214,6 @@ private val spokenFrequencyRanks: Map<String, Int> = """
 1910§strand
 1925§nachher
 1931§soldat
-1935§termin
 1946§vertrag
 1954§fluss
 1963§dadurch
@@ -424,7 +394,6 @@ private val spokenFrequencyRanks: Map<String, Int> = """
 3712§ehefrau
 3730§bibliothek
 3744§badezimmer
-3751§bahnhof
 3762§konzert
 3778§leihen
 3809§übung
@@ -462,7 +431,6 @@ private val spokenFrequencyRanks: Map<String, Int> = """
 4181§trainer
 4183§schuh
 4204§löschen
-4220§fähigkeit
 4237§vorbeikommen
 4274§ausmachen
 4275§rezept
@@ -607,7 +575,6 @@ private val spokenFrequencyRanks: Map<String, Int> = """
 6020§kaninchen
 6022§orange
 6036§mahlzeit
-6043§kenntnis
 6093§infektion
 6096§winkel
 6100§torte
@@ -1008,6 +975,39 @@ private val spokenFrequencyRanks: Map<String, Int> = """
 14622§blutprobe
 14689§zweig
 14729§mülltonne
+14778§apotheker
+14804§badeanzug
+14829§gebäck
+14850§kupfer
+14902§update
+14962§salami
+14983§aktentasche
+15076§biber
+15092§allergie
+15194§zimmermann
+15218§drucker
+15220§jährlich
+15270§pilz
+15320§kreide
+15353§riff
+15369§parkhaus
+15371§hamster
+15372§unternehmer
+15386§pinsel
+15423§krater
+15516§unbequem
+15557§eintragen
+15595§zement
+15613§schnürsenkel
+15670§tourist
+15676§titan
+15699§mitarbeiterin
+15709§bewerber
+15730§sich erkundigen
+15734§bohrer
+15741§hackfleisch
+15748§psychologe
+15751§anprobieren
 """.lineSequence()
     .mapNotNull { row ->
         val fields = row.split('§', limit = 2)
@@ -1384,6 +1384,8 @@ internal fun expandFrequencyVocabularyCatalog(
         .distinctBy { it.word.trim().lowercase() }
         .take(SPOKEN_FREQUENCY_ADDITION_COUNT)
 
-    println("FREQUENCY_DEBUG curated=${curated.size} candidates=${candidates.size} rankRows=${spokenFrequencyRanks.size} matched=${additions.size}")
+    check(additions.size == SPOKEN_FREQUENCY_ADDITION_COUNT) {
+        "Expected exactly 1,000 new words; matched ${additions.size}."
+    }
     return curated + additions
 }
