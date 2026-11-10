@@ -466,33 +466,19 @@ internal fun LessonPracticeScreen(
                     )
                 }
             } else if (currentTask != null && currentQuestion != null) {
-                Text(
-                    text = when (stage) {
-                        LessonPracticeStage.INTRODUCTION -> "Otázka ${questionIndex + 1} z ${tasks.size}"
-                        LessonPracticeStage.REVIEW -> "Chyba ${questionIndex + 1} z ${tasks.size}"
-                        else -> "Otázka ${questionIndex + 1} z ${tasks.size}"
-                    },
-                    color = ForestText,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
                 if (currentTask.mode == LessonExerciseMode.INTRODUCTION) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(6.dp)
+                            .background(Color(0xFFE3E5DF), CircleShape)
                     ) {
-                        repeat(tasks.size) { index ->
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(6.dp)
-                                    .background(
-                                        color = if (index <= questionIndex) Forest else Color(0xFFE3E5DF),
-                                        shape = CircleShape
-                                    )
-                            )
-                        }
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth((questionIndex + 1).toFloat() / tasks.size.coerceAtLeast(1))
+                                .height(6.dp)
+                                .background(Forest, CircleShape)
+                        )
                     }
 
                     Card(
@@ -505,10 +491,17 @@ internal fun LessonPracticeScreen(
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             Text(
+                                if (stage == LessonPracticeStage.REVIEW) "ZKUS TO ZNOVU" else "VYBER SPRÁVNOU ODPOVĚĎ",
+                                color = ForestText,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.1.sp
+                            )
+                            Text(
                                 currentQuestion.prompt,
                                 color = Ink,
-                                fontSize = 21.sp,
-                                lineHeight = 28.sp,
+                                fontSize = 22.sp,
+                                lineHeight = 29.sp,
                                 fontWeight = FontWeight.SemiBold
                             )
                             currentQuestion.choices.forEachIndexed { index, choice ->
