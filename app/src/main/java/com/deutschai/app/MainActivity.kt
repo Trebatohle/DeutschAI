@@ -1842,12 +1842,14 @@ private fun ProgressCard(
         colors = CardDefaults.cardColors(containerColor = CardSurface)
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(5.dp)
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 11.dp, vertical = 13.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Text(title, color = Muted, fontSize = 13.sp)
-            Text(value, color = ForestText, fontSize = 21.sp, fontWeight = FontWeight.Bold)
-            if (!detail.isNullOrBlank()) Text(detail, color = Muted, fontSize = 12.sp)
+            Text(title, color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Medium, maxLines = 1)
+            Text(value, color = ForestText, fontSize = 23.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+            if (!detail.isNullOrBlank()) {
+                Text(detail, color = Muted, fontSize = 10.sp, lineHeight = 13.sp, maxLines = 1)
+            }
         }
     }
 }
@@ -1862,24 +1864,30 @@ private fun FeatureCard(
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp, vertical = 14.dp),
+            horizontalArrangement = Arrangement.spacedBy(13.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier.size(40.dp).background(Mint, RoundedCornerShape(13.dp)),
+                modifier = Modifier.size(46.dp).background(Mint, RoundedCornerShape(15.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 icon()
             }
-            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(title, color = Ink, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
-                Text(subtitle, color = Muted, fontSize = 12.sp, lineHeight = 16.sp, maxLines = 1)
+                Text(subtitle, color = Muted, fontSize = 12.sp, lineHeight = 17.sp, maxLines = 2)
             }
+            Icon(
+                imageVector = Icons.Default.ArrowBack,
+                contentDescription = null,
+                tint = Muted,
+                modifier = Modifier.size(18.dp).rotate(180f)
+            )
         }
     }
 }
@@ -1932,24 +1940,34 @@ private fun FeatureTile(
     Card(
         onClick = onClick,
         modifier = modifier,
-        shape = RoundedCornerShape(19.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface)
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(if (compact) 11.dp else 15.dp),
-            verticalArrangement = Arrangement.spacedBy(if (compact) 6.dp else 10.dp)
+            modifier = Modifier.fillMaxWidth().padding(if (compact) 12.dp else 16.dp),
+            verticalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 11.dp)
         ) {
-            Box(
-                modifier = Modifier.size(if (compact) 36.dp else 38.dp)
-                    .background(iconBackground, RoundedCornerShape(13.dp)),
-                contentAlignment = Alignment.Center
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                icon()
+                Box(
+                    modifier = Modifier.size(if (compact) 40.dp else 44.dp)
+                        .background(iconBackground, RoundedCornerShape(14.dp)),
+                    contentAlignment = Alignment.Center
+                ) { icon() }
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = null,
+                    tint = Muted,
+                    modifier = Modifier.size(16.dp).rotate(180f)
+                )
             }
             Text(
                 title,
                 color = Ink,
-                fontSize = if (compact) 14.sp else 15.sp,
+                fontSize = if (compact) 14.sp else 16.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1
             )
