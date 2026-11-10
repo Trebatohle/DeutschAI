@@ -273,6 +273,12 @@ private fun BeatriceHome() {
     }
 
     fun saveLastActivity(type: String, id: String, title: String) {
+        if (
+            type.equals("placement", ignoreCase = true) ||
+            title.startsWith("Rozřazovací test", ignoreCase = true) ||
+            title.startsWith("Vstupní rozřazovací test", ignoreCase = true)
+        ) return
+
         lastActivityType = type
         lastActivityId = id
         lastActivityTitle = title
@@ -284,6 +290,22 @@ private fun BeatriceHome() {
     }
 
     fun continueLastActivity() {
+        if (
+            lastActivityType.equals("placement", ignoreCase = true) ||
+            lastActivityTitle.startsWith("Rozřazovací test", ignoreCase = true) ||
+            lastActivityTitle.startsWith("Vstupní rozřazovací test", ignoreCase = true)
+        ) {
+            lastActivityType = ""
+            lastActivityId = ""
+            lastActivityTitle = ""
+            preferences.edit()
+                .remove("last_activity_type")
+                .remove("last_activity_id")
+                .remove("last_activity_title")
+                .apply()
+            return
+        }
+
         when (lastActivityType) {
             "lesson" -> {
                 val item = lessons.firstOrNull { it.id == lastActivityId }
@@ -659,12 +681,10 @@ private fun BeatriceHome() {
         return
     }
 
-    val placementResultExists = PlacementAssessmentStore.load(context) != null
-    val homeRecommendation = remember(reviewEntries, dueReviewEntries, placementResultExists, lastActivityType) {
+    val homeRecommendation = remember(reviewEntries, dueReviewEntries, lastActivityType) {
         buildHomeStudyRecommendation(
             allEntries = reviewEntries,
             dueEntries = dueReviewEntries,
-            hasPlacementResult = placementResultExists,
             hasLastActivity = lastActivityType.isNotBlank()
         )
     }
@@ -787,7 +807,6 @@ private fun BeatriceHome() {
                                                 else -> showLearningHub = true
                                             }
                                         }
-                                        HomeRecommendationType.PLACEMENT -> showPlacementAssessment = true
                                         HomeRecommendationType.CONTINUE_ACTIVITY -> continueLastActivity()
                                         HomeRecommendationType.EXPLORE_LIBRARY -> selectedTab = "Knihovna"
                                     }
@@ -860,7 +879,11 @@ private fun BeatriceHome() {
                                 }
                             }
 
-                            if (lastActivityTitle.isNotBlank() &&
+                            if (
+                                lastActivityTitle.isNotBlank() &&
+                                !lastActivityType.equals("placement", ignoreCase = true) &&
+                                !lastActivityTitle.startsWith("Rozřazovací test", ignoreCase = true) &&
+                                !lastActivityTitle.startsWith("Vstupní rozřazovací test", ignoreCase = true) &&
                                 homeRecommendation.type != HomeRecommendationType.CONTINUE_ACTIVITY
                             ) {
                                 Card(
