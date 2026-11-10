@@ -233,4 +233,45 @@ class LearningAssessmentTest {
         assertEquals(29, completed.latestResult?.score)
     }
 
+    @Test
+    fun courseProgressCanRecoverOlderAnswersByUniqueCourseTitle() {
+        val course = SentenceCourseDefinition(
+            id = "legacy_unique_course",
+            title = "Unikátní starší kurz",
+            subtitle = "",
+            level = "A2",
+            items = List(25) { index ->
+                SentencePracticeItem("Otázka $index", "Das ist Satz $index.", "To je věta $index.")
+            }
+        )
+        val legacyQuestion = ReviewQuestion(
+            id = "legacy_course_question",
+            sourceKind = "sentences",
+            sourceTitle = course.title,
+            prompt = "Starší otázka",
+            choices = listOf("A", "B"),
+            correctIndex = 0,
+            explanation = "Vysvětlení"
+        )
+        val entry = ReviewMemoryEntry(
+            question = legacyQuestion,
+            wrongCount = 1,
+            correctStreak = 0,
+            intervalDays = 0,
+            dueAtMillis = 1000L,
+            attemptCount = 2,
+            correctCount = 1,
+            lastAnsweredAtMillis = 1000L
+        )
+
+        val progress = buildSentenceCourseLearningProgress(
+            courses = listOf(course),
+            reviewEntries = listOf(entry),
+            latestResults = emptyMap()
+        ).single()
+
+        assertEquals(1, progress.answeredQuestions)
+        assertEquals("Rozpracováno", progress.statusLabel)
+    }
+
 }
