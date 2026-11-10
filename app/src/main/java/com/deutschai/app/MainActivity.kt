@@ -33,7 +33,8 @@ import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material.icons.filled.Forum
+import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.School
@@ -1098,7 +1099,8 @@ private fun BeatriceHome() {
                             FeatureTile(
                                 modifier = Modifier.weight(1f).height(116.dp),
                                 compact = true,
-                                icon = { Icon(Icons.Default.MenuBook, contentDescription = null, tint = ForestText) },
+                                icon = { Icon(LearningCategoryVisual.COURSES.image, contentDescription = null, tint = learningCategoryTint(LearningCategoryVisual.COURSES)) },
+                                iconBackground = learningCategoryBackground(LearningCategoryVisual.COURSES),
                                 title = "Kurzy",
                                 subtitle = "Věty a gramatika",
                                 onClick = { showLearningHub = true }
@@ -1106,7 +1108,8 @@ private fun BeatriceHome() {
                             FeatureTile(
                                 modifier = Modifier.weight(1f).height(116.dp),
                                 compact = true,
-                                icon = { Icon(Icons.Default.VolumeUp, contentDescription = null, tint = ForestText) },
+                                icon = { Icon(LearningCategoryVisual.LISTENING.image, contentDescription = null, tint = learningCategoryTint(LearningCategoryVisual.LISTENING)) },
+                                iconBackground = learningCategoryBackground(LearningCategoryVisual.LISTENING),
                                 title = "Poslech",
                                 subtitle = "Cvičení A1–B2",
                                 onClick = { showLessonLibrary = true }
@@ -1116,7 +1119,8 @@ private fun BeatriceHome() {
                             FeatureTile(
                                 modifier = Modifier.weight(1f).height(116.dp),
                                 compact = true,
-                                icon = { Icon(Icons.Default.MenuBook, contentDescription = null, tint = ForestText) },
+                                icon = { Icon(LearningCategoryVisual.READING.image, contentDescription = null, tint = learningCategoryTint(LearningCategoryVisual.READING)) },
+                                iconBackground = learningCategoryBackground(LearningCategoryVisual.READING),
                                 title = "Čtení",
                                 subtitle = "Příběhy a texty",
                                 onClick = { showReadingLibrary = true }
@@ -1124,7 +1128,8 @@ private fun BeatriceHome() {
                             FeatureTile(
                                 modifier = Modifier.weight(1f).height(116.dp),
                                 compact = true,
-                                icon = { Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = ForestText) },
+                                icon = { Icon(LearningCategoryVisual.DIALOGUES.image, contentDescription = null, tint = learningCategoryTint(LearningCategoryVisual.DIALOGUES)) },
+                                iconBackground = learningCategoryBackground(LearningCategoryVisual.DIALOGUES),
                                 title = "Dialogy",
                                 subtitle = "Konverzace",
                                 onClick = {
@@ -1137,7 +1142,8 @@ private fun BeatriceHome() {
                             FeatureTile(
                                 modifier = Modifier.weight(1f).height(116.dp),
                                 compact = true,
-                                icon = { Icon(Icons.Default.School, contentDescription = null, tint = ForestText) },
+                                icon = { Icon(LearningCategoryVisual.WORD_TOOLS.image, contentDescription = null, tint = learningCategoryTint(LearningCategoryVisual.WORD_TOOLS)) },
+                                iconBackground = learningCategoryBackground(LearningCategoryVisual.WORD_TOOLS),
                                 title = "Slovní nástroje",
                                 subtitle = "Slovíčka a gramatika",
                                 onClick = {
@@ -1148,7 +1154,8 @@ private fun BeatriceHome() {
                             FeatureTile(
                                 modifier = Modifier.weight(1f).height(116.dp),
                                 compact = true,
-                                icon = { Icon(Icons.Default.LibraryBooks, contentDescription = null, tint = ForestText) },
+                                icon = { Icon(LearningCategoryVisual.NOTEBOOK.image, contentDescription = null, tint = learningCategoryTint(LearningCategoryVisual.NOTEBOOK)) },
+                                iconBackground = learningCategoryBackground(LearningCategoryVisual.NOTEBOOK),
                                 title = "Můj slovníček",
                                 subtitle = "${VocabularyNotebookStore.count(context) + ReadingWordNotebookStore.entries(context).size} uložených slov",
                                 onClick = {
@@ -1374,10 +1381,10 @@ private fun LessonLibraryScreen(
                         horizontalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
                         Box(
-                            modifier = Modifier.size(48.dp).background(Mint, RoundedCornerShape(15.dp)),
+                            modifier = Modifier.size(48.dp).background(learningCategoryBackground(LearningCategoryVisual.LISTENING), RoundedCornerShape(15.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.VolumeUp, contentDescription = null, tint = ForestText, modifier = Modifier.size(25.dp))
+                            Icon(LearningCategoryVisual.LISTENING.image, contentDescription = null, tint = learningCategoryTint(LearningCategoryVisual.LISTENING), modifier = Modifier.size(25.dp))
                         }
                         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                             Text("Poslech a porozumění", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
@@ -1577,7 +1584,7 @@ private fun GuidedDialogueScreen(
                                 modifier = Modifier.size(46.dp).background(Mint, RoundedCornerShape(14.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = ForestText)
+                                Icon(Icons.Default.Forum, contentDescription = null, tint = ForestText)
                             }
                             Column(
                                 modifier = Modifier.weight(1f),
@@ -1612,7 +1619,7 @@ private fun GuidedDialogueScreen(
                                 modifier = Modifier.size(42.dp).background(Forest, RoundedCornerShape(13.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = Color.White)
+                                Icon(Icons.Default.Forum, contentDescription = null, tint = Color.White)
                             }
                             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Text(topic.title, color = ForestText, fontSize = 16.sp, fontWeight = FontWeight.Bold)
@@ -1916,6 +1923,7 @@ private fun MainBottomTab(
 private fun FeatureTile(
     modifier: Modifier = Modifier,
     icon: @Composable () -> Unit,
+    iconBackground: Color = Mint,
     title: String,
     subtitle: String,
     compact: Boolean = false,
@@ -1932,8 +1940,8 @@ private fun FeatureTile(
             verticalArrangement = Arrangement.spacedBy(if (compact) 6.dp else 10.dp)
         ) {
             Box(
-                modifier = Modifier.size(if (compact) 30.dp else 38.dp)
-                    .background(Mint, RoundedCornerShape(12.dp)),
+                modifier = Modifier.size(if (compact) 36.dp else 38.dp)
+                    .background(iconBackground, RoundedCornerShape(13.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 icon()
