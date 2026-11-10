@@ -259,9 +259,14 @@ class ContentQualityTest {
 
     @Test
     fun everySentenceCourseKeepsTwentyFiveFourChoiceIntroductionQuestions() {
+        val dailySentencePool = buildDailyTrainingPool().filter { it.sourceKind == "sentences" }
         sentenceCourseCatalog.forEach { course ->
             val questions = sentenceCourseQuestions(course.id)
             assertEquals("${course.id} must keep 25 introduction questions", 25, questions.size)
+            val dailyQuestions = dailySentencePool.filter { it.courseId == course.id }
+            assertEquals("${course.id} must keep 25 daily-training questions", 25, dailyQuestions.size)
+            val courseQuestionsByGerman = questions.associateBy { it.germanSentence }
+
             questions.forEachIndexed { index, question ->
                 assertEquals("${course.id} question $index must have four choices", 4, question.choices.size)
                 assertEquals("${course.id} question $index must have unique choices", 4, question.choices.toSet().size)
@@ -271,6 +276,17 @@ class ContentQualityTest {
                         question.choices[question.correctIndex] == question.germanSentence
                 )
                 assertTrue("${course.id} question $index needs a Czech prompt", question.prompt.isNotBlank())
+            }
+
+            dailyQuestions.forEach { dailyQuestion ->
+                val courseQuestion = courseQuestionsByGerman[dailyQuestion.germanSentence]
+                assertTrue("${course.id} daily question must exist in the course", courseQuestion != null)
+                assertEquals(
+                    "${course.id} daily training must reuse the course-approved answer choices",
+                    courseQuestion!!.choices.toSet(),
+                    dailyQuestion.choices.toSet()
+                )
+                assertEquals(courseQuestion.correctIndex.let { courseQuestion.choices[it] }, dailyQuestion.choices[dailyQuestion.correctIndex])
             }
         }
     }
