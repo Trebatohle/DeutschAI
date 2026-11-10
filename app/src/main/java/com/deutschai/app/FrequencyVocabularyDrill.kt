@@ -313,6 +313,21 @@ internal fun FrequencyVocabularyDrillScreen(
                             }
                         }
                     }
+                    val levelWords = frequencyVocabularyForLevel(selectedLevel, verbsOnly)
+                    val levelHistory = LearningReviewStore.all(context).associateBy { it.question.id }
+                    val learnedCount = levelWords.count { it.id in levelHistory }
+                    val masteredLevelCount = levelWords.count {
+                        val memory = levelHistory[it.id]
+                        memory != null && memory.correctStreak >= 3 && memory.intervalDays >= 7
+                    }
+                    val dueLevelCount = levelWords.count { levelHistory[it.id]?.dueAtMillis?.let { dueAt -> dueAt <= System.currentTimeMillis() } == true }
+                    Text(
+                        "Zvládnuto " + masteredLevelCount + " / " + levelWords.size +
+                            " · procvičeno " + learnedCount + " · k opakování " + dueLevelCount,
+                        color = Muted,
+                        fontSize = 11.sp,
+                        textAlign = TextAlign.Center
+                    )
                     Spacer(Modifier.weight(1f))
                     Button(
                         onClick = { startDrill() }, modifier = Modifier.fillMaxWidth().heightIn(min = if (compact) 48.dp else 54.dp),
