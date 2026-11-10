@@ -1384,5 +1384,6 @@ internal fun expandFrequencyVocabularyCatalog(
         .distinctBy { it.word.trim().lowercase() }
         .take(SPOKEN_FREQUENCY_ADDITION_COUNT)
 
+    println("FREQUENCY_DEBUG curated=${curated.size} candidates=${candidates.size} rankRows=${spokenFrequencyRanks.size} matched=${additions.size}")
     return curated + additions
 }
