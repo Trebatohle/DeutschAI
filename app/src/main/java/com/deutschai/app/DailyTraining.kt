@@ -25,6 +25,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -220,6 +221,7 @@ internal fun DailyTrainingScreen(
     var wrongQuestions by remember { mutableStateOf<List<ReviewQuestion>>(emptyList()) }
     var isMistakeReview by remember { mutableStateOf(false) }
     var heardCurrentAudio by remember { mutableStateOf(false) }
+    var writtenAnswer by remember { mutableStateOf("") }
     val question = questions.getOrNull(questionIndex)
 
     fun startMistakeReview() {
@@ -229,6 +231,7 @@ internal fun DailyTrainingScreen(
         questionIndex = 0
         selectedAnswer = null
         heardCurrentAudio = false
+        writtenAnswer = ""
         score = 0
         finished = false
         isMistakeReview = true
@@ -239,6 +242,7 @@ internal fun DailyTrainingScreen(
         questionIndex = 0
         selectedAnswer = null
         heardCurrentAudio = false
+        writtenAnswer = ""
         score = 0
         finished = false
         wrongQuestions = emptyList()
@@ -339,36 +343,71 @@ internal fun DailyTrainingScreen(
                         }
                     }
                 }
-                question.choices.forEachIndexed { index, choice ->
-                    val background = when {
-                        selectedAnswer == null -> OptionSurface
-                        index == question.correctIndex -> Correct
-                        index == selectedAnswer -> Incorrect
-                        else -> OptionSurface
-                    }
-                    Card(
-                        onClick = {
-                            if (selectedAnswer == null && (!requiresListening || heardCurrentAudio)) {
-                                selectedAnswer = index
-                                val correct = index == question.correctIndex
-                                if (correct) score += 1 else wrongQuestions = wrongQuestions + question
-                                LearningReviewStore.recordAnswer(
-                                    context = context,
-                                    question = question,
-                                    wasCorrect = correct,
-                                    isMistakeReview = true
-                                )
-                            }
-                        },
+                val isVocabularyRecall = question.sourceKind == "vocabulary"
+                if (isVocabularyRecall) {
+                    OutlinedTextField(
+                        value = writtenAnswer,
+                        onValueChange = { if (selectedAnswer == null) writtenAnswer = it },
+                        enabled = selectedAnswer == null,
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(15.dp),
-                        colors = CardDefaults.cardColors(containerColor = background)
-                    ) {
-                        Text(
-                            choice, modifier = Modifier.fillMaxWidth().padding(17.dp),
-                            color = Ink, fontSize = 16.sp,
-                            fontWeight = if (selectedAnswer != null && index == question.correctIndex) FontWeight.Bold else FontWeight.Medium
-                        )
+                        singleLine = true,
+                        label = { Text("Německý výraz včetně členu") },
+                        placeholder = { Text("např. der Hund") }
+                    )
+                    if (selectedAnswer == null) {
+                        Button(
+                            onClick = {
+                                if (writtenAnswer.isNotBlank()) {
+                                    val correct = normalizeVocabularyDrillAnswer(writtenAnswer) ==
+                                        normalizeVocabularyDrillAnswer(question.choices[question.correctIndex])
+                                    selectedAnswer = if (correct) question.correctIndex else -1
+                                    if (correct) score += 1 else wrongQuestions = wrongQuestions + question
+                                    LearningReviewStore.recordAnswer(
+                                        context = context,
+                                        question = question,
+                                        wasCorrect = correct,
+                                        isMistakeReview = true
+                                    )
+                                }
+                            },
+                            enabled = writtenAnswer.isNotBlank(),
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
+                            shape = RoundedCornerShape(14.dp)
+                        ) { Text("Zkontrolovat odpověď", fontWeight = FontWeight.Bold) }
+                    }
+                } else {
+                    question.choices.forEachIndexed { index, choice ->
+                        val background = when {
+                            selectedAnswer == null -> OptionSurface
+                            index == question.correctIndex -> Correct
+                            index == selectedAnswer -> Incorrect
+                            else -> OptionSurface
+                        }
+                        Card(
+                            onClick = {
+                                if (selectedAnswer == null && (!requiresListening || heardCurrentAudio)) {
+                                    selectedAnswer = index
+                                    val correct = index == question.correctIndex
+                                    if (correct) score += 1 else wrongQuestions = wrongQuestions + question
+                                    LearningReviewStore.recordAnswer(
+                                        context = context,
+                                        question = question,
+                                        wasCorrect = correct,
+                                        isMistakeReview = true
+                                    )
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(15.dp),
+                            colors = CardDefaults.cardColors(containerColor = background)
+                        ) {
+                            Text(
+                                choice, modifier = Modifier.fillMaxWidth().padding(17.dp),
+                                color = Ink, fontSize = 16.sp,
+                                fontWeight = if (selectedAnswer != null && index == question.correctIndex) FontWeight.Bold else FontWeight.Medium
+                            )
+                        }
                     }
                 }
                 if (selectedAnswer != null) {
@@ -400,6 +439,7 @@ internal fun DailyTrainingScreen(
                                 questionIndex += 1
                                 selectedAnswer = null
                                 heardCurrentAudio = false
+                                writtenAnswer = ""
                             } else {
                                 if (!isMistakeReview) onComplete(score, questions.size)
                                 finished = true
