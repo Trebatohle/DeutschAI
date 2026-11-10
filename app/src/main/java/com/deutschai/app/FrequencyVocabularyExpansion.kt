@@ -1,7 +1,5 @@
 package com.deutschai.app
 
-package com.deutschai.app
-
 /**
  * 1,000 new everyday German words, selected from existing Czech vocabulary and
  * verb lessons by their rank in the OpenSubtitles 2018 German frequency list.
