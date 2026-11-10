@@ -276,6 +276,24 @@ class ContentQualityTest {
     }
 
     @Test
+    fun broadA1EveningAndSundayPromptsHaveOneClearlyMatchingCourseAnswer() {
+        val evening = sentenceCourseQuestions("alltag").single {
+            it.germanSentence == "Vor dem Schlafen lese ich ein Buch."
+        }
+        assertEquals("Řekneš, že před spaním čteš knihu.", evening.prompt)
+        assertTrue(evening.choices.contains("Am Abend koche ich das Abendessen."))
+
+        val sunday = sentenceCourseQuestions("leisure").single {
+            it.germanSentence == "Am Sonntag möchte ich lange schlafen und danach frühstücken."
+        }
+        assertEquals(
+            "Řekneš, že v neděli chceš dlouho spát a potom snídat.",
+            sunday.prompt
+        )
+        assertTrue(sunday.choices.contains("Lass uns am Sonntag einen Ausflug machen."))
+    }
+
+    @Test
     fun writtenGermanAnswersAreStrictExceptForHarmlessWhitespaceAndExplicitAlternatives() {
         val question = LessonQuestion(
             prompt = "Přelož do němčiny.",
@@ -1133,7 +1151,6 @@ class ContentQualityTest {
         val recommendation = buildHomeStudyRecommendation(
             allEntries = listOf(dueArticle, dueSentence),
             dueEntries = listOf(dueArticle, dueSentence),
-            hasPlacementResult = true,
             hasLastActivity = true
         )
 
@@ -1172,7 +1189,6 @@ class ContentQualityTest {
         val recommendation = buildHomeStudyRecommendation(
             allEntries = weakerArticles + strongerVocabulary,
             dueEntries = emptyList(),
-            hasPlacementResult = true,
             hasLastActivity = false
         )
 
@@ -1195,7 +1211,6 @@ class ContentQualityTest {
         val recommendation = buildHomeStudyRecommendation(
             allEntries = listOf(legacyEntry),
             dueEntries = emptyList(),
-            hasPlacementResult = true,
             hasLastActivity = false
         )
 
@@ -1205,17 +1220,56 @@ class ContentQualityTest {
     }
 
     @Test
-    fun homeRecommendationStartsWithPlacementWhenThereIsNoLearningEvidence() {
+    fun homeRecommendationDoesNotPushPlacementTestIntoTheDailyStudyPlan() {
         val recommendation = buildHomeStudyRecommendation(
             allEntries = emptyList(),
             dueEntries = emptyList(),
-            hasPlacementResult = false,
             hasLastActivity = false
         )
 
-        assertEquals(HomeRecommendationType.PLACEMENT, recommendation.type)
-        assertEquals("Zjistit svou úroveň", recommendation.actionLabel)
-        assertEquals(8, recommendation.estimatedMinutes)
+        assertEquals(HomeRecommendationType.EXPLORE_LIBRARY, recommendation.type)
+        assertEquals("Vybrat první lekci", recommendation.actionLabel)
+    }
+
+    @Test
+    fun placementAssessmentAnswersAreExcludedFromDailyTrainingAndStudyRecommendations() {
+        val byTitleBase = studyPlanTestEntry(
+            id = "placement-by-title",
+            sourceKind = "sentences",
+            attempts = 6,
+            correct = 1,
+            wrongCount = 5
+        )
+        val byTitle = byTitleBase.copy(
+            question = byTitleBase.question.copy(sourceTitle = "Rozřazovací test A1")
+        )
+        val byKind = studyPlanTestEntry(
+            id = "placement-by-kind",
+            sourceKind = "placement",
+            attempts = 2,
+            correct = 0,
+            wrongCount = 2
+        )
+        val normal = studyPlanTestEntry(
+            id = "normal-course-question",
+            sourceKind = "sentences",
+            attempts = 1,
+            correct = 1,
+            wrongCount = 0
+        )
+
+        assertEquals(
+            listOf(normal),
+            selectDailyTrainingDueEntries(listOf(byTitle, byKind, normal), limit = 10)
+        )
+        assertTrue(summarizeLearningSkillPerformance(listOf(byTitle, byKind)).isEmpty())
+
+        val recommendation = buildHomeStudyRecommendation(
+            allEntries = listOf(byTitle, byKind),
+            dueEntries = listOf(byTitle, byKind),
+            hasLastActivity = false
+        )
+        assertEquals(HomeRecommendationType.EXPLORE_LIBRARY, recommendation.type)
     }
 
     private fun studyPlanTestEntry(
