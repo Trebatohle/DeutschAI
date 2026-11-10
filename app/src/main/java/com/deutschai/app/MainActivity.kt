@@ -229,6 +229,9 @@ private fun BeatriceHome() {
     var showVocabularyPractice by remember { mutableStateOf(false) }
     var showVocabularyDrill by remember { mutableStateOf(false) }
     var vocabularyDrillOpenedFromHub by remember { mutableStateOf(false) }
+    var vocabularyDrillOpenedFromRootLibrary by remember { mutableStateOf(false) }
+    var vocabularyDrillOpenedFromVerbLibrary by remember { mutableStateOf(false) }
+    var vocabularyDrillVerbsOnly by remember { mutableStateOf(false) }
     var showVocabularyNotebook by remember { mutableStateOf(false) }
     var showSavedVocabularyPractice by remember { mutableStateOf(false) }
     var selectedArticleCategory by remember { mutableStateOf<ArticleCategory?>(null) }
@@ -287,6 +290,9 @@ private fun BeatriceHome() {
         showVocabularyPractice = false
         showVocabularyDrill = false
         vocabularyDrillOpenedFromHub = false
+        vocabularyDrillOpenedFromRootLibrary = false
+        vocabularyDrillOpenedFromVerbLibrary = false
+        vocabularyDrillVerbsOnly = false
         showVocabularyNotebook = false
         showSavedVocabularyPractice = false
         selectedArticleCategory = null
@@ -353,7 +359,10 @@ private fun BeatriceHome() {
             "number-practice" -> showNumberPractice = true
             "vocabulary-practice" -> showVocabularyPractice = true
             "vocabulary-drill" -> {
+                vocabularyDrillVerbsOnly = lastActivityId == "vocabulary-verb-drill"
+                vocabularyDrillOpenedFromVerbLibrary = vocabularyDrillVerbsOnly
                 vocabularyDrillOpenedFromHub = false
+                vocabularyDrillOpenedFromRootLibrary = false
                 showVocabularyDrill = true
             }
             "vocabulary-notebook" -> showVocabularyNotebook = true
@@ -564,21 +573,35 @@ private fun BeatriceHome() {
     }
 
     if (showVocabularyDrill) {
-        VocabularyDrillScreen(
+        FrequencyVocabularyDrillScreen(
+            verbsOnly = vocabularyDrillVerbsOnly,
             onBack = {
                 showVocabularyDrill = false
-                if (vocabularyDrillOpenedFromHub) {
-                    vocabularyDrillOpenedFromHub = false
-                    showLearningHub = true
-                } else {
-                    showArticleCategories = true
+                when {
+                    vocabularyDrillOpenedFromVerbLibrary -> {
+                        vocabularyDrillOpenedFromVerbLibrary = false
+                        vocabularyDrillVerbsOnly = false
+                        showVerbCategories = true
+                    }
+                    vocabularyDrillOpenedFromHub -> {
+                        vocabularyDrillOpenedFromHub = false
+                        vocabularyDrillVerbsOnly = false
+                        showLearningHub = true
+                    }
+                    vocabularyDrillOpenedFromRootLibrary -> {
+                        vocabularyDrillOpenedFromRootLibrary = false
+                        vocabularyDrillVerbsOnly = false
+                        selectedTab = "Knihovna"
+                    }
+                    else -> {
+                        vocabularyDrillVerbsOnly = false
+                        showArticleCategories = true
+                    }
                 }
                 refreshLearningMetrics()
             },
             onHome = { navigateHome() },
-            onComplete = { score, total ->
-                recordScore(score, total, "vocabulary_drill")
-            }
+            onComplete = { score, total -> recordScore(score, total, "vocabulary_drill") }
         )
         return
     }
@@ -628,8 +651,11 @@ private fun BeatriceHome() {
                 showVocabularyPractice = true
             },
             onDrill = {
-                saveLastActivity("vocabulary-drill", "vocabulary-drill", "Dril slovní zásoby")
+                saveLastActivity("vocabulary-drill", "vocabulary-frequency-drill", "Dril nejpoužívanějších slov")
+                vocabularyDrillVerbsOnly = false
                 vocabularyDrillOpenedFromHub = false
+                vocabularyDrillOpenedFromRootLibrary = false
+                vocabularyDrillOpenedFromVerbLibrary = false
                 showArticleCategories = false
                 showVocabularyDrill = true
             },
@@ -646,6 +672,15 @@ private fun BeatriceHome() {
         VerbCategoryLibraryScreen(
             onBack = { showVerbCategories = false; showLearningHub = true },
             onHome = { navigateHome() },
+            onFrequencyDrill = {
+                saveLastActivity("vocabulary-drill", "vocabulary-verb-drill", "Frekvenční dril sloves")
+                vocabularyDrillVerbsOnly = true
+                vocabularyDrillOpenedFromVerbLibrary = true
+                vocabularyDrillOpenedFromHub = false
+                vocabularyDrillOpenedFromRootLibrary = false
+                showVerbCategories = false
+                showVocabularyDrill = true
+            },
             onSelectTopic = { topic ->
                 saveLastActivity("verb-quiz", topic.id, topic.title)
                 selectedVerbTopic = topic
@@ -675,8 +710,11 @@ private fun BeatriceHome() {
                 showWordTools = true
             },
             onVocabularyDrill = {
-                saveLastActivity("vocabulary-drill", "vocabulary-drill", "Dril slovní zásoby")
+                saveLastActivity("vocabulary-drill", "vocabulary-frequency-drill", "Dril nejpoužívanějších slov")
+                vocabularyDrillVerbsOnly = false
                 vocabularyDrillOpenedFromHub = true
+                vocabularyDrillOpenedFromRootLibrary = false
+                vocabularyDrillOpenedFromVerbLibrary = false
                 showLearningHub = false
                 showVocabularyDrill = true
             }
@@ -921,8 +959,11 @@ private fun BeatriceHome() {
                                                     showReadingLibrary = true
                                                 }
                                                 "vocabulary" -> {
-                                                    saveLastActivity("vocabulary-drill", "vocabulary-drill", "Dril slovní zásoby")
+                                                    saveLastActivity("vocabulary-drill", "vocabulary-frequency-drill", "Dril nejpoužívanějších slov")
+                                                    vocabularyDrillVerbsOnly = false
                                                     vocabularyDrillOpenedFromHub = false
+                                                    vocabularyDrillOpenedFromRootLibrary = false
+                                                    vocabularyDrillOpenedFromVerbLibrary = false
                                                     showVocabularyDrill = true
                                                 }
                                                 else -> showLearningHub = true
@@ -1261,11 +1302,14 @@ private fun BeatriceHome() {
                                 compact = true,
                                 icon = { Icon(androidx.compose.material.icons.Icons.Default.FlashOn, contentDescription = null, tint = if (IsDarkTheme) Color(0xFFE4C58B) else Color(0xFF8A672F)) },
                                 iconBackground = if (IsDarkTheme) Color(0xFF3C3426) else Color(0xFFF6EFDF),
-                                title = "Dril slovní zásoby",
-                                subtitle = "Aktivní vybavování a poslech",
+                                title = "Dril nejpoužívanějších slov",
+                                subtitle = "Běžná mluvená němčina · A1–B2 · 5 nebo 10 slov",
                                 onClick = {
-                                    saveLastActivity("vocabulary-drill", "vocabulary-drill", "Dril slovní zásoby")
+                                    saveLastActivity("vocabulary-drill", "vocabulary-frequency-drill", "Dril nejpoužívanějších slov")
+                                    vocabularyDrillVerbsOnly = false
                                     vocabularyDrillOpenedFromHub = false
+                                    vocabularyDrillOpenedFromRootLibrary = true
+                                    vocabularyDrillOpenedFromVerbLibrary = false
                                     showVocabularyDrill = true
                                 }
                             )
