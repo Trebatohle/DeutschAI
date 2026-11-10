@@ -919,7 +919,11 @@ private fun BeatriceHome() {
                                                     readingLibraryOpenedFromHub = false
                                                     showReadingLibrary = true
                                                 }
-                                                "vocabulary" -> showVocabularyPractice = true
+                                                "vocabulary" -> {
+                                                    saveLastActivity("vocabulary-drill", "vocabulary-drill", "Dril slovní zásoby")
+                                                    vocabularyDrillOpenedFromHub = false
+                                                    showVocabularyDrill = true
+                                                }
                                                 else -> showLearningHub = true
                                             }
                                         }
