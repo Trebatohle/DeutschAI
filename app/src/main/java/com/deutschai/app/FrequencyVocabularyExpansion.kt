@@ -1314,6 +1314,33 @@ private fun spokenExtraEntry(seed: SpokenExtraSeed): FrequencyVocabularyEntry {
     } else {
         stableReviewId("frequency_vocabulary", seed.kind.name, seed.word.lowercase())
     }
+    val listeningAnswer = if (seed.kind == FrequencyWordKind.VERB) {
+        when (seed.word) {
+            "einpacken", "auspacken" -> "packe"
+            "aufmachen", "anmachen", "ausmachen" -> "Mach"
+            "zumachen" -> "zu"
+            "wegwerfen" -> "Wirf"
+            "nachfragen" -> "frage"
+            "nachschauen" -> "schaue"
+            "nachsehen" -> "sehe"
+            "ausschalten" -> "Schalte"
+            "losfahren" -> "fahren"
+            "wegbringen", "zurückbringen" -> "bringe"
+            "verleihen" -> "verleiht"
+            "aufteilen" -> "teilen"
+            "verteilen" -> "verteilt"
+            "aufheben" -> "Heb"
+            "aufwärmen" -> "wärme"
+            "sich weigern" -> "weigert"
+            "sich bemühen" -> "bemühe"
+            "sich wundern" -> "wundere"
+            "sich hinlegen" -> "lege"
+            "sich anziehen" -> "Zieh"
+            else -> seed.word.removePrefix("sich ")
+        }
+    } else {
+        seed.word
+    }
     return FrequencyVocabularyEntry(
         id = id,
         level = level,
@@ -1323,7 +1350,7 @@ private fun spokenExtraEntry(seed: SpokenExtraSeed): FrequencyVocabularyEntry {
         article = seed.article,
         exampleGerman = exampleGerman,
         exampleCzech = exampleCzech,
-        listeningAnswer = if (seed.kind == FrequencyWordKind.VERB) seed.word.removePrefix("sich ") else seed.word
+        listeningAnswer = listeningAnswer
     )
 }
 
