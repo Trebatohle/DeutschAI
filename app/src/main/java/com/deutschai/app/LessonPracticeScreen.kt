@@ -180,7 +180,8 @@ internal fun LessonPracticeScreen(
                 id = stableReviewId("sentence", lesson.id, sourceIndex.toString()),
                 sourceKind = "sentences",
                 sourceTitle = lesson.title,
-                cefrLevel = lesson.level
+                cefrLevel = lesson.level,
+                courseId = lesson.id
             )
             LearningReviewStore.recordAnswer(
                 context = context,
@@ -225,7 +226,8 @@ internal fun LessonPracticeScreen(
                 id = stableReviewId("sentence", lesson.id, sourceIndex.toString()),
                 sourceKind = "sentences",
                 sourceTitle = lesson.title,
-                cefrLevel = lesson.level
+                cefrLevel = lesson.level,
+                courseId = lesson.id
             )
             LearningReviewStore.recordAnswer(
                 context = context,
