@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.LibraryBooks
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.TextFields
+import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -218,6 +219,7 @@ internal fun LearningHubScreen(
 internal fun ArticleCategoryLibraryScreen(
     onBack: () -> Unit,
     onVocabulary: () -> Unit,
+    onDrill: () -> Unit,
     onSelectCategory: (ArticleCategory) -> Unit,
     onHome: () -> Unit = onBack
 ) {
@@ -245,6 +247,14 @@ internal fun ArticleCategoryLibraryScreen(
                 subtitle = "Každá otázka ukáže pouze německý člen a podstatné jméno (der/die/das). Příkladovou větu uslyšíš až po odpovědi.",
                 detail = "${vocabularyCatalog.size} slov · náhodné sady po 25",
                 onClick = onVocabulary
+            )
+            LearningCard(
+                icon = { Icon(Icons.Default.FlashOn, contentDescription = null, tint = Color(0xFF8A672F)) },
+                iconBackground = Color(0xFFF6EFDF),
+                title = "Dril slovní zásoby",
+                subtitle = "Pět náhodných slov ze slovníku: nejprve vyber český význam, potom napiš německý výraz se správným členem.",
+                detail = "${vocabularyCatalog.size} slov · 5 slov ve 2 navazujících částech",
+                onClick = onDrill
             )
             articleCategories.forEachIndexed { index, category ->
                 Card(
