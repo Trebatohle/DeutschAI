@@ -220,11 +220,13 @@ private fun BeatriceHome() {
     var showNumberPractice by remember { mutableStateOf(false) }
     var showLearningHub by remember { mutableStateOf(false) }
     var showLessonLibrary by remember { mutableStateOf(false) }
+    var showListeningLibrary by remember { mutableStateOf(false) }
     var lessonLibraryOpenedFromHub by remember { mutableStateOf(false) }
     var readingLibraryOpenedFromHub by remember { mutableStateOf(false) }
     var dialogueOpenedFromHub by remember { mutableStateOf(false) }
     var showArticleCategories by remember { mutableStateOf(false) }
     var showVocabularyPractice by remember { mutableStateOf(false) }
+    var showVocabularyDrill by remember { mutableStateOf(false) }
     var showVocabularyNotebook by remember { mutableStateOf(false) }
     var showSavedVocabularyPractice by remember { mutableStateOf(false) }
     var selectedArticleCategory by remember { mutableStateOf<ArticleCategory?>(null) }
@@ -274,11 +276,13 @@ private fun BeatriceHome() {
         showNumberPractice = false
         showLearningHub = false
         showLessonLibrary = false
+        showListeningLibrary = false
         lessonLibraryOpenedFromHub = false
         readingLibraryOpenedFromHub = false
         dialogueOpenedFromHub = false
         showArticleCategories = false
         showVocabularyPractice = false
+        showVocabularyDrill = false
         showVocabularyNotebook = false
         showSavedVocabularyPractice = false
         selectedArticleCategory = null
@@ -343,6 +347,7 @@ private fun BeatriceHome() {
             "word-tools" -> showWordTools = true
             "number-practice" -> showNumberPractice = true
             "vocabulary-practice" -> showVocabularyPractice = true
+            "vocabulary-drill" -> showVocabularyDrill = true
             "vocabulary-notebook" -> showVocabularyNotebook = true
             "article-quiz" -> {
                 val item = articleCategories.firstOrNull { it.id == lastActivityId }
@@ -550,6 +555,17 @@ private fun BeatriceHome() {
         return
     }
 
+    if (showVocabularyDrill) {
+        VocabularyDrillScreen(
+            onBack = { showVocabularyDrill = false; showArticleCategories = true },
+            onHome = { navigateHome() },
+            onComplete = { score, total ->
+                recordScore(score, total, "vocabulary_drill")
+            }
+        )
+        return
+    }
+
     if (showVocabularyPractice) {
         VocabularyPracticeScreen(
             onBack = { showVocabularyPractice = false; showArticleCategories = true },
@@ -593,6 +609,11 @@ private fun BeatriceHome() {
                 saveLastActivity("vocabulary-practice", "vocabulary-practice", "Slovní zásoba")
                 showArticleCategories = false
                 showVocabularyPractice = true
+            },
+            onDrill = {
+                saveLastActivity("vocabulary-drill", "vocabulary-drill", "Dril slovní zásoby")
+                showArticleCategories = false
+                showVocabularyDrill = true
             },
             onSelectCategory = { category ->
                 saveLastActivity("article-quiz", category.id, category.title)
@@ -639,6 +660,19 @@ private fun BeatriceHome() {
         return
     }
 
+    if (showListeningLibrary) {
+        ListeningLibraryScreen(
+            onBack = { showListeningLibrary = false },
+            onHome = { navigateHome() },
+            onSelectLevel = { level ->
+                saveLastActivity("listening", level, "Poslech a porozumění " + level)
+                selectedListeningLevel = level
+                showListeningLibrary = false
+            }
+        )
+        return
+    }
+
     if (selectedPhraseReviewLevel != null) {
         PhraseReviewScreen(
             level = selectedPhraseReviewLevel!!,
@@ -656,7 +690,7 @@ private fun BeatriceHome() {
         ListeningPracticeScreen(
             level = selectedListeningLevel!!,
             onHome = { navigateHome() },
-            onBack = { selectedListeningLevel = null; showLessonLibrary = true; refreshLearningMetrics() }
+            onBack = { selectedListeningLevel = null; showListeningLibrary = true; refreshLearningMetrics() }
         )
         return
     }
@@ -695,11 +729,6 @@ private fun BeatriceHome() {
                 selectedPhraseReviewLevel = level
                 showLessonLibrary = false
             },
-            onSelectListening = { level ->
-                saveLastActivity("listening", level, "Poslech a porozumění $level")
-                selectedListeningLevel = level
-                showLessonLibrary = false
-            }
         )
         return
     }
@@ -781,7 +810,7 @@ private fun BeatriceHome() {
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(23.dp),
-                                colors = CardDefaults.cardColors(containerColor = Forest)
+                                colors = CardDefaults.cardColors(containerColor = if (IsDarkTheme) Color(0xFF3D392F) else Color(0xFFF4EFE5))
                             ) {
                                 Column(
                                     modifier = Modifier.fillMaxWidth().padding(18.dp),
@@ -794,7 +823,7 @@ private fun BeatriceHome() {
                                     ) {
                                         Text(
                                             "TVŮJ OSOBNÍ PLÁN",
-                                            color = Color(0xFFD3E4DA),
+                                            color = if (IsDarkTheme) Color(0xFFE3D5B4) else Color(0xFF80663E),
                                             fontSize = 10.sp,
                                             fontWeight = FontWeight.Bold,
                                             letterSpacing = 1.3.sp
@@ -802,26 +831,26 @@ private fun BeatriceHome() {
                                         Icon(
                                             Icons.Default.AutoAwesome,
                                             contentDescription = null,
-                                            tint = Gold,
+                                            tint = if (IsDarkTheme) Gold else Color(0xFF9B7134),
                                             modifier = Modifier.size(18.dp)
                                         )
                                     }
                                     Text(
                                         "Guten Tag!",
-                                        color = Gold,
+                                        color = if (IsDarkTheme) Gold else Color(0xFF9B7134),
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.SemiBold
                                     )
                                     Text(
                                         "Dnes se posuneš zase o krok dál.",
-                                        color = Color.White,
+                                        color = Ink,
                                         fontSize = 23.sp,
                                         lineHeight = 28.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Text(
                                         "Tvůj plán vychází z toho, co už umíš a co potřebuješ upevnit.",
-                                        color = Color(0xFFD3E4DA),
+                                        color = Muted,
                                         fontSize = 12.sp,
                                         lineHeight = 18.sp
                                     )
@@ -846,10 +875,7 @@ private fun BeatriceHome() {
                                                 "verbs" -> showVerbCategories = true
                                                 "wordtools" -> showWordTools = true
                                                 "numbers" -> showWordTools = true
-                                                "listening" -> {
-                                                    lessonLibraryOpenedFromHub = false
-                                                    showLessonLibrary = true
-                                                }
+                                                "listening" -> showListeningLibrary = true
                                                 "reading" -> {
                                                     readingLibraryOpenedFromHub = false
                                                     showReadingLibrary = true
@@ -1147,7 +1173,7 @@ private fun BeatriceHome() {
                                 iconBackground = learningCategoryBackground(LearningCategoryVisual.LISTENING),
                                 title = "Poslech",
                                 subtitle = "Cvičení A1–B2",
-                                onClick = { showLessonLibrary = true }
+                                onClick = { showListeningLibrary = true }
                             )
                         }
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
@@ -1339,7 +1365,6 @@ private fun LessonLibraryScreen(
     onBack: () -> Unit,
     onSelectLesson: (Lesson) -> Unit,
     onSelectPhraseReview: (String) -> Unit,
-    onSelectListening: (String) -> Unit,
     onHome: () -> Unit = onBack
 ) {
     val context = LocalContext.current
@@ -1404,34 +1429,6 @@ private fun LessonLibraryScreen(
                     "Vyber si konkrétní téma, nebo si procvič fráze, které aplikace vybere podle toho, kdy je potřebuješ zopakovat.",
                     color = Muted, fontSize = 14.sp, lineHeight = 21.sp
                 )
-                Card(
-                    onClick = { onSelectListening(level) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = CardSurface)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(18.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(14.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier.size(48.dp).background(learningCategoryBackground(LearningCategoryVisual.LISTENING), RoundedCornerShape(15.dp)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(LearningCategoryVisual.LISTENING.image, contentDescription = null, tint = learningCategoryTint(LearningCategoryVisual.LISTENING), modifier = Modifier.size(25.dp))
-                        }
-                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                            Text("Poslech a porozumění", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                            Text(
-                                "Poslechni si větu v němčině (de-DE) a vyber její český význam. Text se zobrazí až po odpovědi.",
-                                color = Muted, fontSize = 13.sp, lineHeight = 19.sp
-                            )
-                            Text("25 poslechových otázek", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                            LatestResultLine(CourseResultStore.load(context, "listening_$level"))
-                        }
-                    }
-                }
                 Card(
                     onClick = { onSelectPhraseReview(level) },
                     modifier = Modifier.fillMaxWidth(),
