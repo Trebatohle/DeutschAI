@@ -228,6 +228,7 @@ private fun BeatriceHome() {
     var showReadingLibrary by remember { mutableStateOf(false) }
     var selectedReadingArticle by remember { mutableStateOf<ReadingArticle?>(null) }
     var selectedLesson by remember { mutableStateOf<Lesson?>(null) }
+    var courseOpenedFromOverview by remember { mutableStateOf(false) }
     var selectedPhraseReviewLevel by remember { mutableStateOf<String?>(null) }
     var selectedListeningLevel by remember { mutableStateOf<String?>(null) }
     var selectedTab by remember { mutableStateOf("Domů") }
@@ -242,6 +243,7 @@ private fun BeatriceHome() {
     }
 
     fun navigateHome() {
+        courseOpenedFromOverview = false
         showConversation = false
         showDailyTraining = false
         dailyTrainingReturnToOverview = false
@@ -365,6 +367,7 @@ private fun BeatriceHome() {
                 val lesson = lessons.firstOrNull { it.id == courseId }
                 if (lesson != null) {
                     saveLastActivity("lesson", lesson.id, lesson.title)
+                    courseOpenedFromOverview = true
                     selectedLesson = lesson
                     showLearningOverview = false
                 }
@@ -617,7 +620,15 @@ private fun BeatriceHome() {
         LessonScreen(
             lesson = selectedLesson!!,
             onHome = { navigateHome() },
-            onBack = { selectedLesson = null; showLessonLibrary = true },
+            onBack = {
+                selectedLesson = null
+                if (courseOpenedFromOverview) {
+                    courseOpenedFromOverview = false
+                    showLearningOverview = true
+                } else {
+                    showLessonLibrary = true
+                }
+            },
             onComplete = { score, total ->
                 recordScore(score, total, "sentence_${selectedLesson!!.id}")
             }
