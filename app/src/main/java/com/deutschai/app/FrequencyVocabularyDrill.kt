@@ -125,12 +125,25 @@ internal fun selectFrequencyVocabularyEntries(
         (verbQuota - alreadySelectedVerbs).coerceAtLeast(0),
         (target - selected.size).coerceAtLeast(0)
     )
-    selected += fresh.filter { it.kind == FrequencyWordKind.VERB }.take(verbsToAdd)
+    selected += fresh.filter { it.kind == FrequencyWordKind.VERB }.shuffled(random).take(verbsToAdd)
+    val freshNonVerbs = fresh.filterNot { it.kind == FrequencyWordKind.VERB }
+        .filterNot { candidate -> selected.any { it.id == candidate.id } }
     if (verbQuota > 0) {
-        selected += fresh.filter { it.kind != FrequencyWordKind.VERB }
-            .filterNot { candidate -> selected.any { it.id == candidate.id } }
+        val functionWordPriority = mapOf(
+            FrequencyWordKind.PRONOUN to 0,
+            FrequencyWordKind.QUESTION to 1,
+            FrequencyWordKind.PREPOSITION to 2,
+            FrequencyWordKind.ARTICLE to 3,
+            FrequencyWordKind.CONJUNCTION to 4,
+            FrequencyWordKind.PARTICLE to 5,
+            FrequencyWordKind.FUNCTION to 6,
+            FrequencyWordKind.NOUN to 7,
+            FrequencyWordKind.ADJECTIVE to 8,
+            FrequencyWordKind.ADVERB to 9
+        )
+        selected += freshNonVerbs.shuffled(random).sortedBy { functionWordPriority[it.kind] ?: 10 }
     } else {
-        selected += fresh.filterNot { candidate -> selected.any { it.id == candidate.id } }
+        selected += freshNonVerbs.shuffled(random)
     }
     selected += weak.filterNot { candidate -> selected.any { it.id == candidate.id } }
     selected += mastered.filterNot { candidate -> selected.any { it.id == candidate.id } }
@@ -249,7 +262,7 @@ internal fun FrequencyVocabularyDrillScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 AppScreenHeader(
-                    title = if (verbsOnly) "Dril nejpoužívanějších sloves" else "Dril slovní zásoby",
+                    title = if (verbsOnly) "Dril sloves" else "Dril slovní zásoby",
                     onBack = onBack, onHome = onHome
                 )
                 if (!started) {
