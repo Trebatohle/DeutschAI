@@ -17,7 +17,8 @@ internal data class ReviewQuestion(
     val explanation: String,
     val germanSentence: String = "",
     val translation: String = "",
-    val cefrLevel: String = ""
+    val cefrLevel: String = "",
+    val courseId: String = ""
 ) {
     init {
         require(id.isNotBlank()) { "Review question ID must not be blank." }
@@ -224,6 +225,7 @@ internal object LearningReviewStore {
                     .put("germanSentence", q.germanSentence)
                     .put("translation", q.translation)
                     .put("cefrLevel", q.cefrLevel)
+                    .put("courseId", q.courseId)
                     .put("wrongCount", entry.wrongCount)
                     .put("correctStreak", entry.correctStreak)
                     .put("intervalDays", entry.intervalDays)
@@ -255,7 +257,8 @@ internal object LearningReviewStore {
             explanation = optString("explanation", ""),
             germanSentence = optString("germanSentence", ""),
             translation = optString("translation", ""),
-            cefrLevel = optString("cefrLevel", "")
+            cefrLevel = optString("cefrLevel", ""),
+            courseId = optString("courseId", "")
         )
     }
 }
@@ -297,7 +300,8 @@ internal fun LessonQuestion.toReviewQuestion(
     id: String,
     sourceKind: String,
     sourceTitle: String,
-    cefrLevel: String = ""
+    cefrLevel: String = "",
+    courseId: String = ""
 ): ReviewQuestion = ReviewQuestion(
     id = id,
     sourceKind = sourceKind,
@@ -308,7 +312,8 @@ internal fun LessonQuestion.toReviewQuestion(
     explanation = explanation,
     germanSentence = germanSentence,
     translation = translation,
-    cefrLevel = cefrLevel
+    cefrLevel = cefrLevel,
+    courseId = courseId
 )
 
 internal fun WordToolQuestion.toReviewQuestion(
