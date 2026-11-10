@@ -1258,6 +1258,21 @@ private fun BeatriceHome() {
                             FeatureTile(
                                 modifier = Modifier.weight(1f).height(116.dp),
                                 compact = true,
+                                icon = { Icon(androidx.compose.material.icons.Icons.Default.FlashOn, contentDescription = null, tint = if (IsDarkTheme) Color(0xFFE4C58B) else Color(0xFF8A672F)) },
+                                iconBackground = if (IsDarkTheme) Color(0xFF3C3426) else Color(0xFFF6EFDF),
+                                title = "Dril slovní zásoby",
+                                subtitle = "Aktivní vybavování a poslech",
+                                onClick = {
+                                    saveLastActivity("vocabulary-drill", "vocabulary-drill", "Dril slovní zásoby")
+                                    vocabularyDrillOpenedFromHub = false
+                                    showVocabularyDrill = true
+                                }
+                            )
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                            FeatureTile(
+                                modifier = Modifier.weight(1f).height(116.dp),
+                                compact = true,
                                 icon = { Icon(LearningCategoryVisual.NOTEBOOK.image, contentDescription = null, tint = learningCategoryTint(LearningCategoryVisual.NOTEBOOK)) },
                                 iconBackground = learningCategoryBackground(LearningCategoryVisual.NOTEBOOK),
                                 title = "Můj slovníček",
