@@ -344,6 +344,7 @@ internal fun DailyTrainingScreen(
                     }
                 }
                 val isVocabularyRecall = question.sourceKind == "vocabulary"
+                val isFrequencyVocabulary = question.sourceTitle.startsWith("Frekvenční")
                 if (isVocabularyRecall) {
                     OutlinedTextField(
                         value = writtenAnswer,
@@ -351,8 +352,15 @@ internal fun DailyTrainingScreen(
                         enabled = selectedAnswer == null,
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        label = { Text("Německý výraz včetně členu") },
-                        placeholder = { Text("např. der Hund") }
+                        label = {
+                            Text(
+                                if (isFrequencyVocabulary) "Německý základní tvar / infinitiv"
+                                else "Německý výraz včetně členu"
+                            )
+                        },
+                        placeholder = {
+                            Text(if (isFrequencyVocabulary) "např. gehen / der Hund" else "např. der Hund")
+                        }
                     )
                     if (selectedAnswer == null) {
                         Button(
