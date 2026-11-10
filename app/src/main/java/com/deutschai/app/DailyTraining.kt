@@ -354,7 +354,7 @@ internal fun DailyTrainingScreen(
                         singleLine = true,
                         label = {
                             Text(
-                                if (isFrequencyVocabulary) "Německý základní tvar / infinitiv"
+                                if (isFrequencyVocabulary) "Německý základní tvar"
                                 else "Německý výraz včetně členu"
                             )
                         },
