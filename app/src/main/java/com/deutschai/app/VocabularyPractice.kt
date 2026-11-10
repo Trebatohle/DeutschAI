@@ -176,12 +176,9 @@ internal fun buildVocabularyBatch(
     return availableEntries.shuffled(random)
         .take(count.coerceAtMost(availableEntries.size))
         .map { entry ->
-            val presentation = if (random.nextBoolean()) {
-                VocabularyPresentation.WORD
-            } else {
-                VocabularyPresentation.SENTENCE
-            }
-            makeVocabularyQuestion(entry, presentation, availableEntries, random)
+            // The 2,000-item noun catalogue is always practiced as article + noun.
+            // Example sentences remain available as supporting material after answering.
+            makeVocabularyQuestion(entry, VocabularyPresentation.WORD, availableEntries, random)
         }
 }
 
