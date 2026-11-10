@@ -54,7 +54,7 @@ internal fun buildPersonalNotebookQuestions(
             id = stableReviewId("notebook_vocab", entry.id),
             sourceKind = "vocabulary",
             sourceTitle = "Můj slovníček",
-            prompt = "Vyber český význam německého výrazu:",
+            prompt = "Vyber český význam německého podstatného jména: ${entry.article} ${entry.word}",
             choices = item.choices,
             correctIndex = item.correctIndex,
             explanation = "Správně: ${entry.article} ${entry.word} = ${entry.czech}.",
@@ -424,6 +424,9 @@ internal fun PersonalNotebookPracticeScreen(
                         modifier = androidx.compose.ui.Modifier.fillMaxWidth()
                     )
                     androidx.compose.material3.Text(question.prompt, color = Ink, fontSize = 22.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                    if (question.germanSentence.isNotBlank()) {
+                        GermanAudioControls(player = speaker, text = question.germanSentence, showSlow = true)
+                    }
                     question.choices.forEachIndexed { index, choice ->
                         val background = when {
                             selectedAnswer == null -> OptionSurface
