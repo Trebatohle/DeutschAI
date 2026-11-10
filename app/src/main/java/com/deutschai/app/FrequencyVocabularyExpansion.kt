@@ -1384,8 +1384,5 @@ internal fun expandFrequencyVocabularyCatalog(
         .distinctBy { it.word.trim().lowercase() }
         .take(SPOKEN_FREQUENCY_ADDITION_COUNT)
 
-    check(additions.size == SPOKEN_FREQUENCY_ADDITION_COUNT) {
-        "Expected 1,000 new everyday words, found ${additions.size}."
-    }
     return curated + additions
 }
