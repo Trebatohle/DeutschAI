@@ -360,6 +360,14 @@ private fun BeatriceHome() {
                 dailyTrainingReturnToOverview = true
                 showLearningOverview = false
                 showDailyTraining = true
+            },
+            onOpenCourse = { courseId ->
+                val lesson = lessons.firstOrNull { it.id == courseId }
+                if (lesson != null) {
+                    saveLastActivity("lesson", lesson.id, lesson.title)
+                    selectedLesson = lesson
+                    showLearningOverview = false
+                }
             }
         )
         return
