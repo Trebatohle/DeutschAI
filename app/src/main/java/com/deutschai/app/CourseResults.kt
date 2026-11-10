@@ -3,6 +3,7 @@ package com.deutschai.app
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -124,16 +125,21 @@ internal fun LatestResultLine(result: CourseResult?) {
     if (result != null) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.dp)
+            horizontalArrangement = Arrangement.spacedBy(7.dp)
         ) {
-            Text("Poslední výsledek:", color = Color(0xFF66736D), fontSize = 12.sp)
-            Text(
-                if (result.isPerfect) "${result.score}/${result.total} · Úspěch ✓"
-                else "${result.score}/${result.total}",
-                color = if (result.isPerfect) Color(0xFF21864D) else Color(0xFF163D35),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Text("Poslední výsledek", color = Color(0xFF66736D), fontSize = 11.sp)
+            Surface(
+                color = if (result.isPerfect) Color(0xFFE3F1E7) else Color(0xFFE9EFEB),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(9.dp)
+            ) {
+                Text(
+                    if (result.isPerfect) "${result.score}/${result.total} · 100 %" else "${result.score}/${result.total}",
+                    modifier = androidx.compose.ui.Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
+                    color = if (result.isPerfect) Color(0xFF21864D) else Color(0xFF163D35),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }
