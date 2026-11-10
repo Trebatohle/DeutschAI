@@ -175,12 +175,23 @@ internal fun enrichScheduledReviewQuestion(
     }
 }
 
+internal fun selectDailyTrainingDueEntries(
+    entries: List<ReviewMemoryEntry>,
+    limit: Int = 6
+): List<ReviewMemoryEntry> =
+    entries.asSequence()
+        .filterNot { isPlacementAssessmentQuestion(it.question) }
+        .take(limit.coerceAtLeast(0))
+        .toList()
+
 internal fun makeDailyTrainingQuestions(
     context: android.content.Context,
     nowMillis: Long = System.currentTimeMillis()
 ): List<ReviewQuestion> {
     val history = LearningReviewStore.all(context).associateBy { it.question.id }
-    val dueEntries = LearningReviewStore.prioritizedDue(context, nowMillis).take(6)
+    val dueEntries = selectDailyTrainingDueEntries(
+        LearningReviewStore.prioritizedDue(context, nowMillis)
+    )
     val due = dueEntries
         .map { enrichScheduledReviewQuestion(it.question) }
         .distinctBy { it.id }
