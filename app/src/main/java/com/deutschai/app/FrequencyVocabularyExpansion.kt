@@ -1331,6 +1331,7 @@ private fun spokenExtraEntry(seed: SpokenExtraSeed): FrequencyVocabularyEntry {
             "verteilen" -> "verteilt"
             "aufheben" -> "Heb"
             "aufwärmen" -> "wärme"
+            "sich erkundigen" -> "erkundige"
             "sich weigern" -> "weigert"
             "sich bemühen" -> "bemühe"
             "sich wundern" -> "wundere"
