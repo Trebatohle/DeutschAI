@@ -24,7 +24,7 @@ internal data class FrequencyVocabularyEntry(
         get() = if (article == null) word else article + " " + word
 
     val listeningTarget: String
-        get() = listeningAnswer.ifBlank { germanAnswer }
+        get() = listeningAnswer.ifBlank { if (kind == FrequencyWordKind.NOUN) word else germanAnswer }
 }
 
 private fun frequencyWord(
@@ -86,10 +86,11 @@ private fun fvNoun(
     czech: String,
     plural: String,
     exampleGerman: String,
-    exampleCzech: String
+    exampleCzech: String,
+    heard: String = ""
 ) = frequencyWord(
     level, FrequencyWordKind.NOUN, word, czech, exampleGerman, exampleCzech,
-    article = article, extraInfo = plural
+    article = article, extraInfo = plural, listeningAnswer = heard
 )
 
 private fun fvAdjective(
@@ -342,7 +343,7 @@ internal val frequencyVocabularyCatalog: List<FrequencyVocabularyEntry> = listOf
     fvNoun("B1", "der", "Vorteil", "výhoda", "Pl.: die Vorteile", "Ein großer Vorteil ist die Lage.", "Velkou výhodou je poloha."),
     fvNoun("B1", "der", "Nachteil", "nevýhoda", "Pl.: die Nachteile", "Jede Lösung hat auch einen Nachteil.", "Každé řešení má také nevýhodu."),
     fvNoun("B1", "die", "Entscheidung", "rozhodnutí", "Pl.: die Entscheidungen", "Das war eine schwierige Entscheidung.", "Bylo to těžké rozhodnutí."),
-    fvNoun("B1", "die", "Erfahrung", "zkušenost", "Pl.: die Erfahrungen", "Ich habe damit gute Erfahrungen gemacht.", "Mám s tím dobré zkušenosti."),
+    fvNoun("B1", "die", "Erfahrung", "zkušenost", "Pl.: die Erfahrungen", "Die Erfahrung war sehr wichtig.", "Tato zkušenost byla velmi důležitá.", "Erfahrungen"),
     fvNoun("B1", "das", "Verhalten", "chování", "Obvykle bez množného čísla", "Sein Verhalten war sehr freundlich.", "Jeho chování bylo velmi přátelské."),
     fvNoun("B1", "die", "Beziehung", "vztah", "Pl.: die Beziehungen", "Eine gute Beziehung braucht Vertrauen.", "Dobrý vztah potřebuje důvěru."),
     fvNoun("B1", "die", "Umgebung", "okolí / prostředí", "Pl.: die Umgebungen", "Die Umgebung ist hier sehr ruhig.", "Okolí je zde velmi klidné."),
@@ -400,7 +401,7 @@ internal val frequencyVocabularyCatalog: List<FrequencyVocabularyEntry> = listOf
     fvVerb("B2", "erfordern", "vyžadovat", "Diese Aufgabe erfordert viel Geduld.", "Tento úkol vyžaduje hodně trpělivosti.", "erfordert · erforderte · hat erfordert", "erfordert"),
 
     fvNoun("B2", "der", "Zusammenhang", "souvislost", "Pl.: die Zusammenhänge", "Jetzt verstehe ich den Zusammenhang.", "Teď chápu souvislost."),
-    fvNoun("B2", "die", "Auswirkung", "dopad / důsledek", "Pl.: die Auswirkungen", "Die Änderung hat große Auswirkungen.", "Změna má velké dopady."),
+    fvNoun("B2", "die", "Auswirkung", "dopad / důsledek", "Pl.: die Auswirkungen", "Die Auswirkung ist groß.", "Dopad je velký."),
     fvNoun("B2", "die", "Herausforderung", "výzva", "Pl.: die Herausforderungen", "Das ist eine interessante Herausforderung.", "To je zajímavá výzva."),
     fvNoun("B2", "die", "Maßnahme", "opatření", "Pl.: die Maßnahmen", "Wir müssen sofort eine Maßnahme ergreifen.", "Musíme okamžitě přijmout opatření."),
     fvNoun("B2", "der", "Beitrag", "příspěvek", "Pl.: die Beiträge", "Danke für deinen Beitrag.", "Děkuji za tvůj příspěvek."),
@@ -408,8 +409,8 @@ internal val frequencyVocabularyCatalog: List<FrequencyVocabularyEntry> = listOf
     fvNoun("B2", "der", "Unterschied", "rozdíl", "Pl.: die Unterschiede", "Der Unterschied ist nicht sehr groß.", "Rozdíl není příliš velký."),
     fvNoun("B2", "der", "Aufwand", "úsilí / náklady", "Pl.: die Aufwände", "Der Aufwand ist größer als erwartet.", "Úsilí je větší, než se čekalo."),
     fvNoun("B2", "der", "Nutzen", "užitek / přínos", "Obvykle bez množného čísla", "Der Nutzen ist klar erkennbar.", "Přínos je jasně viditelný."),
-    fvNoun("B2", "der", "Anspruch", "nárok / požadavek", "Pl.: die Ansprüche", "Das Angebot erfüllt meine Ansprüche.", "Nabídka splňuje mé požadavky."),
-    fvNoun("B2", "der", "Fortschritt", "pokrok", "Pl.: die Fortschritte", "Wir sehen jeden Monat Fortschritte.", "Každý měsíc vidíme pokrok."),
+    fvNoun("B2", "der", "Anspruch", "nárok / požadavek", "Pl.: die Ansprüche", "Der Anspruch ist hoch.", "Požadavek je vysoký."),
+    fvNoun("B2", "der", "Fortschritt", "pokrok", "Pl.: die Fortschritte", "Der Fortschritt ist sichtbar.", "Pokrok je viditelný."),
     fvNoun("B2", "die", "Fähigkeit", "schopnost", "Pl.: die Fähigkeiten", "Diese Fähigkeit ist sehr nützlich.", "Tato schopnost je velmi užitečná."),
     fvNoun("B2", "das", "Ereignis", "událost", "Pl.: die Ereignisse", "Das Ereignis hat viele Menschen überrascht.", "Tato událost překvapila mnoho lidí."),
     fvNoun("B2", "der", "Einfluss", "vliv", "Pl.: die Einflüsse", "Das hat einen großen Einfluss auf uns.", "To na nás má velký vliv."),
