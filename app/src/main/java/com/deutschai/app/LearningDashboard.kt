@@ -181,6 +181,21 @@ internal fun LearningOverviewScreen(
     val masteredCount = LearningReviewStore.masteredCount(context)
     val dueCount = LearningReviewStore.pendingCount(context)
     val recurringMistakes = LearningReviewStore.recurringMistakes(context, limit = 5)
+    val frequencyReviewMap = allReviewEntries.associateBy { it.question.id }
+    val frequencyLevelStats = listOf("A1", "A2", "B1", "B2").map { level ->
+        val words = frequencyVocabularyForLevel(level)
+        val mastered = words.count { word ->
+            val memory = frequencyReviewMap[word.id]
+            memory != null && memory.correctStreak >= 3 && memory.intervalDays >= 7
+        }
+        val due = words.count { word ->
+            frequencyReviewMap[word.id]?.dueAtMillis?.let { it <= System.currentTimeMillis() } == true
+        }
+        Triple(level, mastered, Pair(words.size, due))
+    }
+    val frequencyMasteredTotal = frequencyLevelStats.sumOf { it.second }
+    val frequencyWordTotal = frequencyLevelStats.sumOf { it.third.first }
+    val frequencyDueTotal = frequencyLevelStats.sumOf { it.third.second }
     val weakest = skillStats.filter { it.attempts >= 5 }.minByOrNull { it.accuracyPercent }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
@@ -212,6 +227,45 @@ internal fun LearningOverviewScreen(
                         }
                     }
                     Text("$dueCount položek čeká na opakování", color = Color(0xFFE0EAE5), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(19.dp),
+                colors = CardDefaults.cardColors(containerColor = CardSurface)
+            ) {
+                Column(
+                    modifier = Modifier.padding(17.dp),
+                    verticalArrangement = Arrangement.spacedBy(9.dp)
+                ) {
+                    Text("NEJPOUŽÍVANĚJŠÍ SLOVNÍ ZÁSOBA", color = ForestText, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(frequencyMasteredTotal.toString() + " / " + frequencyWordTotal, color = Ink, fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                            Text("dlouhodobě zvládnutých slov", color = Muted, fontSize = 11.sp)
+                        }
+                        Text(frequencyDueTotal.toString() + " k opakování", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                    frequencyLevelStats.forEach { stat ->
+                        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(stat.first, color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text(stat.second.toString() + " / " + stat.third.first, color = Muted, fontSize = 11.sp)
+                            }
+                            LinearProgressIndicator(
+                                progress = { if (stat.third.first == 0) 0f else stat.second.toFloat() / stat.third.first },
+                                modifier = Modifier.fillMaxWidth(),
+                                color = ForestText,
+                                trackColor = Mint
+                            )
+                        }
+                    }
+                    Text("Slova se započítávají napříč frekvenčním drilem a denním tréninkem.", color = Muted, fontSize = 11.sp, lineHeight = 16.sp)
                 }
             }
 
