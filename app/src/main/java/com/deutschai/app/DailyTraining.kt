@@ -63,7 +63,8 @@ internal fun buildDailyTrainingPool(): List<ReviewQuestion> {
                     explanation = "Správná věta znamená: ${item.czech}",
                     germanSentence = item.german,
                     translation = item.czech,
-                    cefrLevel = course.level
+                    cefrLevel = course.level,
+                    courseId = course.id
                 )
             }
         }
