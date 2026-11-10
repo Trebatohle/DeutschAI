@@ -175,4 +175,62 @@ class LearningAssessmentTest {
         assertTrue(shouldOfferOptionalMistakeReview(25))
     }
 
+    @Test
+    fun a1ToB2CourseProgressShowsStartedAndCompletedCoursesSeparately() {
+        val course = SentenceCourseDefinition(
+            id = "a1_test_course",
+            title = "Testovací kurz",
+            subtitle = "Procvičení běžných situací",
+            level = "A1",
+            items = List(25) { index ->
+                SentencePracticeItem(
+                    prompt = "Otázka $index",
+                    german = "Das ist Satz $index.",
+                    czech = "To je věta $index."
+                )
+            }
+        )
+        val question = ReviewQuestion(
+            id = "a1_test_question",
+            sourceKind = "sentences",
+            sourceTitle = course.title,
+            prompt = "Otázka 1",
+            choices = listOf("Správně", "Špatně"),
+            correctIndex = 0,
+            explanation = "Vysvětlení",
+            cefrLevel = "A1",
+            courseId = course.id
+        )
+        val entry = ReviewMemoryEntry(
+            question = question,
+            wrongCount = 0,
+            correctStreak = 1,
+            intervalDays = 1,
+            dueAtMillis = 1000L,
+            attemptCount = 1,
+            correctCount = 1,
+            lastAnsweredAtMillis = 1000L
+        )
+
+        val started = buildSentenceCourseLearningProgress(
+            courses = listOf(course),
+            reviewEntries = listOf(entry),
+            latestResults = emptyMap()
+        ).single()
+        assertEquals(1, started.answeredQuestions)
+        assertEquals(25, started.totalQuestions)
+        assertEquals(4, started.progressPercent)
+        assertEquals("Rozpracováno", started.statusLabel)
+        assertTrue(!started.isCompleted)
+
+        val completed = buildSentenceCourseLearningProgress(
+            courses = listOf(course),
+            reviewEntries = listOf(entry),
+            latestResults = mapOf(course.id to CourseResult(29, 35))
+        ).single()
+        assertEquals(100, completed.progressPercent)
+        assertEquals("Dokončeno", completed.statusLabel)
+        assertEquals(29, completed.latestResult?.score)
+    }
+
 }
