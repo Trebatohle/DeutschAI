@@ -572,6 +572,7 @@ internal val frequencyVocabularyCatalog: List<FrequencyVocabularyEntry> = listOf
     fvFunction("B2", "einerseits", "na jedné straně", "Einerseits bin ich müde, andererseits möchte ich ausgehen.", "Na jedné straně jsem unavený, na druhé straně chci jít ven."),
     fvFunction("B2", "andererseits", "na druhé straně", "Andererseits ist die Lösung nicht teuer.", "Na druhé straně není řešení drahé.")
 ).distinctBy { it.kind.name + ":" + it.word.lowercase() }
+    .let(::expandFrequencyVocabularyCatalog)
 
 internal fun frequencyVocabularyForLevel(level: String, verbsOnly: Boolean = false): List<FrequencyVocabularyEntry> =
     frequencyVocabularyCatalog.filter { it.level == level && (!verbsOnly || it.kind == FrequencyWordKind.VERB) }
