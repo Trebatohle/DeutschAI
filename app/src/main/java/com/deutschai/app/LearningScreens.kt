@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.MenuBook
@@ -882,19 +883,25 @@ private fun LearningCard(
         colors = CardDefaults.cardColors(containerColor = CardSurface)
     ) {
         Row(
-            modifier = Modifier.padding(17.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 15.dp),
             horizontalArrangement = Arrangement.spacedBy(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier.size(48.dp).background(iconBackground, RoundedCornerShape(15.dp)),
+                modifier = Modifier.size(52.dp).background(iconBackground, RoundedCornerShape(16.dp)),
                 contentAlignment = Alignment.Center
             ) { icon() }
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Text(title, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
-                Text(subtitle, color = Muted, fontSize = 13.sp, lineHeight = 19.sp)
-                Text(detail, color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(title, color = Ink, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(subtitle, color = Muted, fontSize = 12.sp, lineHeight = 18.sp)
+                Text(detail, color = ForestText, fontSize = 11.sp, fontWeight = FontWeight.Bold)
             }
+            Icon(
+                imageVector = Icons.Default.ArrowForward,
+                contentDescription = null,
+                tint = Muted,
+                modifier = Modifier.size(18.dp)
+            )
         }
     }
 }
