@@ -1321,4 +1321,45 @@ class ContentQualityTest {
         )
     }
 
+
+    @Test
+    fun vocabularyDrillUsesFiveUniqueWordsAndThreeDistinctMeaningChoices() {
+        assertEquals(2000, vocabularyCatalog.size)
+        val batch = buildVocabularyDrillBatch(count = 5, random = kotlin.random.Random(42))
+
+        assertEquals(5, batch.size)
+        assertEquals(5, batch.map { it.entry.id }.toSet().size)
+        batch.forEach { question ->
+            assertEquals(3, question.choices.size)
+            assertEquals(3, question.choices.map { it.lowercase() }.toSet().size)
+            assertEquals(question.entry.czech, question.choices[question.correctIndex])
+            assertTrue(question.entry.article in setOf("der", "die", "das"))
+        }
+    }
+
+    @Test
+    fun vocabularyDrillWritingRequiresTheCorrectArticleAndNoun() {
+        assertEquals("der hund", normalizeVocabularyDrillAnswer("  DER   Hund "))
+        assertNotEquals(
+            normalizeVocabularyDrillAnswer("der Hund"),
+            normalizeVocabularyDrillAnswer("Hund")
+        )
+    }
+
+    @Test
+    fun dedicatedListeningLevelsEachProduceOneTwentyFiveQuestionMeaningSet() {
+        listOf("A1", "A2", "B1", "B2").forEach { level ->
+            val questions = buildListeningQuestions(
+                level = level,
+                mode = ListeningExerciseMode.MEANING,
+                count = 25,
+                random = kotlin.random.Random(91)
+            )
+            assertEquals("$level should contain exactly 25 questions", 25, questions.size)
+            assertEquals(25, questions.map { it.id }.toSet().size)
+            assertTrue(questions.all { it.mode == ListeningExerciseMode.MEANING && it.cefrLevel == level })
+        }
+    }
+
+
 }
