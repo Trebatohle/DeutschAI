@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.background
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.VolumeUp
@@ -469,12 +470,6 @@ internal fun ListeningPracticeScreen(
                         LatestResultLine(CourseResultStore.load(context, "listening_" + level))
                     }
                 }
-                Button(
-                    onClick = { startExercise() },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Ink),
-                    shape = RoundedCornerShape(14.dp)
-                ) { Text("Procvičit novou sadu 25 otázek", fontWeight = FontWeight.Bold) }
                 Button(
                     onClick = onBack,
                     modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
