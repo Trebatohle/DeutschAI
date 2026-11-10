@@ -227,6 +227,7 @@ private fun BeatriceHome() {
     var showArticleCategories by remember { mutableStateOf(false) }
     var showVocabularyPractice by remember { mutableStateOf(false) }
     var showVocabularyDrill by remember { mutableStateOf(false) }
+    var vocabularyDrillOpenedFromHub by remember { mutableStateOf(false) }
     var showVocabularyNotebook by remember { mutableStateOf(false) }
     var showSavedVocabularyPractice by remember { mutableStateOf(false) }
     var selectedArticleCategory by remember { mutableStateOf<ArticleCategory?>(null) }
@@ -284,6 +285,7 @@ private fun BeatriceHome() {
         showArticleCategories = false
         showVocabularyPractice = false
         showVocabularyDrill = false
+        vocabularyDrillOpenedFromHub = false
         showVocabularyNotebook = false
         showSavedVocabularyPractice = false
         selectedArticleCategory = null
@@ -349,7 +351,10 @@ private fun BeatriceHome() {
             "word-tools" -> showWordTools = true
             "number-practice" -> showNumberPractice = true
             "vocabulary-practice" -> showVocabularyPractice = true
-            "vocabulary-drill" -> showVocabularyDrill = true
+            "vocabulary-drill" -> {
+                vocabularyDrillOpenedFromHub = false
+                showVocabularyDrill = true
+            }
             "vocabulary-notebook" -> showVocabularyNotebook = true
             "article-quiz" -> {
                 val item = articleCategories.firstOrNull { it.id == lastActivityId }
@@ -559,7 +564,16 @@ private fun BeatriceHome() {
 
     if (showVocabularyDrill) {
         VocabularyDrillScreen(
-            onBack = { showVocabularyDrill = false; showArticleCategories = true },
+            onBack = {
+                showVocabularyDrill = false
+                if (vocabularyDrillOpenedFromHub) {
+                    vocabularyDrillOpenedFromHub = false
+                    showLearningHub = true
+                } else {
+                    showArticleCategories = true
+                }
+                refreshLearningMetrics()
+            },
             onHome = { navigateHome() },
             onComplete = { score, total ->
                 recordScore(score, total, "vocabulary_drill")
@@ -614,6 +628,7 @@ private fun BeatriceHome() {
             },
             onDrill = {
                 saveLastActivity("vocabulary-drill", "vocabulary-drill", "Dril slovní zásoby")
+                vocabularyDrillOpenedFromHub = false
                 showArticleCategories = false
                 showVocabularyDrill = true
             },
@@ -657,6 +672,12 @@ private fun BeatriceHome() {
                 saveLastActivity("word-tools", "word-tools", "Slovní druhy a gramatika")
                 showLearningHub = false
                 showWordTools = true
+            },
+            onVocabularyDrill = {
+                saveLastActivity("vocabulary-drill", "vocabulary-drill", "Dril slovní zásoby")
+                vocabularyDrillOpenedFromHub = true
+                showLearningHub = false
+                showVocabularyDrill = true
             }
         )
         return
