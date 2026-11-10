@@ -763,6 +763,8 @@ class ContentQualityTest {
         assertEquals(25, batch.size)
         assertEquals(25, batch.map { it.entry.id }.toSet().size)
         batch.forEach { question ->
+            assertEquals("Every item in the 2,000-word pack must show only article + noun", VocabularyPresentation.WORD, question.presentation)
+            assertEquals("${question.entry.article} ${question.entry.word}", question.germanText)
             assertTrue(question.germanText.isNotBlank())
             assertTrue(question.correctCzech.isNotBlank())
             assertEquals(4, question.choices.size)
@@ -790,6 +792,24 @@ class ContentQualityTest {
         }
     }
 
+
+    @Test
+    fun savedNounRecognitionQuestionShowsTheActualGermanNounBeforeCzechChoices() {
+        val table = vocabularyCatalog.single { it.word == "Tisch" }
+        val questions = buildPersonalNotebookQuestions(
+            catalogEntries = listOf(table),
+            readingEntries = emptyList(),
+            random = kotlin.random.Random(19)
+        )
+
+        val question = questions.single()
+        assertTrue(question.prompt.contains("der Tisch"))
+        assertEquals("Můj slovníček", question.sourceTitle)
+        assertEquals("Das ist der Tisch.", question.germanSentence)
+        assertEquals("stůl", question.choices[question.correctIndex])
+        assertEquals(4, question.choices.size)
+        assertEquals(4, question.choices.toSet().size)
+    }
 
     @Test
     fun activeVocabularyRecallRequiresTypedGermanAndKeepsNounArticle() {
