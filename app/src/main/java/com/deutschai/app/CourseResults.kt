@@ -137,3 +137,64 @@ internal fun LatestResultLine(result: CourseResult?) {
         }
     }
 }
+
+
+internal data class SentenceCourseLearningProgress(
+    val courseId: String,
+    val title: String,
+    val subtitle: String,
+    val level: String,
+    val totalQuestions: Int,
+    val answeredQuestions: Int,
+    val latestResult: CourseResult?
+) {
+    val isCompleted: Boolean get() = latestResult != null
+    val progressPercent: Int
+        get() = if (isCompleted) 100 else if (totalQuestions <= 0) 0
+        else (answeredQuestions * 100 / totalQuestions).coerceIn(0, 99)
+    val statusLabel: String
+        get() = when {
+            isCompleted -> "Dokončeno"
+            answeredQuestions > 0 -> "Rozpracováno"
+            else -> "Nezahájeno"
+        }
+}
+
+/**
+ * Combines the per-course result store with uniquely tracked question IDs.
+ * New answers use courseId; older history can be matched by title only when
+ * that title is unique in the catalogue, avoiding accidental cross-level matches.
+ */
+internal fun buildSentenceCourseLearningProgress(
+    courses: List<SentenceCourseDefinition>,
+    reviewEntries: List<ReviewMemoryEntry>,
+    latestResults: Map<String, CourseResult?>
+): List<SentenceCourseLearningProgress> {
+    val titleCounts = courses.groupingBy { it.title }.eachCount()
+    return courses.map { course ->
+        val courseEntries = reviewEntries.filter { entry ->
+            val question = entry.question
+            question.sourceKind == "sentences" &&
+                entry.attemptCount > 0 &&
+                (
+                    question.courseId == course.id ||
+                        (
+                            question.courseId.isBlank() &&
+                                titleCounts[course.title] == 1 &&
+                                question.sourceTitle == course.title &&
+                                (question.cefrLevel.isBlank() || question.cefrLevel == course.level)
+                            )
+                    )
+        }
+        SentenceCourseLearningProgress(
+            courseId = course.id,
+            title = course.title,
+            subtitle = course.subtitle,
+            level = course.level,
+            totalQuestions = course.items.size,
+            answeredQuestions = courseEntries.map { it.question.id }.distinct().size
+                .coerceAtMost(course.items.size),
+            latestResult = latestResults[course.id]
+        )
+    }
+}
