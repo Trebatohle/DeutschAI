@@ -1302,8 +1302,8 @@ private fun BeatriceHome() {
                                 compact = true,
                                 icon = { Icon(androidx.compose.material.icons.Icons.Default.FlashOn, contentDescription = null, tint = if (IsDarkTheme) Color(0xFFE4C58B) else Color(0xFF8A672F)) },
                                 iconBackground = if (IsDarkTheme) Color(0xFF3C3426) else Color(0xFFF6EFDF),
-                                title = "Dril nejpoužívanějších slov",
-                                subtitle = "Běžná mluvená němčina · A1–B2 · 5 nebo 10 slov",
+                                title = "Dril slovní zásoby",
+                                subtitle = "Nejpoužívanější slova · A1–B2 · 5 nebo 10 slov",
                                 onClick = {
                                     saveLastActivity("vocabulary-drill", "vocabulary-frequency-drill", "Dril nejpoužívanějších slov")
                                     vocabularyDrillVerbsOnly = false
