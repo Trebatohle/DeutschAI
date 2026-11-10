@@ -2,6 +2,8 @@ package com.deutschai.app
 
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.background
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.VolumeUp
@@ -308,7 +309,7 @@ internal fun ListeningLibraryScreen(
     onHome: () -> Unit = onBack
 ) {
     val levels = listOf(
-        Triple("A1", "Začátečník", "Krátké věty a běžná slovní zásoba."),
+        Triple("A1", "Začátečník", "Krátké věty a základní slovní zásoba."),
         Triple("A2", "Mírně pokročilý", "Každodenní situace a praktičtější sdělení."),
         Triple("B1", "Středně pokročilý", "Delší věty a samostatnější porozumění."),
         Triple("B2", "Vyšší středně pokročilý", "Přesnější formulace a náročnější témata.")
@@ -322,10 +323,10 @@ internal fun ListeningLibraryScreen(
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            AppScreenHeader(title = "Poslech a porozumění", onBack = onBack, onHome = onHome)
+            AppScreenHeader(title = "Poslech", onBack = onBack, onHome = onHome)
             Text("Vyber úroveň němčiny", color = Ink, fontSize = 26.sp, fontWeight = FontWeight.Bold)
             Text(
-                "Každá úroveň obsahuje jednu samostatnou sadu 25 poslechových otázek. Uslyšíš německou větu a vybereš její český význam.",
+                "V samostatné knihovně najdeš stejná poslechová cvičení jako v kurzech. Každá úroveň nabízí všechny čtyři režimy po 25 otázkách.",
                 color = Muted,
                 fontSize = 14.sp,
                 lineHeight = 21.sp
@@ -338,28 +339,29 @@ internal fun ListeningLibraryScreen(
                     colors = CardDefaults.cardColors(containerColor = CardSurface)
                 ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(18.dp),
+                        modifier = Modifier.fillMaxWidth().padding(17.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                        horizontalArrangement = Arrangement.spacedBy(13.dp)
                     ) {
-                        Column(
-                            modifier = Modifier.size(54.dp)
-                                .background(learningCategoryBackground(LearningCategoryVisual.LISTENING), RoundedCornerShape(16.dp)),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
+                        Box(
+                            modifier = Modifier.size(52.dp)
+                                .background(learningCategoryBackground(LearningCategoryVisual.LISTENING), RoundedCornerShape(15.dp)),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                LearningCategoryVisual.LISTENING.image,
-                                contentDescription = null,
-                                tint = learningCategoryTint(LearningCategoryVisual.LISTENING),
-                                modifier = Modifier.size(23.dp)
-                            )
-                            Text(level, color = learningCategoryTint(LearningCategoryVisual.LISTENING), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                                Icon(
+                                    LearningCategoryVisual.LISTENING.image,
+                                    contentDescription = null,
+                                    tint = learningCategoryTint(LearningCategoryVisual.LISTENING),
+                                    modifier = Modifier.size(23.dp)
+                                )
+                                Text(level, color = learningCategoryTint(LearningCategoryVisual.LISTENING), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
                         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(level + " · " + name, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                            Text("$level · $name", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                             Text(description, color = Muted, fontSize = 13.sp, lineHeight = 19.sp)
-                            Text("25 otázek · poslech a význam", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text("4 režimy poslechu · 25 otázek v každém", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -376,31 +378,36 @@ internal fun ListeningPracticeScreen(
 ) {
     val context = LocalContext.current
     val speaker = rememberGermanSpeechPlayer()
-    var questions by remember(level) {
-        mutableStateOf(buildListeningQuestions(level, ListeningExerciseMode.MEANING, count = 25))
-    }
+    var mode by remember(level) { mutableStateOf<ListeningExerciseMode?>(null) }
+    var questions by remember(level) { mutableStateOf(emptyList<ListeningQuestion>()) }
     var questionIndex by remember(level) { mutableStateOf(0) }
     var score by remember(level) { mutableStateOf(0) }
     var finished by remember(level) { mutableStateOf(false) }
     var heard by remember(level) { mutableStateOf(false) }
     var selectedAnswer by remember(level) { mutableStateOf<Int?>(null) }
+    var typedAnswer by remember(level) { mutableStateOf("") }
     var answerChecked by remember(level) { mutableStateOf(false) }
     var answerWasCorrect by remember(level) { mutableStateOf(false) }
+    var ratingSaved by remember(level) { mutableStateOf(false) }
     val question = questions.getOrNull(questionIndex)
 
-    fun startExercise() {
-        questions = buildListeningQuestions(level, ListeningExerciseMode.MEANING, count = 25)
+    fun startExercise(selectedMode: ListeningExerciseMode) {
+        mode = selectedMode
+        questions = buildListeningQuestions(level, selectedMode)
         questionIndex = 0
         score = 0
         finished = false
         heard = false
         selectedAnswer = null
+        typedAnswer = ""
         answerChecked = false
         answerWasCorrect = false
+        ratingSaved = false
     }
 
     fun recordCurrentAnswer(correct: Boolean) {
-        if (question == null || answerChecked) return
+        val current = question ?: return
+        if (answerChecked) return
         answerWasCorrect = correct
         answerChecked = true
         if (correct) score += 1
@@ -411,10 +418,12 @@ internal fun ListeningPracticeScreen(
             questionIndex += 1
             heard = false
             selectedAnswer = null
+            typedAnswer = ""
             answerChecked = false
             answerWasCorrect = false
+            ratingSaved = false
         } else {
-            CourseResultStore.save(context, "listening_" + level, score, questions.size)
+            CourseResultStore.save(context, "listening_$level", score, questions.size)
             StudyHabitStore.recordSession(context)
             finished = true
         }
@@ -422,27 +431,47 @@ internal fun ListeningPracticeScreen(
 
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
-            modifier = Modifier.fillMaxSize()
-                .navigationBarsPadding()
-                .verticalScroll(rememberScrollState())
+            modifier = Modifier.fillMaxSize().navigationBarsPadding().verticalScroll(rememberScrollState())
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            AppScreenHeader(title = "Poslech a porozumění · " + level, onBack = onBack, onHome = onHome)
+            AppScreenHeader(title = "Poslech a porozumění · $level", onBack = onBack, onHome = onHome)
 
-            if (questions.isEmpty()) {
+            if (mode == null) {
+                Text("Rozvíjej porozumění němčině sluchem", color = Ink, fontSize = 25.sp, lineHeight = 31.sp, fontWeight = FontWeight.Bold)
                 Text(
-                    "Pro úroveň " + level + " zatím nejsou připravené dostatečné podklady.",
-                    color = Muted,
-                    fontSize = 14.sp,
-                    lineHeight = 21.sp
+                    "Vyber si typ poslechového cvičení. Vše funguje offline pomocí německého hlasu nainstalovaného v telefonu.",
+                    color = Muted, fontSize = 14.sp, lineHeight = 21.sp
                 )
+                ListeningExerciseMode.entries.forEach { exercise ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(containerColor = if (exercise == ListeningExerciseMode.CONTEXT) Mint else CardSurface)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(7.dp)
+                        ) {
+                            Text(exercise.title, color = if (exercise == ListeningExerciseMode.CONTEXT) ForestText else Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                            Text(exercise.description, color = if (exercise == ListeningExerciseMode.CONTEXT) ForestText else Muted, fontSize = 13.sp, lineHeight = 19.sp)
+                            Button(
+                                onClick = { startExercise(exercise) },
+                                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
+                                shape = RoundedCornerShape(12.dp)
+                            ) { Text("Spustit cvičení", fontWeight = FontWeight.Bold) }
+                        }
+                    }
+                }
+            } else if (questions.isEmpty()) {
+                Text("Pro tento typ cvičení zatím nejsou na úrovni $level připravené dostatečné podklady.", color = Muted, fontSize = 14.sp, lineHeight = 21.sp)
                 Button(
-                    onClick = onBack,
+                    onClick = { mode = null },
                     modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
                     shape = RoundedCornerShape(13.dp)
-                ) { Text("Zpět k úrovním", fontWeight = FontWeight.Bold) }
+                ) { Text("Zpět k výběru poslechu", fontWeight = FontWeight.Bold) }
             } else if (finished) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -456,64 +485,55 @@ internal fun ListeningPracticeScreen(
                     ) {
                         Icon(Icons.Default.VolumeUp, contentDescription = null, tint = Gold)
                         Text("Poslech dokončen", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.Bold)
+                        Text("$score z ${questions.size} správně", color = Gold, fontSize = 29.sp, fontWeight = FontWeight.Bold)
                         Text(
-                            score.toString() + " z " + questions.size + " správně",
-                            color = Gold,
-                            fontSize = 29.sp,
-                            fontWeight = FontWeight.Bold
+                            "Výsledky se uložily do dlouhodobého přehledu znalostí. Položky k opakování se znovu objeví v osobním tréninku.",
+                            color = Color(0xFFE0EAE5), fontSize = 14.sp, lineHeight = 21.sp
                         )
-                        Text(
-                            "Výsledek jediné poslechové sady pro úroveň " + level + " se uložil do tvých pokroků.",
-                            color = Color(0xFFE0EAE5),
-                            fontSize = 14.sp,
-                            lineHeight = 21.sp
-                        )
-                        LatestResultLine(CourseResultStore.load(context, "listening_" + level))
+                        LatestResultLine(CourseResultStore.load(context, "listening_$level"))
                     }
                 }
                 Button(
-                    onClick = onBack,
+                    onClick = { mode?.let { startExercise(it) } },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Ink),
+                    shape = RoundedCornerShape(14.dp)
+                ) { Text("Zkusit novou sadu", fontWeight = FontWeight.Bold) }
+                Button(
+                    onClick = { mode = null },
                     modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
                     shape = RoundedCornerShape(14.dp)
-                ) { Text("Zpět k úrovním A1–B2", fontWeight = FontWeight.Bold) }
+                ) { Text("Vybrat jiný typ poslechu", fontWeight = FontWeight.Bold) }
+                Button(
+                    onClick = onBack,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = OptionSurface, contentColor = Ink),
+                    shape = RoundedCornerShape(14.dp)
+                ) { Text("Zpět ke kurzům", fontWeight = FontWeight.Bold) }
             } else if (question != null) {
                 Text(
-                    "POSLECH A POROZUMĚNÍ · OTÁZKA " + (questionIndex + 1) + " Z " + questions.size,
-                    color = ForestText,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
+                    "${mode?.title?.uppercase()} · OTÁZKA ${questionIndex + 1} Z ${questions.size}",
+                    color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp
                 )
                 LinearProgressIndicator(
                     progress = { (questionIndex + 1).toFloat() / questions.size.coerceAtLeast(1).toFloat() },
-                    modifier = Modifier.fillMaxWidth(),
-                    color = ForestText,
-                    trackColor = Mint
+                    modifier = Modifier.fillMaxWidth()
                 )
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(22.dp),
                     colors = CardDefaults.cardColors(containerColor = CardSurface)
                 ) {
-                    Column(
-                        modifier = Modifier.padding(20.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(7.dp)
-                        ) {
+                    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                             Icon(Icons.Default.VolumeUp, contentDescription = null, tint = ForestText)
                             Text(question.source.courseTitle, color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
-                        Text(
-                            "Poslechni si německou větu a vyber její český význam.",
-                            color = Ink,
-                            fontSize = 19.sp,
-                            lineHeight = 27.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        Text(question.taskPrompt, color = Ink, fontSize = 19.sp, lineHeight = 27.sp, fontWeight = FontWeight.SemiBold)
+                        if (question.displayWithGap.isNotBlank()) {
+                            Text(question.displayWithGap, color = Ink, fontSize = 17.sp, lineHeight = 25.sp, fontWeight = FontWeight.Bold)
+                        }
                         GermanAudioControls(
                             player = speaker,
                             text = question.listeningText,
@@ -521,42 +541,65 @@ internal fun ListeningPracticeScreen(
                             showSlow = true
                         )
                         if (!heard && speaker.status == GermanVoiceStatus.READY) {
-                            Text(
-                                "Nejdřív si poslechni celý záznam. Potom vyber správný význam.",
-                                color = Muted,
-                                fontSize = 12.sp,
-                                lineHeight = 18.sp
-                            )
+                            Text("Nejdřív si poslechni celý záznam. Potom se odemkne odpověď.", color = Muted, fontSize = 12.sp, lineHeight = 18.sp)
                         }
                     }
                 }
 
-                question.choices.forEachIndexed { index, choice ->
-                    val choiceColor = when {
-                        !answerChecked -> OptionSurface
-                        index == question.correctIndex -> Correct
-                        index == selectedAnswer -> Incorrect
-                        else -> OptionSurface
-                    }
-                    Card(
-                        onClick = {
-                            if (heard && !answerChecked) {
-                                selectedAnswer = index
-                                recordCurrentAnswer(index == question.correctIndex)
-                            }
-                        },
+                if (mode == ListeningExerciseMode.DICTATION) {
+                    OutlinedTextField(
+                        value = typedAnswer,
+                        onValueChange = { if (!answerChecked) typedAnswer = it },
+                        enabled = heard && !answerChecked,
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(15.dp),
-                        colors = CardDefaults.cardColors(containerColor = choiceColor)
-                    ) {
-                        Text(
-                            choice,
-                            modifier = Modifier.fillMaxWidth().padding(17.dp),
-                            color = if (heard) Ink else Muted,
-                            fontSize = 15.sp,
-                            fontWeight = if (answerChecked && index == question.correctIndex) FontWeight.Bold else FontWeight.Medium,
-                            lineHeight = 22.sp
+                        label = { Text("Napiš, co jsi slyšel/a") },
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.Sentences,
+                            imeAction = ImeAction.Done
                         )
+                    )
+                    if (!answerChecked) {
+                        Button(
+                            onClick = {
+                                recordCurrentAnswer(
+                                    normalizeListeningDictation(typedAnswer) ==
+                                        normalizeListeningDictation(question.answerText)
+                                )
+                            },
+                            enabled = heard && typedAnswer.isNotBlank(),
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
+                            shape = RoundedCornerShape(13.dp)
+                        ) { Text("Zkontrolovat přepis", fontWeight = FontWeight.Bold) }
+                    }
+                } else {
+                    question.choices.forEachIndexed { index, choice ->
+                        val choiceColor = when {
+                            !answerChecked -> OptionSurface
+                            index == question.correctIndex -> Correct
+                            index == selectedAnswer -> Incorrect
+                            else -> OptionSurface
+                        }
+                        Card(
+                            onClick = {
+                                if (heard && !answerChecked) {
+                                    selectedAnswer = index
+                                    recordCurrentAnswer(index == question.correctIndex)
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(15.dp),
+                            colors = CardDefaults.cardColors(containerColor = choiceColor)
+                        ) {
+                            Text(
+                                choice,
+                                modifier = Modifier.fillMaxWidth().padding(17.dp),
+                                color = if (heard) Ink else Muted,
+                                fontSize = 15.sp,
+                                fontWeight = if (answerChecked && index == question.correctIndex) FontWeight.Bold else FontWeight.Medium,
+                                lineHeight = 22.sp
+                            )
+                        }
                     }
                 }
 
@@ -566,35 +609,98 @@ internal fun ListeningPracticeScreen(
                         shape = RoundedCornerShape(18.dp),
                         colors = CardDefaults.cardColors(containerColor = if (answerWasCorrect) Correct else Incorrect)
                     ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
+                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(
-                                if (answerWasCorrect) "Správně! Gut gemacht!" else "Správná odpověď: " + question.answerText,
-                                color = ForestText,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
+                                if (answerWasCorrect) "Správně! Gut gemacht!" else "Správná odpověď: ${question.answerText}",
+                                color = ForestText, fontWeight = FontWeight.Bold, fontSize = 16.sp
                             )
-                            Text(
-                                question.source.item.german,
-                                color = Ink,
-                                fontSize = 18.sp,
-                                lineHeight = 26.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            GermanAudioControls(player = speaker, text = question.source.item.german, showSlow = true)
-                            Text(question.source.item.czech, color = Muted, fontSize = 14.sp, lineHeight = 20.sp)
+                            if (question.mode == ListeningExerciseMode.DICTATION ||
+                                question.mode == ListeningExerciseMode.GAP ||
+                                question.mode == ListeningExerciseMode.MEANING
+                            ) {
+                                Text(question.source.item.german, color = Ink, fontSize = 18.sp, lineHeight = 26.sp, fontWeight = FontWeight.Bold)
+                                GermanAudioControls(player = speaker, text = question.source.item.german, showSlow = true)
+                                Text(question.source.item.czech, color = Muted, fontSize = 14.sp, lineHeight = 20.sp)
+                            } else {
+                                Text(question.listeningText, color = Ink, fontSize = 16.sp, lineHeight = 24.sp, fontWeight = FontWeight.SemiBold)
+                                GermanAudioControls(player = speaker, text = question.listeningText, showSlow = true)
+                                Text("Téma: ${question.answerText}", color = Muted, fontSize = 14.sp)
+                            }
                         }
+                    }
+
+                    Text("Jak jistě jsi poslechu porozuměl/a?", color = Ink, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    val phraseKey = "${level}_${question.source.courseId}_${question.source.itemIndex}"
+                    val ratings = listeningConfidenceOptions()
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        ratings.forEachIndexed { index, rating ->
+                            Button(
+                                onClick = {
+                                    saveListeningConfidence(
+                                        context = context,
+                                        phraseKey = phraseKey,
+                                        intervalMillis = rating.intervalMillis,
+                                        reviewQuestion = listeningReviewQuestion(question),
+                                        wasCorrect = answerWasCorrect
+                                    )
+                                    ratingSaved = true
+                                },
+                                enabled = !ratingSaved,
+                                modifier = Modifier.weight(1f).heightIn(min = 76.dp, max = 76.dp),
+                                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 2.dp, vertical = 6.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = when (index) {
+                                        0 -> Incorrect
+                                        1 -> RatingHard
+                                        else -> RatingGood
+                                    },
+                                    contentColor = Ink
+                                ),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                                ) {
+                                    Text(
+                                        rating.title,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp,
+                                        maxLines = 1,
+                                        softWrap = false,
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                        letterSpacing = (-0.2).sp
+                                    )
+                                    Text(
+                                        rating.subtitle,
+                                        fontSize = 11.sp,
+                                        maxLines = 1,
+                                        softWrap = false,
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    if (ratingSaved) {
+                        Text("Uloženo do chytrého opakování ✓", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                     }
                     Button(
                         onClick = { moveToNextQuestion() },
+                        enabled = ratingSaved,
                         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
                         shape = RoundedCornerShape(14.dp)
                     ) {
                         Text(
-                            if (questionIndex == questions.lastIndex) "Zobrazit výsledek" else "Další poslech",
+                            when {
+                                !ratingSaved -> "Nejprve označ, jak jistě frázi znáš"
+                                questionIndex == questions.lastIndex -> "Zobrazit výsledek"
+                                else -> "Další poslech"
+                            },
                             fontWeight = FontWeight.Bold
                         )
                     }
