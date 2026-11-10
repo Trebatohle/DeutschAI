@@ -43,11 +43,11 @@ private fun CefrKnowledgeLevelCard(
 ) {
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(17.dp),
+        shape = RoundedCornerShape(19.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface)
     ) {
         Column(
-            modifier = Modifier.padding(13.dp),
+            modifier = Modifier.padding(15.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Row(
@@ -114,11 +114,11 @@ private fun SentenceCourseProgressCard(
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(17.dp),
+        shape = RoundedCornerShape(19.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface)
     ) {
         Column(
-            modifier = Modifier.padding(15.dp),
+            modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(7.dp)
         ) {
             Row(
