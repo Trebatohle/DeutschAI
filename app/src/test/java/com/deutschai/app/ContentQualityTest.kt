@@ -742,8 +742,8 @@ class ContentQualityTest {
 
 
     @Test
-    fun vocabularyCatalogueContainsExactlyTwoThousandUniqueCompleteNouns() {
-        assertEquals("The vocabulary learning pack must contain exactly 2,000 items", 2000, vocabularyCatalog.size)
+    fun vocabularyCatalogueContainsExpandedUniqueCompleteNouns() {
+        assertEquals("The vocabulary learning pack must contain 2,433 items", 2433, vocabularyCatalog.size)
         val normalizedWords = vocabularyCatalog.map { it.word.trim().lowercase() }
         assertEquals("Vocabulary words must be unique", normalizedWords.size, normalizedWords.toSet().size)
         val ids = vocabularyCatalog.map { it.id }
@@ -1324,7 +1324,7 @@ class ContentQualityTest {
 
     @Test
     fun vocabularyDrillUsesFiveUniqueWordsAndThreeDistinctMeaningChoices() {
-        assertEquals(2000, vocabularyCatalog.size)
+        assertEquals(2433, vocabularyCatalog.size)
         val batch = buildVocabularyDrillBatch(count = 5, random = kotlin.random.Random(42))
 
         assertEquals(5, batch.size)
