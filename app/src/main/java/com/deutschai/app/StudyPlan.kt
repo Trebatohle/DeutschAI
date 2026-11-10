@@ -3,7 +3,6 @@ package com.deutschai.app
 import kotlin.math.roundToInt
 
 internal enum class HomeRecommendationType {
-    PLACEMENT,
     REVIEW_DUE,
     FOCUS_SKILL,
     CONTINUE_ACTIVITY,
@@ -35,11 +34,18 @@ internal data class HomeStudyRecommendation(
  * Old review records without answer-history data are deliberately excluded
  * rather than being presented as a guessed accuracy percentage.
  */
+internal fun isPlacementAssessmentQuestion(question: ReviewQuestion): Boolean {
+    val title = question.sourceTitle.trim()
+    return question.sourceKind.equals("placement", ignoreCase = true) ||
+        title.startsWith("Rozřazovací test", ignoreCase = true) ||
+        title.startsWith("Vstupní rozřazovací test", ignoreCase = true)
+}
+
 internal fun summarizeLearningSkillPerformance(
     entries: List<ReviewMemoryEntry>
 ): List<SkillLearningPerformance> =
     entries
-        .filter { it.question.sourceKind.isNotBlank() && it.question.sourceKind != "placement" }
+        .filter { it.question.sourceKind.isNotBlank() && !isPlacementAssessmentQuestion(it.question) }
         .groupBy { it.question.sourceKind }
         .mapNotNull { (sourceKind, skillEntries) ->
             val attempts = skillEntries.sumOf { it.attemptCount.coerceAtLeast(0) }
@@ -64,20 +70,20 @@ internal fun summarizeLearningSkillPerformance(
 
 /**
  * Selects one useful next step from real local learning history.
- * Due reviews take priority, then a repeatedly weak skill, then onboarding
- * or a continuation/exploration prompt when the app has too little evidence.
+ * Due reviews take priority, then a repeatedly weak skill, followed by a
+ * continuation/exploration prompt when the app has too little learning evidence.
  */
 internal fun buildHomeStudyRecommendation(
     allEntries: List<ReviewMemoryEntry>,
     dueEntries: List<ReviewMemoryEntry>,
-    hasPlacementResult: Boolean,
     hasLastActivity: Boolean
 ): HomeStudyRecommendation {
-    if (dueEntries.isNotEmpty()) {
-        val nextDue = dueEntries.first()
+    val eligibleDueEntries = dueEntries.filterNot { isPlacementAssessmentQuestion(it.question) }
+    if (eligibleDueEntries.isNotEmpty()) {
+        val nextDue = eligibleDueEntries.first()
         val sourceKind = nextDue.question.sourceKind
         val skillTitle = learningSkillTitle(sourceKind)
-        val matchingDueCount = dueEntries.count { it.question.sourceKind == sourceKind }
+        val matchingDueCount = eligibleDueEntries.count { it.question.sourceKind == sourceKind }
         val repeatedMistake = nextDue.wrongCount >= 2
         val dueExplanation = if (matchingDueCount == 1) {
             "1 položka z této oblasti je připravená k opakování."
@@ -113,16 +119,6 @@ internal fun buildHomeStudyRecommendation(
             sourceKind = weakestSkill.sourceKind,
             accuracyPercent = weakestSkill.accuracyPercent,
             estimatedMinutes = 7
-        )
-    }
-
-    if (!hasPlacementResult && allEntries.none { it.attemptCount > 0 }) {
-        return HomeStudyRecommendation(
-            type = HomeRecommendationType.PLACEMENT,
-            title = "Nejdřív zjistíme, co už umíš",
-            explanation = "Krátký rozřazovací test odhadne tvou výchozí úroveň a pomůže vybrat lekce, které pro tebe budou mít největší přínos.",
-            actionLabel = "Zjistit svou úroveň",
-            estimatedMinutes = 8
         )
     }
 
