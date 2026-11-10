@@ -1713,7 +1713,7 @@ private fun verbDefinitionEntry(definition: VerbDefinition): FrequencyVocabulary
         extraInfo = definition.forms.joinToString(" · "),
         exampleGerman = germanExample,
         exampleCzech = czechExample,
-        listeningAnswer = definition.infinitive
+        listeningAnswer = definition.forms.first()
     )
 }
 
@@ -1764,7 +1764,7 @@ private fun spokenExtraEntry(seed: SpokenExtraSeed): FrequencyVocabularyEntry {
         article = seed.article,
         exampleGerman = exampleGerman,
         exampleCzech = exampleCzech,
-        listeningAnswer = seed.word
+        listeningAnswer = if (seed.kind == FrequencyWordKind.VERB) seed.word.removePrefix("sich ") else seed.word
     )
 }
 
