@@ -103,6 +103,53 @@ private fun CefrKnowledgeLevelCard(
 }
 
 @Composable
+private fun SentenceCourseProgressCard(
+    progress: SentenceCourseLearningProgress,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(17.dp),
+        colors = CardDefaults.cardColors(containerColor = CardSurface)
+    ) {
+        Column(
+            modifier = Modifier.padding(15.dp),
+            verticalArrangement = Arrangement.spacedBy(7.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(progress.title, modifier = Modifier.weight(1f), color = Ink, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                Text(progress.statusLabel, color = if (progress.isCompleted) ForestText else Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            }
+            Text(progress.subtitle, color = Muted, fontSize = 12.sp, lineHeight = 17.sp)
+            LinearProgressIndicator(
+                progress = { progress.progressPercent / 100f },
+                modifier = Modifier.fillMaxWidth(),
+                color = ForestText,
+                trackColor = Mint
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    if (progress.isCompleted) "Celý kurz dokončen" else "Zodpovězeno ${progress.answeredQuestions}/${progress.totalQuestions} různých otázek",
+                    color = Muted,
+                    fontSize = 11.sp
+                )
+                progress.latestResult?.let { result ->
+                    Text("Výsledek ${result.score}/${result.total}", color = ForestText, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    }
+}
+@Composable
 internal fun LearningOverviewScreen(
     onBack: () -> Unit,
     onPlacementTest: () -> Unit,
