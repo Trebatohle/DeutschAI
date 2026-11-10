@@ -742,8 +742,8 @@ class ContentQualityTest {
 
 
     @Test
-    fun vocabularyCatalogueContainsExpandedUniqueCompleteNouns() {
-        assertEquals("The vocabulary learning pack must contain 2,433 items", 2433, vocabularyCatalog.size)
+    fun vocabularyCatalogueContainsExactlyTwoThousandUniqueCompleteNouns() {
+        assertEquals("The vocabulary learning pack must contain exactly 2,000 items", 2000, vocabularyCatalog.size)
         val normalizedWords = vocabularyCatalog.map { it.word.trim().lowercase() }
         assertEquals("Vocabulary words must be unique", normalizedWords.size, normalizedWords.toSet().size)
         val ids = vocabularyCatalog.map { it.id }
@@ -1324,7 +1324,7 @@ class ContentQualityTest {
 
     @Test
     fun vocabularyDrillUsesFiveUniqueWordsAndThreeDistinctMeaningChoices() {
-        assertEquals(2433, vocabularyCatalog.size)
+        assertEquals(2000, vocabularyCatalog.size)
         val batch = buildVocabularyDrillBatch(count = 5, random = kotlin.random.Random(42))
 
         assertEquals(5, batch.size)
@@ -1427,11 +1427,12 @@ class ContentQualityTest {
     @Test
     fun frequencyVocabularyHasEveryLevelAndPrioritizesEverydayVerbsForBeginners() {
         assertEquals(setOf("A1", "A2", "B1", "B2"), frequencyVocabularyCatalog.map { it.level }.toSet())
-        assertEquals(3000, frequencyVocabularyCatalog.size)
+        assertEquals(401 + SPOKEN_FREQUENCY_ADDITION_COUNT, frequencyVocabularyCatalog.size)
         assertEquals(
-            3000,
+            1335,
             frequencyVocabularyCatalog.map { it.word.trim().lowercase() }.toSet().size
         )
+        assertEquals(1000, frequencyVocabularyCatalog.size - 401)
         assertTrue(frequencyVocabularyForLevel("A1").size > 100)
         assertTrue(frequencyVocabularyForLevel("A2").size > 100)
         assertTrue(frequencyVocabularyForLevel("B1").size > 100)
