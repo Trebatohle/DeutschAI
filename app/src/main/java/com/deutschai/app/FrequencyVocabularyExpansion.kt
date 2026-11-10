@@ -1011,7 +1011,7 @@ private val spokenFrequencyRanks: Map<String, Int> = """
 """.lineSequence()
     .mapNotNull { row ->
         val fields = row.split('§', limit = 2)
-        if (fields.size == 2) fields[1].lowercase() to fields[0].toIntOrNull() else null
+        if (fields.size == 2) fields[0].toIntOrNull()?.let { fields[1].lowercase() to it } else null
     }
     .toMap()
 
