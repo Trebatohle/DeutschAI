@@ -154,12 +154,25 @@ internal fun LearningOverviewScreen(
     onBack: () -> Unit,
     onPlacementTest: () -> Unit,
     onHome: () -> Unit = onBack,
-    onStartTraining: () -> Unit
+    onStartTraining: () -> Unit,
+    onOpenCourse: (String) -> Unit
 ) {
     val context = LocalContext.current
-    val skillStats = LearningReviewStore.skillStats(context)
     val placement = PlacementAssessmentStore.load(context)
-    val cefrMap = buildCefrKnowledgeMap(LearningReviewStore.all(context), placement)
+    val allReviewEntries = remember(context) { LearningReviewStore.all(context) }
+    val skillStats = LearningReviewStore.skillStats(context)
+    val cefrMap = buildCefrKnowledgeMap(allReviewEntries, placement)
+    val courseResults = remember(context) {
+        sentenceCourseCatalog.associate { course ->
+            course.id to CourseResultStore.load(context, "sentence_${course.id}")
+        }
+    }
+    val courseProgress = remember(allReviewEntries, courseResults) {
+        buildSentenceCourseLearningProgress(sentenceCourseCatalog, allReviewEntries, courseResults)
+    }
+    var selectedCourseLevel by remember(placement?.assessedAtMillis) {
+        mutableStateOf(placement?.estimatedLevel?.takeIf { it in listOf("A1", "A2", "B1", "B2") } ?: "A1")
+    }
     val totalAnswered = LearningReviewStore.totalAnswered(context)
     val masteredCount = LearningReviewStore.masteredCount(context)
     val dueCount = LearningReviewStore.pendingCount(context)
