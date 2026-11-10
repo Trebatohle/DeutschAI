@@ -100,7 +100,7 @@ internal fun buildHomeStudyRecommendation(
             },
             actionLabel = "Spustit denní trénink",
             sourceKind = sourceKind,
-            dueCount = dueEntries.size,
+            dueCount = eligibleDueEntries.size,
             estimatedMinutes = 5
         )
     }
