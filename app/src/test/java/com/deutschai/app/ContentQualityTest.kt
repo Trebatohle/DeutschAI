@@ -1442,6 +1442,12 @@ class ContentQualityTest {
             assertEquals(entry.kind == FrequencyWordKind.NOUN, entry.article != null)
             if (entry.article != null) assertTrue(entry.article in setOf("der", "die", "das"))
             assertFalse(entry.listeningTarget.contains("..."))
+            entry.listeningTarget.split(" ").filter { it.isNotBlank() }.forEach { spokenPart ->
+                assertTrue(
+                    entry.word + " listening answer part is not present in its example sentence: " + spokenPart,
+                    entry.exampleGerman.contains(spokenPart, ignoreCase = true)
+                )
+            }
         }
 
         assertTrue(frequencyVocabularyVerbCount("A1") >= 40)
