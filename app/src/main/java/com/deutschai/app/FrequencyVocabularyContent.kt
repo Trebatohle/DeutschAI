@@ -5,6 +5,12 @@ internal enum class FrequencyWordKind(val label: String) {
     NOUN("PODSTATNÉ JMÉNO"),
     ADJECTIVE("PŘÍDAVNÉ JMÉNO"),
     ADVERB("PŘÍSLOVCE"),
+    ARTICLE("ČLEN"),
+    PRONOUN("ZÁJMENO"),
+    QUESTION("TÁZACÍ SLOVO"),
+    PREPOSITION("PŘEDLOŽKA"),
+    CONJUNCTION("SPOJKA"),
+    PARTICLE("ČÁSTICE"),
     FUNCTION("UŽITEČNÉ SLOVO")
 }
 
@@ -125,6 +131,24 @@ private fun fvFunction(
     level, FrequencyWordKind.FUNCTION, word, czech, exampleGerman, exampleCzech
 )
 
+private fun fvArticle(level: String, word: String, czech: String, exampleGerman: String, exampleCzech: String) =
+    frequencyWord(level, FrequencyWordKind.ARTICLE, word, czech, exampleGerman, exampleCzech)
+
+private fun fvPronoun(level: String, word: String, czech: String, exampleGerman: String, exampleCzech: String, note: String = "") =
+    frequencyWord(level, FrequencyWordKind.PRONOUN, word, czech, exampleGerman, exampleCzech, extraInfo = note)
+
+private fun fvQuestion(level: String, word: String, czech: String, exampleGerman: String, exampleCzech: String) =
+    frequencyWord(level, FrequencyWordKind.QUESTION, word, czech, exampleGerman, exampleCzech)
+
+private fun fvPreposition(level: String, word: String, czech: String, exampleGerman: String, exampleCzech: String) =
+    frequencyWord(level, FrequencyWordKind.PREPOSITION, word, czech, exampleGerman, exampleCzech)
+
+private fun fvConjunction(level: String, word: String, czech: String, exampleGerman: String, exampleCzech: String) =
+    frequencyWord(level, FrequencyWordKind.CONJUNCTION, word, czech, exampleGerman, exampleCzech)
+
+private fun fvParticle(level: String, word: String, czech: String, exampleGerman: String, exampleCzech: String) =
+    frequencyWord(level, FrequencyWordKind.PARTICLE, word, czech, exampleGerman, exampleCzech)
+
 /**
  * Editorial frequency vocabulary for everyday spoken German.
  * The first two levels intentionally contain a high share of immediately useful verbs.
@@ -175,6 +199,25 @@ internal val frequencyVocabularyCatalog: List<FrequencyVocabularyEntry> = listOf
     fvVerb("A1", "helfen", "pomáhat", "Kannst du mir bitte helfen?", "Můžeš mi prosím pomoct?", "hilft · half · hat geholfen", "helfen"),
     fvVerb("A1", "warten", "čekat", "Ich warte auf den Bus.", "Čekám na autobus.", "wartet · wartete · hat gewartet", "warte"),
     fvVerb("A1", "laufen", "běžet / chodit pěšky", "Ich laufe jeden Morgen.", "Každé ráno běhám.", "läuft · lief · ist gelaufen", "laufe"),
+    fvVerb("A1", "heißen", "jmenovat se", "Wie heißt du?", "Jak se jmenuješ?", "heißt · hieß · hat geheißen", "heißt"),
+    fvVerb("A1", "stehen", "stát", "Der Bus steht vor dem Haus.", "Autobus stojí před domem.", "steht · stand · hat gestanden", "steht"),
+    fvVerb("A1", "sitzen", "sedět", "Ich sitze am Fenster.", "Sedím u okna.", "sitzt · saß · hat gesessen", "sitze"),
+    fvVerb("A1", "liegen", "ležet", "Das Buch liegt auf dem Tisch.", "Kniha leží na stole.", "liegt · lag · hat gelegen", "liegt"),
+    fvVerb("A1", "tun", "dělat / činit", "Was kann ich für dich tun?", "Co pro tebe mohu udělat?", "tut · tat · hat getan", "tun"),
+    fvVerb("A1", "stellen", "postavit / umístit", "Ich stelle die Tasche hier ab.", "Položím tašku sem.", "stellt · stellte · hat gestellt", "stelle"),
+    fvVerb("A1", "legen", "položit", "Leg das Buch bitte auf den Tisch.", "Polož prosím knihu na stůl.", "legt · legte · hat gelegt", "Leg"),
+    fvVerb("A1", "setzen", "posadit / umístit", "Ich setze das Kind auf den Stuhl.", "Posadím dítě na židli.", "setzt · setzte · hat gesetzt", "setze"),
+    fvVerb("A1", "zeigen", "ukázat", "Kannst du mir den Weg zeigen?", "Můžeš mi ukázat cestu?", "zeigt · zeigte · hat gezeigt", "zeigen"),
+    fvVerb("A1", "zahlen", "zaplatit", "Ich zahle heute bar.", "Dnes platím hotově.", "zahlt · zahlte · hat gezahlt", "zahle"),
+    fvVerb("A1", "telefonieren", "telefonovat", "Ich telefoniere mit meiner Mutter.", "Telefonuji s maminkou.", "telefoniert · telefonierte · hat telefoniert", "telefoniere"),
+    fvVerb("A1", "studieren", "studovat na vysoké škole", "Er studiert in Berlin.", "Studuje v Berlíně.", "studiert · studierte · hat studiert", "studiert"),
+    fvVerb("A1", "tanzen", "tančit", "Wir tanzen heute Abend.", "Dnes večer tančíme.", "tanzt · tanzte · hat getanzt", "tanzen"),
+    fvVerb("A1", "schwimmen", "plavat", "Ich schwimme gern.", "Rád plavu.", "schwimmt · schwamm · ist geschwommen", "schwimme"),
+    fvVerb("A1", "fliegen", "letět / létat", "Wir fliegen morgen nach Wien.", "Zítra letíme do Vídně.", "fliegt · flog · ist geflogen", "fliegen"),
+    fvVerb("A1", "wünschen", "přát si / přát", "Ich wünsche dir einen schönen Tag.", "Přeji ti hezký den.", "wünscht · wünschte · hat gewünscht", "wünsche"),
+    fvVerb("A1", "feiern", "slavit", "Wir feiern heute Geburtstag.", "Dnes slavíme narozeniny.", "feiert · feierte · hat gefeiert", "feiern"),
+    fvVerb("A1", "üben", "procvičovat", "Ich übe jeden Tag Deutsch.", "Každý den procvičuji němčinu.", "übt · übte · hat geübt", "übe"),
+    fvVerb("A1", "schauen", "dívat se", "Ich schaue gern Filme.", "Rád se dívám na filmy.", "schaut · schaute · hat geschaut", "schaue"),
 
     fvNoun("A1", "die", "Zeit", "čas", "Pl.: die Zeiten", "Hast du heute Zeit?", "Máš dnes čas?"),
     fvNoun("A1", "der", "Tag", "den", "Pl.: die Tage", "Heute ist ein schöner Tag.", "Dnes je krásný den."),
@@ -224,6 +267,52 @@ internal val frequencyVocabularyCatalog: List<FrequencyVocabularyEntry> = listOf
     fvFunction("A1", "weil", "protože", "Ich bleibe zu Hause, weil ich krank bin.", "Zůstanu doma, protože jsem nemocný."),
     fvFunction("A1", "ja", "ano", "Ja, das ist richtig.", "Ano, to je správně."),
     fvFunction("A1", "nein", "ne", "Nein, heute geht es nicht.", "Ne, dnes to nejde."),
+    fvPronoun("A1", "ich", "já", "Ich lerne heute Deutsch.", "Dnes se učím německy."),
+    fvPronoun("A1", "du", "ty", "Du bist heute sehr nett.", "Dnes jsi velmi milý."),
+    fvPronoun("A1", "er", "on", "Er kommt gleich.", "Hned přijde."),
+    fvPronoun("A1", "sie", "ona / oni", "Sie wohnen in Berlin.", "Bydlí v Berlíně.", "S velkým S: Sie = Vy (zdvořile)."),
+    fvPronoun("A1", "es", "ono / to", "Es ist schon spät.", "Už je pozdě."),
+    fvPronoun("A1", "wir", "my", "Wir gehen jetzt nach Hause.", "Teď jdeme domů."),
+    fvPronoun("A1", "ihr", "vy (množné číslo)", "Ihr seid heute sehr früh.", "Dnes jste velmi brzy."),
+    fvPronoun("A1", "man", "člověk / obecně se", "Hier spricht man Deutsch.", "Tady se mluví německy."),
+    fvPronoun("A1", "alle", "všichni", "Alle sind schon da.", "Všichni už jsou tady."),
+    fvQuestion("A1", "wer", "kdo", "Wer ist das?", "Kdo to je?"),
+    fvQuestion("A1", "was", "co", "Was machst du heute?", "Co dnes děláš?"),
+    fvQuestion("A1", "wo", "kde", "Wo wohnst du?", "Kde bydlíš?"),
+    fvQuestion("A1", "wann", "kdy", "Wann kommst du?", "Kdy přijdeš?"),
+    fvQuestion("A1", "wie", "jak", "Wie geht es dir?", "Jak se máš?"),
+    fvQuestion("A1", "warum", "proč", "Warum bist du müde?", "Proč jsi unavený?"),
+    fvQuestion("A1", "wohin", "kam", "Wohin gehen wir?", "Kam jdeme?"),
+    fvPreposition("A1", "in", "v / do", "Ich wohne in Brünn.", "Bydlím v Brně."),
+    fvPreposition("A1", "mit", "s / se", "Ich fahre mit dem Bus.", "Jedu autobusem."),
+    fvPreposition("A1", "aus", "z / ze", "Ich komme aus Tschechien.", "Pocházím z Česka."),
+    fvPreposition("A1", "für", "pro", "Das ist für dich.", "To je pro tebe."),
+    fvPreposition("A1", "nach", "do / po", "Wir fahren nach Hause.", "Jedeme domů."),
+    fvPreposition("A1", "zu", "k / do", "Ich gehe zu Fuß.", "Jdu pěšky."),
+    fvPreposition("A1", "bei", "u / při", "Ich bin heute bei meiner Freundin.", "Dnes jsem u své kamarádky."),
+    fvPreposition("A1", "an", "na / u", "Ich warte an der Haltestelle.", "Čekám na zastávce."),
+    fvPreposition("A1", "auf", "na", "Das Buch liegt auf dem Tisch.", "Kniha leží na stole."),
+    fvPreposition("A1", "von", "od / z", "Ich komme gerade von der Arbeit.", "Právě jdu z práce."),
+    fvPreposition("A1", "um", "v / kolem", "Wir treffen uns um acht Uhr.", "Sejdeme se v osm hodin."),
+    fvPreposition("A1", "vor", "před", "Der Bus wartet vor dem Haus.", "Autobus čeká před domem."),
+    fvPreposition("A1", "ohne", "bez", "Einen Kaffee ohne Zucker, bitte.", "Jednu kávu bez cukru, prosím."),
+    fvArticle("A1", "der", "určitý člen mužského rodu", "Der Bus kommt gleich.", "Autobus hned přijede."),
+    fvArticle("A1", "die", "určitý člen ženského rodu a množného čísla", "Die Schule ist nicht weit.", "Škola není daleko."),
+    fvArticle("A1", "das", "určitý člen středního rodu", "Das Kind spielt im Zimmer.", "Dítě si hraje v pokoji."),
+    fvParticle("A1", "bitte", "prosím", "Ein Glas Wasser, bitte.", "Sklenici vody, prosím."),
+    fvParticle("A1", "danke", "děkuji", "Danke, das ist sehr nett.", "Děkuji, to je velmi milé."),
+    fvParticle("A1", "hallo", "ahoj / dobrý den", "Hallo, wie geht es dir?", "Ahoj, jak se máš?"),
+    fvParticle("A1", "tschüss", "ahoj / na shledanou", "Tschüss, bis morgen!", "Ahoj, do zítra!"),
+    fvParticle("A1", "nur", "jen / pouze", "Ich habe nur zehn Minuten.", "Mám jen deset minut."),
+    fvParticle("A1", "mal", "chvilku / někdy (částice)", "Warte mal bitte.", "Počkej chvilku, prosím."),
+    fvParticle("A1", "schon", "už", "Bist du schon fertig?", "Už jsi hotový?"),
+    fvParticle("A1", "noch", "ještě", "Ich brauche noch fünf Minuten.", "Potřebuji ještě pět minut."),
+    fvParticle("A1", "sehr", "velmi", "Das ist sehr gut.", "To je velmi dobré."),
+    fvParticle("A1", "mehr", "více", "Ich möchte mehr Wasser.", "Chtěl bych více vody."),
+    fvParticle("A1", "so", "tak", "Warum bist du so müde?", "Proč jsi tak unavený?"),
+    fvParticle("A1", "dann", "potom / pak", "Dann sehen wir uns morgen.", "Tak se uvidíme zítra."),
+    fvParticle("A1", "gern", "rád", "Ich trinke gern Kaffee.", "Rád piji kávu."),
+    fvParticle("A1", "genau", "přesně", "Ja, genau!", "Ano, přesně!"),
 
     // A2 — everyday tasks, planning, travel, social life and common verb combinations.
     fvVerb("A2", "anfangen", "začít / začínat", "Der Film fängt um acht Uhr an.", "Film začíná v osm hodin.", "fängt an · fing an · hat angefangen", "fängt an"),
@@ -314,6 +403,33 @@ internal val frequencyVocabularyCatalog: List<FrequencyVocabularyEntry> = listOf
     fvFunction("A2", "trotzdem", "přesto", "Es regnet, trotzdem gehen wir spazieren.", "Prší, přesto jdeme na procházku."),
     fvFunction("A2", "obwohl", "ačkoli", "Obwohl ich müde bin, lerne ich Deutsch.", "Ačkoli jsem unavený, učím se německy."),
     fvFunction("A2", "während", "během / zatímco", "Während ich koche, hört er Musik.", "Zatímco vařím, on poslouchá hudbu."),
+    fvPronoun("A2", "jemand", "někdo", "Ist jemand zu Hause?", "Je někdo doma?"),
+    fvPronoun("A2", "niemand", "nikdo", "Heute ist niemand im Büro.", "Dnes není v kanceláři nikdo."),
+    fvPronoun("A2", "etwas", "něco", "Möchtest du etwas trinken?", "Chceš něco k pití?"),
+    fvPronoun("A2", "nichts", "nic", "Ich habe nichts verstanden.", "Ničemu jsem nerozuměl."),
+    fvPronoun("A2", "jeder", "každý", "Jeder macht Fehler.", "Každý dělá chyby."),
+    fvPronoun("A2", "beide", "oba / obě", "Beide kommen heute.", "Oba dnes přijdou."),
+    fvQuestion("A2", "wieso", "proč / jak to", "Wieso bist du heute so müde?", "Proč jsi dnes tak unavený?"),
+    fvQuestion("A2", "woher", "odkud", "Woher kennst du ihn?", "Odkud ho znáš?"),
+    fvPreposition("A2", "über", "nad / o", "Wir sprechen über den Urlaub.", "Mluvíme o dovolené."),
+    fvPreposition("A2", "unter", "pod / mezi", "Der Schlüssel liegt unter dem Tisch.", "Klíč leží pod stolem."),
+    fvPreposition("A2", "hinter", "za", "Das Auto steht hinter dem Haus.", "Auto stojí za domem."),
+    fvPreposition("A2", "neben", "vedle", "Setz dich bitte neben mich.", "Posaď se prosím vedle mě."),
+    fvPreposition("A2", "zwischen", "mezi", "Das Café liegt zwischen dem Bahnhof und der Schule.", "Kavárna leží mezi nádražím a školou."),
+    fvPreposition("A2", "gegen", "proti / kolem", "Wir spielen heute gegen die Nachbarn.", "Dnes hrajeme proti sousedům."),
+    fvPreposition("A2", "durch", "skrz / přes", "Wir gehen durch den Park.", "Jdeme přes park."),
+    fvPreposition("A2", "seit", "od (časově)", "Ich wohne seit einem Jahr hier.", "Bydlím tady rok."),
+    fvPreposition("A2", "bis", "do / až do", "Ich bleibe bis morgen.", "Zůstanu do zítřka."),
+    fvConjunction("A2", "dass", "že", "Ich glaube, dass er heute kommt.", "Myslím, že dnes přijde."),
+    fvConjunction("A2", "wenn", "když / jestliže", "Wenn ich Zeit habe, rufe ich dich an.", "Když budu mít čas, zavolám ti."),
+    fvConjunction("A2", "als", "když (v minulosti) / jako", "Als ich klein war, wohnte ich hier.", "Když jsem byl malý, bydlel jsem tady."),
+    fvConjunction("A2", "damit", "aby", "Ich spreche langsam, damit du mich verstehst.", "Mluvím pomalu, abys mi rozuměl."),
+    fvParticle("A2", "eigentlich", "vlastně", "Was machst du eigentlich heute?", "Co vlastně dnes děláš?"),
+    fvParticle("A2", "leider", "bohužel", "Leider habe ich heute keine Zeit.", "Bohužel dnes nemám čas."),
+    fvParticle("A2", "sogar", "dokonce", "Sogar mein Bruder kann das.", "Dokonce i můj bratr to umí."),
+    fvParticle("A2", "sonst", "jinak / jinak řečeno", "Beeil dich, sonst kommen wir zu spät.", "Pospěš si, jinak přijdeme pozdě."),
+    fvParticle("A2", "erst", "teprve / až", "Ich komme erst um acht Uhr.", "Přijdu až v osm hodin."),
+    fvParticle("A2", "bald", "brzy", "Bis bald!", "Brzy na viděnou!"),
 
     // B1 — opinions, work, decisions and more independent everyday communication.
     fvVerb("B1", "sich bewerben", "ucházet se o místo", "Ich bewerbe mich um eine neue Stelle.", "Ucházím se o nové pracovní místo.", "bewirbt sich · bewarb sich · hat sich beworben", "bewerbe mich"),
