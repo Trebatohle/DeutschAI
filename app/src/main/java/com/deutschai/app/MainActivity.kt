@@ -238,6 +238,7 @@ private fun BeatriceHome() {
     var courseOpenedFromOverview by remember { mutableStateOf(false) }
     var selectedPhraseReviewLevel by remember { mutableStateOf<String?>(null) }
     var selectedListeningLevel by remember { mutableStateOf<String?>(null) }
+    var selectedListeningFromCourses by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf("Domů") }
     val savedLastActivityType = preferences.getString("last_activity_type", "") ?: ""
     val savedLastActivityTitle = preferences.getString("last_activity_title", "") ?: ""
@@ -293,6 +294,7 @@ private fun BeatriceHome() {
         selectedLesson = null
         selectedPhraseReviewLevel = null
         selectedListeningLevel = null
+        selectedListeningFromCourses = false
         selectedTab = "Domů"
         placementStartedFromWelcome = false
     }
@@ -666,6 +668,7 @@ private fun BeatriceHome() {
             onHome = { navigateHome() },
             onSelectLevel = { level ->
                 saveLastActivity("listening", level, "Poslech a porozumění " + level)
+                selectedListeningFromCourses = false
                 selectedListeningLevel = level
                 showListeningLibrary = false
             }
@@ -690,7 +693,16 @@ private fun BeatriceHome() {
         ListeningPracticeScreen(
             level = selectedListeningLevel!!,
             onHome = { navigateHome() },
-            onBack = { selectedListeningLevel = null; showListeningLibrary = true; refreshLearningMetrics() }
+            onBack = {
+                selectedListeningLevel = null
+                if (selectedListeningFromCourses) {
+                    selectedListeningFromCourses = false
+                    showLessonLibrary = true
+                } else {
+                    showListeningLibrary = true
+                }
+                refreshLearningMetrics()
+            }
         )
         return
     }
@@ -729,6 +741,12 @@ private fun BeatriceHome() {
                 selectedPhraseReviewLevel = level
                 showLessonLibrary = false
             },
+            onSelectListening = { level ->
+                saveLastActivity("listening", level, "Poslech a porozumění $level")
+                selectedListeningFromCourses = true
+                selectedListeningLevel = level
+                showLessonLibrary = false
+            }
         )
         return
     }
@@ -1365,6 +1383,7 @@ private fun LessonLibraryScreen(
     onBack: () -> Unit,
     onSelectLesson: (Lesson) -> Unit,
     onSelectPhraseReview: (String) -> Unit,
+    onSelectListening: (String) -> Unit,
     onHome: () -> Unit = onBack
 ) {
     val context = LocalContext.current
@@ -1429,6 +1448,34 @@ private fun LessonLibraryScreen(
                     "Vyber si konkrétní téma, nebo si procvič fráze, které aplikace vybere podle toho, kdy je potřebuješ zopakovat.",
                     color = Muted, fontSize = 14.sp, lineHeight = 21.sp
                 )
+                Card(
+                    onClick = { onSelectListening(level) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = CardSurface)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(18.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier.size(48.dp).background(learningCategoryBackground(LearningCategoryVisual.LISTENING), RoundedCornerShape(15.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(LearningCategoryVisual.LISTENING.image, contentDescription = null, tint = learningCategoryTint(LearningCategoryVisual.LISTENING), modifier = Modifier.size(25.dp))
+                        }
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                            Text("Poslech a porozumění", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                "Poslechni si větu v němčině (de-DE) a vyber její český význam. Text se zobrazí až po odpovědi.",
+                                color = Muted, fontSize = 13.sp, lineHeight = 19.sp
+                            )
+                            Text("25 poslechových otázek", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            LatestResultLine(CourseResultStore.load(context, "listening_$level"))
+                        }
+                    }
+                }
                 Card(
                     onClick = { onSelectPhraseReview(level) },
                     modifier = Modifier.fillMaxWidth(),
