@@ -18,6 +18,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material.icons.filled.FormatListNumbered
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.CallSplit
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -309,6 +314,30 @@ private fun arabicNumeral(germanNumber: String): String = when (germanNumber) {
     else -> germanNumber
 }
 
+private fun wordToolCategoryIcon(groupId: String): ImageVector = when (groupId) {
+    "numbers" -> Icons.Default.FormatListNumbered
+    "prepositions" -> Icons.Default.Place
+    "conjunctions" -> Icons.Default.CallSplit
+    "possessives" -> Icons.Default.Person
+    else -> Icons.Default.Translate
+}
+
+private fun wordToolCategoryTint(groupId: String): Color = when (groupId) {
+    "numbers" -> Color(0xFF8A672F)
+    "prepositions" -> Color(0xFF35617E)
+    "conjunctions" -> Color(0xFF67568E)
+    "possessives" -> Color(0xFF47704E)
+    else -> ForestText
+}
+
+private fun wordToolCategoryBackground(groupId: String): Color = when (groupId) {
+    "numbers" -> Color(0xFFF6EFDF)
+    "prepositions" -> Color(0xFFE9F1F6)
+    "conjunctions" -> Color(0xFFF0ECF7)
+    "possessives" -> Color(0xFFEAF1E9)
+    else -> Mint
+}
+
 private fun displayedWordToolAnswer(item: WordToolItem, modeId: String): String = when (modeId) {
     "words" -> item.czech
     "sentences" -> item.german
@@ -480,9 +509,9 @@ internal fun WordToolsScreen(
                             horizontalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
                             Box(
-                                modifier = Modifier.size(46.dp).background(Mint, RoundedCornerShape(14.dp)),
+                                modifier = Modifier.size(46.dp).background(wordToolCategoryBackground("numbers"), RoundedCornerShape(14.dp)),
                                 contentAlignment = Alignment.Center
-                            ) { Icon(Icons.Default.Translate, contentDescription = null, tint = ForestText) }
+                            ) { Icon(wordToolCategoryIcon("numbers"), contentDescription = null, tint = wordToolCategoryTint("numbers")) }
                             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Text("Číslovky", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
                                 Text(
@@ -509,9 +538,9 @@ internal fun WordToolsScreen(
                                 horizontalArrangement = Arrangement.spacedBy(14.dp)
                             ) {
                                 Box(
-                                    modifier = Modifier.size(46.dp).background(Mint, RoundedCornerShape(14.dp)),
+                                    modifier = Modifier.size(46.dp).background(wordToolCategoryBackground(group.id), RoundedCornerShape(14.dp)),
                                     contentAlignment = Alignment.Center
-                                ) { Icon(Icons.Default.Translate, contentDescription = null, tint = ForestText) }
+                                ) { Icon(wordToolCategoryIcon(group.id), contentDescription = null, tint = wordToolCategoryTint(group.id)) }
                                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                     Text(group.title, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
                                     Text(group.subtitle, color = Muted, fontSize = 13.sp, lineHeight = 18.sp)
