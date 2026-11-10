@@ -1427,6 +1427,15 @@ class ContentQualityTest {
     @Test
     fun frequencyVocabularyHasEveryLevelAndPrioritizesEverydayVerbsForBeginners() {
         assertEquals(setOf("A1", "A2", "B1", "B2"), frequencyVocabularyCatalog.map { it.level }.toSet())
+        assertEquals(3000, frequencyVocabularyCatalog.size)
+        assertEquals(
+            3000,
+            frequencyVocabularyCatalog.map { it.word.trim().lowercase() }.toSet().size
+        )
+        assertTrue(frequencyVocabularyForLevel("A1").size > 100)
+        assertTrue(frequencyVocabularyForLevel("A2").size > 100)
+        assertTrue(frequencyVocabularyForLevel("B1").size > 100)
+        assertTrue(frequencyVocabularyForLevel("B2").size > 100)
         assertEquals(frequencyVocabularyCatalog.size, frequencyVocabularyCatalog.map { it.id }.toSet().size)
         assertEquals(
             frequencyVocabularyCatalog.size,
