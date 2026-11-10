@@ -120,12 +120,19 @@ internal fun selectFrequencyVocabularyEntries(
     val mastered = pool.filter { it.id !in selectedIds && it !in fresh && it !in weak }.shuffled(random)
     val target = count.coerceAtMost(pool.size)
     val selected = due.toMutableList()
-    val verbQuota = if (!verbsOnly && level in setOf("A1", "A2")) (target * 0.6).toInt().coerceAtLeast(1) else 0
+    val verbQuota = if (!verbsOnly && level in setOf("A1", "A2")) (target * 7 + 9) / 10 else 0
     val alreadySelectedVerbs = selected.count { it.kind == FrequencyWordKind.VERB }
-    if (alreadySelectedVerbs < verbQuota) {
-        selected += fresh.filter { it.kind == FrequencyWordKind.VERB }.take(verbQuota - alreadySelectedVerbs)
+    val verbsToAdd = minOf(
+        (verbQuota - alreadySelectedVerbs).coerceAtLeast(0),
+        (target - selected.size).coerceAtLeast(0)
+    )
+    selected += fresh.filter { it.kind == FrequencyWordKind.VERB }.take(verbsToAdd)
+    if (verbQuota > 0) {
+        selected += fresh.filter { it.kind != FrequencyWordKind.VERB }
+            .filterNot { candidate -> selected.any { it.id == candidate.id } }
+    } else {
+        selected += fresh.filterNot { candidate -> selected.any { it.id == candidate.id } }
     }
-    selected += fresh.filterNot { candidate -> selected.any { it.id == candidate.id } }
     selected += weak.filterNot { candidate -> selected.any { it.id == candidate.id } }
     selected += mastered.filterNot { candidate -> selected.any { it.id == candidate.id } }
     return selected.distinctBy { it.id }.take(target)
