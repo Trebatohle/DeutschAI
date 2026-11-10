@@ -274,31 +274,79 @@ internal fun LessonPracticeScreen(
             )
 
             if (stage != LessonPracticeStage.COMPLETE) {
-                Text(
-                    text = if (stage == LessonPracticeStage.REVIEW) {
-                        "DOBROVOLNÁ OPRAVA CHYB"
-                    } else {
-                        "KROK ${stageIndex + 1} ZE 3  ·  ${stageName.uppercase()}"
-                    },
-                    color = Muted,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
-                )
-                Row(
+                Card(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = CardSurface)
                 ) {
-                    repeat(3) { index ->
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(5.dp)
-                                .background(
-                                    color = if (index <= stageIndex) Forest else Color(0xFFE3E5DF),
-                                    shape = CircleShape
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp, vertical = 13.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                Text(
+                                    if (stage == LessonPracticeStage.REVIEW) "OPAKOVÁNÍ CHYB" else "KROK ${stageIndex + 1} ZE 3",
+                                    color = ForestText,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.1.sp
                                 )
-                        )
+                                Text(
+                                    stageName,
+                                    color = Ink,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                            Surface(
+                                color = Mint,
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text(
+                                    "${questionIndex + 1} / ${tasks.size}",
+                                    modifier = Modifier.padding(horizontal = 11.dp, vertical = 7.dp),
+                                    color = ForestText,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(5.dp)
+                        ) {
+                            repeat(3) { index ->
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(6.dp)
+                                        .background(
+                                            color = if (index <= stageIndex) Forest else Color(0xFFE3E5DF),
+                                            shape = CircleShape
+                                        )
+                                )
+                            }
+                        }
+                        if (stage != LessonPracticeStage.REVIEW) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                listOf("Výběr", "Psaní", "Poslech").forEachIndexed { index, label ->
+                                    Text(
+                                        label,
+                                        color = if (index == stageIndex) ForestText else Muted,
+                                        fontSize = 10.sp,
+                                        fontWeight = if (index == stageIndex) FontWeight.Bold else FontWeight.Normal
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -310,33 +358,38 @@ internal fun LessonPracticeScreen(
                     colors = CardDefaults.cardColors(containerColor = Forest)
                 ) {
                     Column(
-                        modifier = Modifier.padding(22.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxWidth().padding(22.dp),
+                        verticalArrangement = Arrangement.spacedBy(9.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+                        Surface(
+                            color = Color(0xFF36594B),
+                            shape = CircleShape,
+                            modifier = Modifier.size(58.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text("✓", color = Gold, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
                         Text(
-                            "Lekce dokončena!",
-                            color = Color.White,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold
+                            "LEKCE DOKONČENA",
+                            color = Color(0xFFD3E4DA),
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.5.sp
                         )
                         Text(
-                            "${introductionScore + writingScore + dictationScore} z 35",
+                            "${introductionScore + writingScore + dictationScore}",
                             color = Gold,
-                            fontSize = 32.sp,
+                            fontSize = 42.sp,
+                            lineHeight = 46.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            "Úvodní test: $introductionScore / 25",
+                            "z 35 bodů",
                             color = Color(0xFFE0EAE5),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            "Psaní: $writingScore / 5  ·  Poslech: $dictationScore / 5",
-                            color = Color(0xFFE0EAE5),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium
                         )
                         Text(
                             text = if (remainingTasks.isEmpty()) {
@@ -345,9 +398,35 @@ internal fun LessonPracticeScreen(
                                 "Základní lekce je hotová. Zbývá ${remainingTasks.size} chyb, které si můžeš dobrovolně opravit hned teď. Chybné odpovědi jsou zároveň uložené do dlouhodobého opakování."
                             },
                             color = Color(0xFFE0EAE5),
-                            fontSize = 14.sp,
-                            lineHeight = 21.sp
+                            fontSize = 13.sp,
+                            lineHeight = 20.sp
                         )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    listOf(
+                        Triple("Výběr", introductionScore, 25),
+                        Triple("Psaní", writingScore, 5),
+                        Triple("Poslech", dictationScore, 5)
+                    ).forEach { metric ->
+                        Card(
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(17.dp),
+                            colors = CardDefaults.cardColors(containerColor = CardSurface)
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 13.dp, horizontal = 8.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(metric.first, color = Muted, fontSize = 10.sp, fontWeight = FontWeight.Medium)
+                                Text("${metric.second}/${metric.third}", color = ForestText, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
                     }
                 }
 
