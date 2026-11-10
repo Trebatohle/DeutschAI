@@ -119,31 +119,36 @@ internal fun selectFrequencyVocabularyEntries(
     val mastered = pool.filter { it.id !in selectedIds && it !in fresh && it !in weak }.shuffled(random)
     val target = count.coerceAtMost(pool.size)
     val selected = due.toMutableList()
-    val verbQuota = if (!verbsOnly && level in setOf("A1", "A2")) (target * 7 + 9) / 10 else 0
-    val alreadySelectedVerbs = selected.count { it.kind == FrequencyWordKind.VERB }
-    val verbsToAdd = minOf(
-        (verbQuota - alreadySelectedVerbs).coerceAtLeast(0),
-        (target - selected.size).coerceAtLeast(0)
-    )
-    selected += fresh.filter { it.kind == FrequencyWordKind.VERB }.shuffled(random).take(verbsToAdd)
-    val freshNonVerbs = fresh.filterNot { it.kind == FrequencyWordKind.VERB }
-        .filterNot { candidate -> selected.any { it.id == candidate.id } }
-    if (verbQuota > 0) {
-        val functionWordPriority = mapOf(
-            FrequencyWordKind.PRONOUN to 0,
-            FrequencyWordKind.QUESTION to 1,
-            FrequencyWordKind.PREPOSITION to 2,
-            FrequencyWordKind.ARTICLE to 3,
-            FrequencyWordKind.CONJUNCTION to 4,
-            FrequencyWordKind.PARTICLE to 5,
-            FrequencyWordKind.FUNCTION to 6,
-            FrequencyWordKind.NOUN to 7,
-            FrequencyWordKind.ADJECTIVE to 8,
-            FrequencyWordKind.ADVERB to 9
-        )
-        selected += freshNonVerbs.shuffled(random).sortedBy { functionWordPriority[it.kind] ?: 10 }
+    if (verbsOnly) {
+        // The dedicated verb library must fill the whole session with verbs.
+        selected += fresh.shuffled(random).take((target - selected.size).coerceAtLeast(0))
     } else {
-        selected += freshNonVerbs.shuffled(random)
+        val verbQuota = if (level in setOf("A1", "A2")) (target * 7 + 9) / 10 else 0
+        val alreadySelectedVerbs = selected.count { it.kind == FrequencyWordKind.VERB }
+        val verbsToAdd = minOf(
+            (verbQuota - alreadySelectedVerbs).coerceAtLeast(0),
+            (target - selected.size).coerceAtLeast(0)
+        )
+        selected += fresh.filter { it.kind == FrequencyWordKind.VERB }.shuffled(random).take(verbsToAdd)
+        val freshNonVerbs = fresh.filterNot { it.kind == FrequencyWordKind.VERB }
+            .filterNot { candidate -> selected.any { it.id == candidate.id } }
+        if (verbQuota > 0) {
+            val functionWordPriority = mapOf(
+                FrequencyWordKind.PRONOUN to 0,
+                FrequencyWordKind.QUESTION to 1,
+                FrequencyWordKind.PREPOSITION to 2,
+                FrequencyWordKind.ARTICLE to 3,
+                FrequencyWordKind.CONJUNCTION to 4,
+                FrequencyWordKind.PARTICLE to 5,
+                FrequencyWordKind.FUNCTION to 6,
+                FrequencyWordKind.NOUN to 7,
+                FrequencyWordKind.ADJECTIVE to 8,
+                FrequencyWordKind.ADVERB to 9
+            )
+            selected += freshNonVerbs.shuffled(random).sortedBy { functionWordPriority[it.kind] ?: 10 }
+        } else {
+            selected += freshNonVerbs.shuffled(random)
+        }
     }
     selected += weak.filterNot { candidate -> selected.any { it.id == candidate.id } }
     selected += mastered.filterNot { candidate -> selected.any { it.id == candidate.id } }
