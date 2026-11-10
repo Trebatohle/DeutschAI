@@ -1424,4 +1424,117 @@ class ContentQualityTest {
         )
     }
 
+    @Test
+    fun frequencyVocabularyHasEveryLevelAndPrioritizesEverydayVerbsForBeginners() {
+        assertEquals(setOf("A1", "A2", "B1", "B2"), frequencyVocabularyCatalog.map { it.level }.toSet())
+        assertEquals(frequencyVocabularyCatalog.size, frequencyVocabularyCatalog.map { it.id }.toSet().size)
+        assertEquals(
+            frequencyVocabularyCatalog.size,
+            frequencyVocabularyCatalog.map { it.kind.name + ":" + it.word.lowercase() }.toSet().size
+        )
+
+        frequencyVocabularyCatalog.forEach { entry ->
+            assertTrue(entry.word.isNotBlank())
+            assertTrue(entry.czech.isNotBlank())
+            assertTrue(entry.exampleGerman.isNotBlank())
+            assertTrue(entry.exampleCzech.isNotBlank())
+            assertTrue(entry.id.isNotBlank())
+            assertEquals(entry.kind == FrequencyWordKind.NOUN, entry.article != null)
+            if (entry.article != null) assertTrue(entry.article in setOf("der", "die", "das"))
+            assertFalse(entry.listeningTarget.contains("..."))
+        }
+
+        assertTrue(frequencyVocabularyVerbCount("A1") >= 40)
+        assertTrue(frequencyVocabularyVerbCount("A2") >= 40)
+        assertTrue(frequencyVocabularyForLevel("A1", verbsOnly = true).all { it.kind == FrequencyWordKind.VERB })
+        assertTrue(frequencyVocabularyForLevel("A2", verbsOnly = true).all { it.kind == FrequencyWordKind.VERB })
+    }
+
+    @Test
+    fun frequencyVocabularyDrillSupportsFiveAndTenWordsWithBeginnerVerbPriority() {
+        val a1Five = selectFrequencyVocabularyEntries(
+            level = "A1",
+            verbsOnly = false,
+            count = 5,
+            reviewEntries = emptyList(),
+            random = kotlin.random.Random(51)
+        )
+        val a1Ten = selectFrequencyVocabularyEntries(
+            level = "A1",
+            verbsOnly = false,
+            count = 10,
+            reviewEntries = emptyList(),
+            random = kotlin.random.Random(52)
+        )
+        val a2Ten = selectFrequencyVocabularyEntries(
+            level = "A2",
+            verbsOnly = false,
+            count = 10,
+            reviewEntries = emptyList(),
+            random = kotlin.random.Random(53)
+        )
+        val verbsOnly = selectFrequencyVocabularyEntries(
+            level = "A2",
+            verbsOnly = true,
+            count = 10,
+            reviewEntries = emptyList(),
+            random = kotlin.random.Random(54)
+        )
+
+        assertEquals(5, a1Five.size)
+        assertEquals(10, a1Ten.size)
+        assertEquals(10, a2Ten.size)
+        assertTrue(a1Five.count { it.kind == FrequencyWordKind.VERB } >= 4)
+        assertTrue(a1Ten.count { it.kind == FrequencyWordKind.VERB } >= 7)
+        assertTrue(a2Ten.count { it.kind == FrequencyWordKind.VERB } >= 7)
+        assertEquals(10, verbsOnly.size)
+        assertTrue(verbsOnly.all { it.kind == FrequencyWordKind.VERB })
+        assertEquals(a1Ten.size, a1Ten.map { it.id }.toSet().size)
+    }
+
+    @Test
+    fun frequencyVocabularyReviewQuestionsHaveFourUniqueGermanOptionsAndKeepLevel() {
+        frequencyVocabularyCatalog.forEach { entry ->
+            val question = frequencyVocabularyReviewQuestion(entry, random = kotlin.random.Random(entry.id.hashCode()))
+            assertEquals("vocabulary", question.sourceKind)
+            assertTrue(question.sourceTitle.startsWith("Frekvenční"))
+            assertEquals(entry.level, question.cefrLevel)
+            assertEquals(4, question.choices.size)
+            assertEquals(4, question.choices.toSet().size)
+            assertEquals(entry.germanAnswer, question.choices[question.correctIndex])
+            assertEquals(entry.exampleGerman, question.germanSentence)
+            assertEquals(entry.exampleCzech, question.translation)
+        }
+    }
+
+    @Test
+    fun frequencyVocabularySelectionKeepsDueItemsAndCanOpenVerbOnlyMode() {
+        val dueWord = frequencyVocabularyForLevel("A1", verbsOnly = true).single { it.word == "haben" }
+        val dueQuestion = frequencyVocabularyReviewQuestion(dueWord)
+        val dueEntry = ReviewMemoryEntry(
+            question = dueQuestion,
+            wrongCount = 3,
+            correctStreak = 0,
+            intervalDays = 0,
+            dueAtMillis = 100L,
+            attemptCount = 3,
+            correctCount = 0,
+            lastAnsweredAtMillis = 50L
+        )
+
+        val selected = selectFrequencyVocabularyEntries(
+            level = "A1",
+            verbsOnly = true,
+            count = 5,
+            reviewEntries = listOf(dueEntry),
+            nowMillis = 100L,
+            random = kotlin.random.Random(55)
+        )
+
+        assertEquals(dueWord.id, selected.first().id)
+        assertEquals(5, selected.size)
+        assertTrue(selected.all { it.kind == FrequencyWordKind.VERB })
+        assertEquals(selected.size, selected.map { it.id }.toSet().size)
+    }
+
 }
