@@ -279,6 +279,15 @@ internal fun FrequencyVocabularyDrillScreen(
             FrequencyDrillStage.MEANING -> stage = FrequencyDrillStage.WRITE
             FrequencyDrillStage.WRITE -> stage = FrequencyDrillStage.LISTENING
             FrequencyDrillStage.LISTENING -> {
+                // Persist the completed set once more at the session boundary. This makes
+                // the 100% counter robust even if the learner leaves immediately after
+                // the last answer or the screen is recreated.
+                entries.forEach { entry ->
+                    val mastered = listOf(
+                        FrequencyDrillStage.MEANING, FrequencyDrillStage.WRITE, FrequencyDrillStage.LISTENING
+                    ).all { stageResults[entry.id]?.get(it) == true }
+                    if (mastered) FrequencyVocabularyProgressStore.recordPerfectDrillWord(context, entry)
+                }
                 stage = FrequencyDrillStage.FINISHED
                 finished = true
                 CourseResultStore.save(context, "frequency_vocabulary_" + selectedLevel, score, entries.size * 3)
