@@ -1555,4 +1555,50 @@ class ContentQualityTest {
         assertEquals(selected.size, selected.map { it.id }.toSet().size)
     }
 
+    @Test
+    fun frequencyVocabularyReusesRealSentencesFromTheMatchingCefrCourse() {
+        val coffee = frequencyVocabularyCatalog.single { it.word == "Kaffee" }
+        val coffeeCourse = sentenceCourseCatalog.single { it.title == coffee.contextCourseTitle }
+
+        assertEquals(coffee.level, coffeeCourse.level)
+        assertTrue(coffeeCourse.items.any {
+            it.german == coffee.exampleGerman && it.czech == coffee.exampleCzech
+        })
+
+        val verb = frequencyVocabularyCatalog.single { it.word == "gehen" }
+        assertTrue(verb.contextCourseTitle != null)
+        assertTrue(verb.exampleGerman.contains(verb.listeningTarget, ignoreCase = true))
+        assertTrue(sentenceCourseCatalog.any { course ->
+            course.title == verb.contextCourseTitle && course.level == verb.level &&
+                course.items.any { it.german == verb.exampleGerman && it.czech == verb.exampleCzech }
+        })
+    }
+
+    @Test
+    fun frequencyVocabularyProgressCountsPerfectlyPassedWords() {
+        val entry = frequencyVocabularyForLevel("A1").first()
+        val review = ReviewMemoryEntry(
+            question = frequencyVocabularyReviewQuestion(entry),
+            wrongCount = 0,
+            correctStreak = 3,
+            intervalDays = 7,
+            dueAtMillis = 10_000L,
+            attemptCount = 3,
+            correctCount = 3,
+            lastAnsweredAtMillis = 1_000L
+        )
+
+        val progress = buildFrequencyVocabularyProgress(
+            words = listOf(entry),
+            reviewEntries = listOf(review),
+            perfectlyPassedIds = setOf(entry.id),
+            nowMillis = 2_000L
+        )
+
+        assertEquals(1, progress.practicedWords)
+        assertEquals(1, progress.successfullyPassedWords)
+        assertEquals(1, progress.longTermMasteredWords)
+        assertEquals(0, progress.dueWords)
+    }
+
 }
