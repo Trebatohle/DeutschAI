@@ -180,8 +180,8 @@ internal fun buildFrequencyVocabularyProgress(
 
     return FrequencyVocabularyProgress(
         totalWords = uniqueWords.size,
-        practicedWords = uniqueWords.count { history[it.id]?.attemptCount ?: 0 > 0 },
-        successfullyPassedWords = uniqueWords.count { history[it.id]?.correctCount ?: 0 > 0 },
+        practicedWords = uniqueWords.count { (history[it.id]?.attemptCount ?: 0) > 0 },
+        successfullyPassedWords = uniqueWords.count { (history[it.id]?.correctCount ?: 0) > 0 },
         longTermMasteredWords = uniqueWords.count { word ->
             val memory = history[word.id]
             memory != null && memory.correctStreak >= 3 && memory.intervalDays >= 7
