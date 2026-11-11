@@ -22,7 +22,9 @@ internal fun enrichFrequencyVocabularyWithSentenceContext(
         }
     }
     val sourcesByFirstToken = sources
-        .flatMap { source -> source.tokens.firstOrNull()?.value?.lowercase()?.let { listOf(it to source) }.orEmpty() }
+        .flatMap { source ->
+            source.tokens.map { it.value.lowercase() }.distinct().map { token -> token to source }
+        }
         .groupBy({ it.first }, { it.second })
 
     fun phraseTokens(phrase: String): List<String> =
