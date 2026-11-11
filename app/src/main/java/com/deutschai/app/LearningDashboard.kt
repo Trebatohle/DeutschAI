@@ -181,7 +181,6 @@ internal fun LearningOverviewScreen(
     val masteredCount = LearningReviewStore.masteredCount(context)
     val dueCount = LearningReviewStore.pendingCount(context)
     val recurringMistakes = LearningReviewStore.recurringMistakes(context, limit = 5)
-    val frequencyReviewMap = allReviewEntries.associateBy { it.question.id }
     val frequencyLevelStats = listOf("A1", "A2", "B1", "B2").map { level ->
         level to buildFrequencyVocabularyProgress(
             frequencyVocabularyForLevel(level),
