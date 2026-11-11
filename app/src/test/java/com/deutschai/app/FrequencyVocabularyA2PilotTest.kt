@@ -66,9 +66,22 @@ class FrequencyVocabularyA2PilotTest {
             )
         )
 
+        val progressWithoutPerfectDrillPass = buildFrequencyVocabularyProgress(
+            words = words,
+            reviewEntries = memories,
+            perfectlyPassedIds = emptySet(),
+            nowMillis = 1_000L
+        )
+        assertEquals(
+            "A correct answer in another review must not count as a completed three-stage drill",
+            0,
+            progressWithoutPerfectDrillPass.successfullyPassedWords
+        )
+
         val progress = buildFrequencyVocabularyProgress(
             words = words,
             reviewEntries = memories,
+            perfectlyPassedIds = setOf(words[0].id, words[2].id),
             nowMillis = 1_000L
         )
 
