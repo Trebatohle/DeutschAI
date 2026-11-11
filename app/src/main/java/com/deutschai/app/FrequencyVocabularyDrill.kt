@@ -489,7 +489,7 @@ internal fun FrequencyVocabularyDrillScreen(
                         Text((questionIndex + 1).toString() + " / " + entries.size + " slov", color = ForestText, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                         Text(stage.title, color = Ink, fontSize = if (compact) 16.sp else 18.sp, fontWeight = FontWeight.Bold)
                     }
-                    if (!compact) Text(stage.instruction, color = Muted, fontSize = 14.sp, textAlign = TextAlign.Center)
+                    Text(stage.instruction, color = Muted, fontSize = 14.sp, textAlign = TextAlign.Center)
                     when (stage) {
                         FrequencyDrillStage.LEARN -> {
                             Spacer(Modifier.weight(1f, fill = false))
@@ -542,7 +542,7 @@ internal fun FrequencyVocabularyDrillScreen(
                                             Text(currentEntry.czech, color = Ink, fontSize = if (compact) 25.sp else 28.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                                         }
                                         FrequencyDrillStage.LISTENING -> {
-                                            Text("POSLECHNI SI VĚTU", color = ForestText, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                            Text("POSLECHNI SI VĚTU", color = ForestText, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                                             GermanAudioControls(player = speaker, text = currentEntry.exampleGerman, showSlow = true)
                                         }
                                         else -> Unit
@@ -552,6 +552,7 @@ internal fun FrequencyVocabularyDrillScreen(
                             OutlinedTextField(
                                 value = answer, onValueChange = { if (!checked) answer = it }, enabled = !checked,
                                 modifier = Modifier.fillMaxWidth(), singleLine = true,
+                                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 18.sp),
                                 label = {
                                     Text(when (stage) {
                                         FrequencyDrillStage.MEANING -> "Český význam"
