@@ -183,8 +183,9 @@ internal fun LearningOverviewScreen(
     val recurringMistakes = LearningReviewStore.recurringMistakes(context, limit = 5)
     val frequencyLevelStats = listOf("A1", "A2", "B1", "B2").map { level ->
         level to buildFrequencyVocabularyProgress(
-            frequencyVocabularyForLevel(level),
-            allReviewEntries
+            words = frequencyVocabularyForLevel(level),
+            reviewEntries = allReviewEntries,
+            perfectlyPassedIds = FrequencyVocabularyProgressStore.perfectlyPassedIds(context)
         )
     }
     val frequencyPassedTotal = frequencyLevelStats.sumOf { it.second.successfullyPassedWords }
