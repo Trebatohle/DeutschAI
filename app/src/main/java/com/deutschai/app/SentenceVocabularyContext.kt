@@ -5,59 +5,81 @@ package com.deutschai.app
  * Only curated vocabulary entries are enriched: no Czech meanings or lemmas are guessed
  * from raw sentence tokenization.
  */
+private data class SentenceVocabularySource(
+    val course: SentenceCourseDefinition,
+    val item: SentencePracticeItem,
+    val tokens: List<MatchResult>
+)
+
 internal fun enrichFrequencyVocabularyWithSentenceContext(
     entries: List<FrequencyVocabularyEntry>,
     courses: List<SentenceCourseDefinition> = sentenceCourseCatalog
 ): List<FrequencyVocabularyEntry> {
-    val sentenceItems = courses.flatMap { course ->
-        course.items.map { item -> Triple(course, item, course.level) }
+    val tokenRegex = Regex("[\\p{L}]+")
+    val sources = courses.flatMap { course ->
+        course.items.map { item ->
+            SentenceVocabularySource(course, item, tokenRegex.findAll(item.german).toList())
+        }
+    }
+    val sourcesByFirstToken = sources
+        .flatMap { source -> source.tokens.firstOrNull()?.value?.lowercase()?.let { listOf(it to source) }.orEmpty() }
+        .groupBy({ it.first }, { it.second })
+
+    fun phraseTokens(phrase: String): List<String> =
+        tokenRegex.findAll(phrase).map { it.value.lowercase() }.toList()
+
+    fun findSurface(source: SentenceVocabularySource, phrase: List<String>): String? {
+        if (phrase.isEmpty() || phrase.size > source.tokens.size) return null
+        for (start in 0..(source.tokens.size - phrase.size)) {
+            var matches = true
+            for (offset in phrase.indices) {
+                if (!source.tokens[start + offset].value.equals(phrase[offset], ignoreCase = true)) {
+                    matches = false
+                    break
+                }
+            }
+            if (matches) {
+                val first = source.tokens[start].range.first
+                val last = source.tokens[start + phrase.lastIndex].range.last + 1
+                return source.item.german.substring(first, last)
+            }
+        }
+        return null
     }
 
-    fun surfaceForm(sentence: String, phrase: String): String? {
-        val tokens = Regex("[\\p{L}]+").findAll(phrase).map { it.value }.toList()
-        if (tokens.isEmpty()) return null
-        val pattern = tokens.joinToString("\\s+") { Regex.escape(it) }
-        return Regex("(?iu)(?<![\\p{L}])$pattern(?![\\p{L}])")
-            .find(sentence)?.value
-    }
-
-    fun candidateForms(entry: FrequencyVocabularyEntry): List<String> {
-        val forms = buildList {
+    fun candidateForms(entry: FrequencyVocabularyEntry): List<List<String>> =
+        buildList {
             add(entry.word)
             if (entry.extraInfo.isNotBlank()) {
                 entry.extraInfo.split('·').map(String::trim)
                     .filter(String::isNotBlank)
-                    .forEach { form ->
-                        add(form.removePrefix("Pl.:").trim())
-                    }
+                    .forEach { add(it.removePrefix("Pl.:").trim()) }
             }
-        }
-        return forms.distinctBy { it.lowercase() }
-    }
+        }.map(::phraseTokens).filter(List<String>::isNotEmpty).distinct()
 
     return entries.map { entry ->
         val forms = candidateForms(entry)
-        val matches = sentenceItems.mapNotNull { (course, item, level) ->
-            val matchedForm = forms.firstNotNullOfOrNull { form ->
-                surfaceForm(item.german, form)
-            } ?: return@mapNotNull null
-            val levelDistance = listOf("A1", "A2", "B1", "B2")
-                .indexOf(level).let { it - listOf("A1", "A2", "B1", "B2").indexOf(entry.level) }
-                .let(kotlin.math::abs)
+        val possibleSources = forms
+            .flatMap { form -> sourcesByFirstToken[form.first()].orEmpty() }
+            .distinct()
+        val matches = possibleSources.mapNotNull { source ->
+            val matchedForm = forms.firstNotNullOfOrNull { form -> findSurface(source, form) }
+                ?: return@mapNotNull null
+            val levelDistance = kotlin.math.abs(
+                listOf("A1", "A2", "B1", "B2").indexOf(source.course.level) -
+                    listOf("A1", "A2", "B1", "B2").indexOf(entry.level)
+            )
             val exactLemma = matchedForm.equals(entry.word, ignoreCase = true)
-            val score = (if (level == entry.level) 1000 else 0) +
+            val score = (if (source.course.level == entry.level) 1000 else 0) +
                 (if (exactLemma) 20 else 0) - levelDistance * 100
-            Triple(score, course, item to matchedForm)
+            Triple(score, source, matchedForm)
         }
         val best = matches.maxByOrNull { it.first } ?: return@map entry
-        val course = best.second
-        val item = best.third.first
-        val matchedForm = best.third.second
         entry.copy(
-            exampleGerman = item.german,
-            exampleCzech = item.czech,
-            listeningAnswer = if (entry.kind == FrequencyWordKind.VERB) matchedForm else entry.listeningAnswer,
-            contextCourseTitle = course.title
+            exampleGerman = best.second.item.german,
+            exampleCzech = best.second.item.czech,
+            listeningAnswer = if (entry.kind == FrequencyWordKind.VERB) best.third else entry.listeningAnswer,
+            contextCourseTitle = best.second.course.title
         )
     }
 }
