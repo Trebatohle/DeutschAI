@@ -32,6 +32,14 @@ private fun additionalLevelSentenceCourse(
         "die Einführung neuer Technologien sorgfältig vorbereitet werden muss§zavedení nových technologií musí být pečlivě připraveno",
         "qualifizierte Fachkräfte für die Bedienung komplexer Systeme unverzichtbar bleiben§kvalifikovaní odborníci zůstávají nezbytní pro obsluhu komplexních systémů"
     )
+    ,
+    additionalLevelSentenceCourse("B1", "b1_insurance", "Pojištění a ochrana při nečekaných událostech", "Vysvětlit pojistnou událost, rozsah krytí a potřebné doklady",
+        "eine Versicherung bestimmte Schäden nur unter festgelegten Bedingungen übernimmt§pojišťovna hradí určité škody pouze za stanovených podmínek",
+        "man einen Schaden möglichst schnell bei der Versicherung melden sollte§člověk by měl škodu nahlásit pojišťovně co nejrychleji",
+        "die Höhe der Selbstbeteiligung im Vertrag genau angegeben ist§výše spoluúčasti je přesně uvedena ve smlouvě",
+        "Fotos und Belege die Bearbeitung eines Schadensfalls erleichtern können§fotografie a doklady mohou usnadnit vyřízení pojistné události",
+        "nicht jeder Schaden automatisch durch die Versicherung gedeckt ist§ne každá škoda je automaticky kryta pojištěním"
+    )
 )
 
 internal val b1B2ThematicSentenceCourseCatalog = listOf(
