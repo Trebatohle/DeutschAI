@@ -352,7 +352,7 @@ internal fun FrequencyVocabularyDrillScreen(
                         else "V A1 a A2 dostávají přednost nejdůležitější slovesa.",
                         color = Muted, fontSize = 13.sp, textAlign = TextAlign.Center
                     )
-                    Text("ÚROVEŇ", color = ForestText, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                    Text("ÚROVEŇ", color = ForestText, fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     listOf(listOf("A1", "A2"), listOf("B1", "B2")).forEach { levels ->
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                             levels.forEach { level ->
@@ -375,14 +375,14 @@ internal fun FrequencyVocabularyDrillScreen(
                                                 "B1" -> "Středně pokročilý"
                                                 else -> "Pokročilejší"
                                             },
-                                            color = if (chosen) Color(0xFFE0EAE5) else Muted, fontSize = 10.sp
+                                            color = if (chosen) Color(0xFFE0EAE5) else Muted, fontSize = 13.sp
                                         )
                                     }
                                 }
                             }
                         }
                     }
-                    Text("POČET SLOV", color = ForestText, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                    Text("POČET SLOV", color = ForestText, fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                         listOf(5, 10).forEach { count ->
                             val chosen = selectedCount == count
@@ -396,7 +396,7 @@ internal fun FrequencyVocabularyDrillScreen(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Text(count.toString() + " slov", color = if (chosen) ForestText else Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                                    Text(if (count == 5) "Krátký trénink" else "Delší trénink", color = Muted, fontSize = 10.sp)
+                                    Text(if (count == 5) "Krátký trénink" else "Delší trénink", color = Muted, fontSize = 13.sp)
                                 }
                             }
                         }
@@ -411,7 +411,7 @@ internal fun FrequencyVocabularyDrillScreen(
                         "Úspěšně zvládnuto na 100 %: " +
                             levelProgress.successfullyPassedWords + " / " + levelProgress.totalWords,
                         color = ForestText,
-                        fontSize = 11.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
                         textAlign = TextAlign.Center
                     )
@@ -420,7 +420,7 @@ internal fun FrequencyVocabularyDrillScreen(
                             " · dlouhodobě upevněno " + levelProgress.longTermMasteredWords +
                             " · k opakování " + levelProgress.dueWords,
                         color = Muted,
-                        fontSize = 10.sp,
+                        fontSize = 13.sp,
                         textAlign = TextAlign.Center
                     )
                     Spacer(Modifier.weight(1f))
@@ -446,7 +446,7 @@ internal fun FrequencyVocabularyDrillScreen(
                         ) {
                             Text("Sada dokončena", color = Color.White, fontSize = if (compact) 20.sp else 24.sp, fontWeight = FontWeight.Bold)
                             Text(mastered.toString() + " z " + entries.size, color = Gold, fontSize = 30.sp, fontWeight = FontWeight.Bold)
-                            Text("slov zvládnuto ve všech třech úlohách", color = Color(0xFFE0EAE5), fontSize = 12.sp, textAlign = TextAlign.Center)
+                            Text("slov zvládnuto ve všech třech úlohách", color = Color(0xFFE0EAE5), fontSize = 14.sp, textAlign = TextAlign.Center)
                             Text(score.toString() + " z " + (entries.size * 3) + " správných odpovědí", color = Color(0xFFE0EAE5), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                             val overallProgress = buildFrequencyVocabularyProgress(
                                 words = frequencyVocabularyForLevel(selectedLevel, verbsOnly),
@@ -456,9 +456,9 @@ internal fun FrequencyVocabularyDrillScreen(
                             Text(
                                 "Celkem na úrovni $selectedLevel zvládnuto na 100 %: " +
                                     overallProgress.successfullyPassedWords + " / " + overallProgress.totalWords,
-                                color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center
+                                color = Gold, fontSize = 16.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center
                             )
-                            Text("Nejistá slova se vrátí dříve. Zvládnutá se budou opakovat s delšími rozestupy.", color = Color(0xFFE0EAE5), fontSize = 12.sp, lineHeight = 17.sp, textAlign = TextAlign.Center)
+                            Text("Nejistá slova se vrátí dříve. Zvládnutá se budou opakovat s delšími rozestupy.", color = Color(0xFFE0EAE5), fontSize = 14.sp, lineHeight = 20.sp, textAlign = TextAlign.Center)
                         }
                     }
                     Spacer(Modifier.weight(1f))
@@ -480,16 +480,16 @@ internal fun FrequencyVocabularyDrillScreen(
                         FrequencyDrillStage.LISTENING -> 4
                         FrequencyDrillStage.FINISHED -> 4
                     }
-                    Text("FÁZE " + stageNumber + " ZE 4", color = ForestText, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                    Text("FÁZE " + stageNumber + " ZE 4", color = ForestText, fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     LinearProgressIndicator(
                         progress = { (questionIndex + 1).toFloat() / entries.size.toFloat() },
                         modifier = Modifier.fillMaxWidth(), color = ForestText, trackColor = Mint
                     )
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text((questionIndex + 1).toString() + " / " + entries.size + " slov", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                        Text(stage.title, color = Ink, fontSize = if (compact) 14.sp else 17.sp, fontWeight = FontWeight.Bold)
+                        Text((questionIndex + 1).toString() + " / " + entries.size + " slov", color = ForestText, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text(stage.title, color = Ink, fontSize = if (compact) 16.sp else 18.sp, fontWeight = FontWeight.Bold)
                     }
-                    if (!compact) Text(stage.instruction, color = Muted, fontSize = 12.sp, textAlign = TextAlign.Center)
+                    if (!compact) Text(stage.instruction, color = Muted, fontSize = 14.sp, textAlign = TextAlign.Center)
                     when (stage) {
                         FrequencyDrillStage.LEARN -> {
                             Spacer(Modifier.weight(1f, fill = false))
@@ -502,14 +502,14 @@ internal fun FrequencyVocabularyDrillScreen(
                                     verticalArrangement = Arrangement.spacedBy(if (compact) 5.dp else 8.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Text(currentEntry.kind.label, color = ForestText, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                                    Text(currentEntry.germanAnswer, color = Ink, fontSize = if (compact) 24.sp else 29.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
-                                    Text(currentEntry.czech, color = Muted, fontSize = if (compact) 15.sp else 17.sp, textAlign = TextAlign.Center)
-                                    if (currentEntry.extraInfo.isNotBlank()) Text(currentEntry.extraInfo, color = ForestText, fontSize = 11.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
-                                    Text(currentEntry.exampleGerman, color = Ink, fontSize = if (compact) 14.sp else 16.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
-                                    if (!compact) Text(currentEntry.exampleCzech, color = Muted, fontSize = 12.sp, textAlign = TextAlign.Center)
+                                    Text(currentEntry.kind.label, color = ForestText, fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                                    Text(currentEntry.germanAnswer, color = Ink, fontSize = if (compact) 29.sp else 33.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                                    Text(currentEntry.czech, color = Muted, fontSize = if (compact) 18.sp else 20.sp, textAlign = TextAlign.Center)
+                                    if (currentEntry.extraInfo.isNotBlank()) Text(currentEntry.extraInfo, color = ForestText, fontSize = 14.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
+                                    Text(currentEntry.exampleGerman, color = Ink, fontSize = if (compact) 17.sp else 19.sp, lineHeight = 24.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
+                                    if (!compact) Text(currentEntry.exampleCzech, color = Muted, fontSize = 14.sp, textAlign = TextAlign.Center)
                                     currentEntry.contextCourseTitle?.let { sourceTitle ->
-                                        Text("Věta z kurzu: $sourceTitle", color = ForestText, fontSize = 10.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
+                                        Text("Věta z kurzu: $sourceTitle", color = ForestText, fontSize = 13.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
                                     }
                                     GermanAudioControls(player = speaker, text = currentEntry.exampleGerman, showSlow = true)
                                 }
@@ -534,12 +534,12 @@ internal fun FrequencyVocabularyDrillScreen(
                                 ) {
                                     when (stage) {
                                         FrequencyDrillStage.MEANING -> {
-                                            Text("NĚMECKÝ VÝRAZ", color = ForestText, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                            Text(currentEntry.germanAnswer, color = Ink, fontSize = if (compact) 24.sp else 28.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                                            Text("NĚMECKÝ VÝRAZ", color = ForestText, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                            Text(currentEntry.germanAnswer, color = Ink, fontSize = if (compact) 29.sp else 32.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                                         }
                                         FrequencyDrillStage.WRITE -> {
-                                            Text("ČESKÝ VÝZNAM", color = ForestText, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                            Text(currentEntry.czech, color = Ink, fontSize = if (compact) 21.sp else 25.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                                            Text("ČESKÝ VÝZNAM", color = ForestText, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                            Text(currentEntry.czech, color = Ink, fontSize = if (compact) 25.sp else 28.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                                         }
                                         FrequencyDrillStage.LISTENING -> {
                                             Text("POSLECHNI SI VĚTU", color = ForestText, fontSize = 10.sp, fontWeight = FontWeight.Bold)
@@ -582,10 +582,10 @@ internal fun FrequencyVocabularyDrillScreen(
                                                 FrequencyDrillStage.LISTENING -> "Slyšený tvar: " + currentEntry.listeningTarget
                                                 else -> "Správná odpověď"
                                             },
-                                            color = ForestText, fontSize = 14.sp, fontWeight = FontWeight.Bold
+                                            color = ForestText, fontSize = 16.sp, fontWeight = FontWeight.Bold
                                         )
-                                        Text(currentEntry.exampleGerman, color = Ink, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                                        if (!compact) Text(currentEntry.exampleCzech, color = Muted, fontSize = 11.sp)
+                                        Text(currentEntry.exampleGerman, color = Ink, fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.SemiBold)
+                                        Text(currentEntry.exampleCzech, color = Muted, fontSize = 14.sp, lineHeight = 19.sp)
                                     }
                                 }
                             } else {
