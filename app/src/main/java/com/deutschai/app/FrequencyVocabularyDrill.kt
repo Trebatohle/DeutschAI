@@ -168,9 +168,30 @@ internal data class FrequencyVocabularyProgress(
  * A word is "successfully passed" after all three drill stages were correct once;
  * long-term mastery still requires three successful spaced repetitions.
  */
+internal object FrequencyVocabularyProgressStore {
+    private const val PREFS = "deutschai_frequency_vocabulary_progress"
+    private const val PERFECTLY_PASSED_IDS = "perfectly_passed_word_ids_v1"
+
+    fun perfectlyPassedIds(context: Context): Set<String> =
+        context.applicationContext
+            .getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getStringSet(PERFECTLY_PASSED_IDS, emptySet())
+            ?.toSet()
+            .orEmpty()
+
+    fun recordPerfectDrillWord(context: Context, entry: FrequencyVocabularyEntry) {
+        val preferences = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val updated = (preferences.getStringSet(PERFECTLY_PASSED_IDS, emptySet()) ?: emptySet())
+            .toMutableSet()
+            .apply { add(entry.id) }
+        preferences.edit().putStringSet(PERFECTLY_PASSED_IDS, updated).apply()
+    }
+}
+
 internal fun buildFrequencyVocabularyProgress(
     words: List<FrequencyVocabularyEntry>,
     reviewEntries: List<ReviewMemoryEntry>,
+    perfectlyPassedIds: Set<String> = emptySet(),
     nowMillis: Long = System.currentTimeMillis()
 ): FrequencyVocabularyProgress {
     val uniqueWords = words.distinctBy { it.id }
@@ -181,7 +202,7 @@ internal fun buildFrequencyVocabularyProgress(
     return FrequencyVocabularyProgress(
         totalWords = uniqueWords.size,
         practicedWords = uniqueWords.count { (history[it.id]?.attemptCount ?: 0) > 0 },
-        successfullyPassedWords = uniqueWords.count { (history[it.id]?.correctCount ?: 0) > 0 },
+        successfullyPassedWords = uniqueWords.count { it.id in perfectlyPassedIds },
         longTermMasteredWords = uniqueWords.count { word ->
             val memory = history[word.id]
             memory != null && memory.correctStreak >= 3 && memory.intervalDays >= 7
@@ -290,6 +311,9 @@ internal fun FrequencyVocabularyDrillScreen(
             val mastered = listOf(
                 FrequencyDrillStage.MEANING, FrequencyDrillStage.WRITE, FrequencyDrillStage.LISTENING
             ).all { updatedForEntry[it] == true }
+            if (mastered) {
+                FrequencyVocabularyProgressStore.recordPerfectDrillWord(context, entry)
+            }
             LearningReviewStore.recordAnswer(context, frequencyVocabularyReviewQuestion(entry), mastered)
         }
         focusManager.clearFocus()
@@ -369,8 +393,9 @@ internal fun FrequencyVocabularyDrillScreen(
                     }
                     val levelWords = frequencyVocabularyForLevel(selectedLevel, verbsOnly)
                     val levelProgress = buildFrequencyVocabularyProgress(
-                        levelWords,
-                        LearningReviewStore.all(context)
+                        words = levelWords,
+                        reviewEntries = LearningReviewStore.all(context),
+                        perfectlyPassedIds = FrequencyVocabularyProgressStore.perfectlyPassedIds(context)
                     )
                     Text(
                         "Úspěšně zvládnuto na 100 %: " +
