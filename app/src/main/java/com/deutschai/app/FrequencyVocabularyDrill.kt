@@ -155,6 +155,43 @@ internal fun selectFrequencyVocabularyEntries(
     return selected.distinctBy { it.id }.take(target)
 }
 
+internal data class FrequencyVocabularyProgress(
+    val totalWords: Int,
+    val practicedWords: Int,
+    val successfullyPassedWords: Int,
+    val longTermMasteredWords: Int,
+    val dueWords: Int
+)
+
+/**
+ * Separates a first perfect drill pass from long-term mastery.
+ * A word is "successfully passed" after all three drill stages were correct once;
+ * long-term mastery still requires three successful spaced repetitions.
+ */
+internal fun buildFrequencyVocabularyProgress(
+    words: List<FrequencyVocabularyEntry>,
+    reviewEntries: List<ReviewMemoryEntry>,
+    nowMillis: Long = System.currentTimeMillis()
+): FrequencyVocabularyProgress {
+    val uniqueWords = words.distinctBy { it.id }
+    val history = reviewEntries
+        .filter { it.question.sourceKind == "vocabulary" }
+        .associateBy { it.question.id }
+
+    return FrequencyVocabularyProgress(
+        totalWords = uniqueWords.size,
+        practicedWords = uniqueWords.count { history[it.id]?.attemptCount ?: 0 > 0 },
+        successfullyPassedWords = uniqueWords.count { history[it.id]?.correctCount ?: 0 > 0 },
+        longTermMasteredWords = uniqueWords.count { word ->
+            val memory = history[word.id]
+            memory != null && memory.correctStreak >= 3 && memory.intervalDays >= 7
+        },
+        dueWords = uniqueWords.count { word ->
+            history[word.id]?.dueAtMillis?.let { it <= nowMillis } == true
+        }
+    )
+}
+
 @Composable
 internal fun FrequencyVocabularyDrillScreen(
     onBack: () -> Unit,
@@ -331,18 +368,24 @@ internal fun FrequencyVocabularyDrillScreen(
                         }
                     }
                     val levelWords = frequencyVocabularyForLevel(selectedLevel, verbsOnly)
-                    val levelHistory = LearningReviewStore.all(context).associateBy { it.question.id }
-                    val learnedCount = levelWords.count { it.id in levelHistory }
-                    val masteredLevelCount = levelWords.count {
-                        val memory = levelHistory[it.id]
-                        memory != null && memory.correctStreak >= 3 && memory.intervalDays >= 7
-                    }
-                    val dueLevelCount = levelWords.count { levelHistory[it.id]?.dueAtMillis?.let { dueAt -> dueAt <= System.currentTimeMillis() } == true }
+                    val levelProgress = buildFrequencyVocabularyProgress(
+                        levelWords,
+                        LearningReviewStore.all(context)
+                    )
                     Text(
-                        "Zvládnuto " + masteredLevelCount + " / " + levelWords.size +
-                            " · procvičeno " + learnedCount + " · k opakování " + dueLevelCount,
-                        color = Muted,
+                        "Úspěšně zvládnuto na 100 %: " +
+                            levelProgress.successfullyPassedWords + " / " + levelProgress.totalWords,
+                        color = ForestText,
                         fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        "Procvičeno " + levelProgress.practicedWords +
+                            " · dlouhodobě upevněno " + levelProgress.longTermMasteredWords +
+                            " · k opakování " + levelProgress.dueWords,
+                        color = Muted,
+                        fontSize = 10.sp,
                         textAlign = TextAlign.Center
                     )
                     Spacer(Modifier.weight(1f))
