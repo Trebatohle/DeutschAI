@@ -31,6 +31,55 @@ class FrequencyVocabularyA2PilotTest {
     }
 
     @Test
+    fun frequencyProgressSeparatesFirstPerfectPassFromLongTermMastery() {
+        val words = frequencyVocabularyForLevel("A1").take(3)
+        val memories = listOf(
+            ReviewMemoryEntry(
+                question = frequencyVocabularyReviewQuestion(words[0]),
+                wrongCount = 0,
+                correctStreak = 1,
+                intervalDays = 1,
+                dueAtMillis = 5_000L,
+                attemptCount = 1,
+                correctCount = 1,
+                lastAnsweredAtMillis = 900L
+            ),
+            ReviewMemoryEntry(
+                question = frequencyVocabularyReviewQuestion(words[1]),
+                wrongCount = 1,
+                correctStreak = 0,
+                intervalDays = 0,
+                dueAtMillis = 500L,
+                attemptCount = 1,
+                correctCount = 0,
+                lastAnsweredAtMillis = 800L
+            ),
+            ReviewMemoryEntry(
+                question = frequencyVocabularyReviewQuestion(words[2]),
+                wrongCount = 0,
+                correctStreak = 3,
+                intervalDays = 7,
+                dueAtMillis = 6_000L,
+                attemptCount = 3,
+                correctCount = 3,
+                lastAnsweredAtMillis = 700L
+            )
+        )
+
+        val progress = buildFrequencyVocabularyProgress(
+            words = words,
+            reviewEntries = memories,
+            nowMillis = 1_000L
+        )
+
+        assertEquals(3, progress.totalWords)
+        assertEquals(3, progress.practicedWords)
+        assertEquals(2, progress.successfullyPassedWords)
+        assertEquals(1, progress.longTermMasteredWords)
+        assertEquals(1, progress.dueWords)
+    }
+
+    @Test
     fun pilotItemsHaveExamplesAndValidReviewQuestions() {
         frequencyVocabularyA2Pilot.forEach { entry ->
             assertTrue(entry.word.isNotBlank())
