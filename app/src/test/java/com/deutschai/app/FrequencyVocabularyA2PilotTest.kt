@@ -21,6 +21,7 @@ class FrequencyVocabularyA2PilotTest {
         val previousWords = previousCatalogue.map { it.word.trim().lowercase() }.toSet()
         val newWords = frequencyVocabularyA2Pilot.map { it.word.trim().lowercase() }
         val overlaps = newWords.filter { it in previousWords }
+        println("A2 PILOT DIAGNOSTIC: pilotCount=${frequencyVocabularyA2Pilot.size}, previousUnique=${previousWords.size}, pilotWords=${newWords.joinToString()}, overlaps=${overlaps.joinToString()}")
         assertTrue("Pilot contains words already present in the old catalogue: " + overlaps.joinToString(), overlaps.isEmpty())
 
         assertEquals(
