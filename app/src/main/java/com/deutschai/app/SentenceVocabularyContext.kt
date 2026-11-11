@@ -55,7 +55,7 @@ internal fun enrichFrequencyVocabularyWithSentenceContext(
                     .filter(String::isNotBlank)
                     .forEach { add(it.removePrefix("Pl.:").trim()) }
             }
-        }.map(::phraseTokens).filter(List<String>::isNotEmpty).distinct()
+        }.map(::phraseTokens).filter { it.isNotEmpty() }.distinct()
 
     return entries.map { entry ->
         val forms = candidateForms(entry)
