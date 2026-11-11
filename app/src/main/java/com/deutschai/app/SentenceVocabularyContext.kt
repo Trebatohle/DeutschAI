@@ -21,7 +21,9 @@ internal fun enrichFrequencyVocabularyWithSentenceContext(
             SentenceVocabularySource(course, item, tokenRegex.findAll(item.german).toList())
         }
     }
-    val sourcesByFirstToken = sources
+    // Index every token once per sentence, so a vocabulary word can be found anywhere
+    // in a sentence without repeatedly scanning the complete sentence catalogue.
+    val sourcesByToken = sources
         .flatMap { source ->
             source.tokens.map { it.value.lowercase() }.distinct().map { token -> token to source }
         }
@@ -59,29 +61,34 @@ internal fun enrichFrequencyVocabularyWithSentenceContext(
             }
         }.map(::phraseTokens).filter { it.isNotEmpty() }.distinct()
 
+    fun candidateSources(forms: List<List<String>>, level: String?): List<SentenceVocabularySource> {
+        val unique = linkedMapOf<String, SentenceVocabularySource>()
+        forms.forEach { form ->
+            sourcesByToken[form.first()].orEmpty().forEach { source ->
+                if (level == null || source.course.level == level) {
+                    unique.putIfAbsent(source.course.id + "\u0000" + source.item.german, source)
+                }
+            }
+        }
+        return unique.values.toList()
+    }
+
     return entries.map { entry ->
         val forms = candidateForms(entry)
-        val possibleSources = forms
-            .flatMap { form -> sourcesByFirstToken[form.first()].orEmpty() }
-            .distinct()
-        val matches = possibleSources.mapNotNull { source ->
-            val matchedForm = forms.firstNotNullOfOrNull { form -> findSurface(source, form) }
-                ?: return@mapNotNull null
-            val levelDistance = kotlin.math.abs(
-                listOf("A1", "A2", "B1", "B2").indexOf(source.course.level) -
-                    listOf("A1", "A2", "B1", "B2").indexOf(entry.level)
-            )
-            val exactLemma = matchedForm.equals(entry.word, ignoreCase = true)
-            val score = (if (source.course.level == entry.level) 1000 else 0) +
-                (if (exactLemma) 20 else 0) - levelDistance * 100
-            Triple(score, source, matchedForm)
-        }
-        val best = matches.maxByOrNull { it.first } ?: return@map entry
+        fun bestMatch(level: String?): Triple<SentenceVocabularySource, String, Int>? =
+            candidateSources(forms, level).mapNotNull { source ->
+                val matchedForm = forms.firstNotNullOfOrNull { form -> findSurface(source, form) }
+                    ?: return@mapNotNull null
+                val exactLemma = matchedForm.equals(entry.word, ignoreCase = true)
+                Triple(source, matchedForm, if (exactLemma) 1 else 0)
+            }.maxByOrNull { it.third }
+
+        val best = bestMatch(entry.level) ?: bestMatch(null) ?: return@map entry
         entry.copy(
-            exampleGerman = best.second.item.german,
-            exampleCzech = best.second.item.czech,
-            listeningAnswer = best.third,
-            contextCourseTitle = best.second.course.title
+            exampleGerman = best.first.item.german,
+            exampleCzech = best.first.item.czech,
+            listeningAnswer = best.second,
+            contextCourseTitle = best.first.course.title
         )
     }
 }
