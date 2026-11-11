@@ -78,7 +78,7 @@ internal fun enrichFrequencyVocabularyWithSentenceContext(
         entry.copy(
             exampleGerman = best.second.item.german,
             exampleCzech = best.second.item.czech,
-            listeningAnswer = if (entry.kind == FrequencyWordKind.VERB) best.third else entry.listeningAnswer,
+            listeningAnswer = best.third,
             contextCourseTitle = best.second.course.title
         )
     }
