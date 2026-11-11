@@ -86,8 +86,6 @@ private fun a2PilotAdverb(
 
 internal val frequencyVocabularyA2Pilot: List<FrequencyVocabularyEntry> = listOf(
     // Nouns
-    a2PilotNoun("das", "Angebot", "nabídka / akční nabídka", "Pl.: die Angebote",
-        "Dieses Handy ist heute im Angebot.", "Tento mobil je dnes v akci."),
     a2PilotNoun("der", "Anfang", "začátek", "Pl.: die Anfänge",
         "Am Anfang war ich etwas nervös.", "Na začátku jsem byl trochu nervózní."),
     a2PilotNoun("die", "Anmeldung", "přihlášení / registrace", "Pl.: die Anmeldungen",
@@ -104,8 +102,6 @@ internal val frequencyVocabularyA2Pilot: List<FrequencyVocabularyEntry> = listOf
         "Am Samstag machen wir einen Ausflug ans Meer.", "V sobotu pojedeme na výlet k moři."),
     a2PilotNoun("der", "Ausgang", "východ", "Pl.: die Ausgänge",
         "Der Ausgang ist gleich links neben der Tür.", "Východ je hned vlevo vedle dveří."),
-    a2PilotNoun("der", "Bahnsteig", "nástupiště", "Pl.: die Bahnsteige",
-        "Unser Zug fährt von Bahnsteig drei ab.", "Náš vlak odjíždí z nástupiště číslo tři."),
     a2PilotNoun("der", "Bahnhof", "nádraží", "Pl.: die Bahnhöfe",
         "Ich hole dich am Bahnhof ab.", "Vyzvednu tě na nádraží."),
     a2PilotNoun("die", "Bäckerei", "pekárna", "Pl.: die Bäckereien",
@@ -144,8 +140,6 @@ internal val frequencyVocabularyA2Pilot: List<FrequencyVocabularyEntry> = listOf
         "Das Auto steht heute in der Garage.", "Auto dnes stojí v garáži."),
     a2PilotNoun("der", "Gast", "host", "Pl.: die Gäste",
         "Heute Abend kommt ein Gast zum Essen.", "Dnes večer přijde na večeři host."),
-    a2PilotNoun("die", "Heizung", "topení", "Pl.: die Heizungen",
-        "Es ist kalt. Ist die Heizung an?", "Je zima. Je zapnuté topení?"),
 
     // Verbs
     a2PilotVerb("abgeben", "odevzdat / předat", "gibt ab · gab ab · hat abgegeben",
@@ -179,6 +173,12 @@ internal val frequencyVocabularyA2Pilot: List<FrequencyVocabularyEntry> = listOf
     a2PilotVerb("notieren", "zapsat si / poznamenat si", "notiert · notierte · hat notiert",
         "Notieren Sie bitte meine Telefonnummer.", "Poznamenejte si prosím moje telefonní číslo.", "Notieren"),
 
+    a2PilotVerb("danken", "děkovat", "dankt · dankte · hat gedankt",
+        "Ich danke dir für deine Hilfe.", "Děkuji ti za pomoc.", "danke"),
+    a2PilotVerb("drücken", "tlačit / stisknout", "drückt · drückte · hat gedrückt",
+        "Du musst hier auf den Knopf drücken.", "Tady musíš stisknout tlačítko.", "drücken"),
+    a2PilotVerb("beantworten", "zodpovědět", "beantwortet · beantwortete · hat beantwortet",
+        "Kannst du meine Frage bitte beantworten?", "Můžeš prosím zodpovědět mou otázku?", "beantworten"),
     // Adjectives and adverbs
     a2PilotAdjective("arbeitslos", "nezaměstnaný", "Mein Onkel ist seit einem Jahr arbeitslos.", "Můj strýc je už rok nezaměstnaný."),
     a2PilotAdjective("bekannt", "známý", "Diese Stadt ist für ihren alten Markt bekannt.", "Toto město je známé svým starým tržištěm."),
