@@ -439,6 +439,16 @@ internal fun FrequencyVocabularyDrillScreen(
                             Text(mastered.toString() + " z " + entries.size, color = Gold, fontSize = 30.sp, fontWeight = FontWeight.Bold)
                             Text("slov zvládnuto ve všech třech úlohách", color = Color(0xFFE0EAE5), fontSize = 12.sp, textAlign = TextAlign.Center)
                             Text(score.toString() + " z " + (entries.size * 3) + " správných odpovědí", color = Color(0xFFE0EAE5), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                            val overallProgress = buildFrequencyVocabularyProgress(
+                                words = frequencyVocabularyForLevel(selectedLevel, verbsOnly),
+                                reviewEntries = LearningReviewStore.all(context),
+                                perfectlyPassedIds = FrequencyVocabularyProgressStore.perfectlyPassedIds(context)
+                            )
+                            Text(
+                                "Celkem na úrovni $selectedLevel zvládnuto na 100 %: " +
+                                    overallProgress.successfullyPassedWords + " / " + overallProgress.totalWords,
+                                color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center
+                            )
                             Text("Nejistá slova se vrátí dříve. Zvládnutá se budou opakovat s delšími rozestupy.", color = Color(0xFFE0EAE5), fontSize = 12.sp, lineHeight = 17.sp, textAlign = TextAlign.Center)
                         }
                     }
@@ -489,6 +499,9 @@ internal fun FrequencyVocabularyDrillScreen(
                                     if (currentEntry.extraInfo.isNotBlank()) Text(currentEntry.extraInfo, color = ForestText, fontSize = 11.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
                                     Text(currentEntry.exampleGerman, color = Ink, fontSize = if (compact) 14.sp else 16.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
                                     if (!compact) Text(currentEntry.exampleCzech, color = Muted, fontSize = 12.sp, textAlign = TextAlign.Center)
+                                    currentEntry.contextCourseTitle?.let { sourceTitle ->
+                                        Text("Věta z kurzu: $sourceTitle", color = ForestText, fontSize = 10.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
+                                    }
                                     GermanAudioControls(player = speaker, text = currentEntry.exampleGerman, showSlow = true)
                                 }
                             }
