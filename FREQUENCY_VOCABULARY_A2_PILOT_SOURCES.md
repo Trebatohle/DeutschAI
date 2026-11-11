@@ -14,8 +14,8 @@ Goethe-Institutu.
 
 ## Rozsah pilotu
 
-- 30 podstatných jmen včetně členu a množného čísla.
-- 15 sloves včetně důležitých tvarů.
+- 27 podstatných jmen včetně členu a množného čísla.
+- 18 sloves včetně důležitých tvarů.
 - 5 přídavných jmen a příslovcí.
 - Každá položka má vlastní německou větu a český překlad.
 - U podstatných jmen se zachovává původní identifikátor návazný na starší slovníčkové opakování.
