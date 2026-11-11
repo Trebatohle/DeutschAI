@@ -183,19 +183,16 @@ internal fun LearningOverviewScreen(
     val recurringMistakes = LearningReviewStore.recurringMistakes(context, limit = 5)
     val frequencyReviewMap = allReviewEntries.associateBy { it.question.id }
     val frequencyLevelStats = listOf("A1", "A2", "B1", "B2").map { level ->
-        val words = frequencyVocabularyForLevel(level)
-        val mastered = words.count { word ->
-            val memory = frequencyReviewMap[word.id]
-            memory != null && memory.correctStreak >= 3 && memory.intervalDays >= 7
-        }
-        val due = words.count { word ->
-            frequencyReviewMap[word.id]?.dueAtMillis?.let { it <= System.currentTimeMillis() } == true
-        }
-        Triple(level, mastered, Pair(words.size, due))
+        level to buildFrequencyVocabularyProgress(
+            frequencyVocabularyForLevel(level),
+            allReviewEntries
+        )
     }
-    val frequencyMasteredTotal = frequencyLevelStats.sumOf { it.second }
-    val frequencyWordTotal = frequencyLevelStats.sumOf { it.third.first }
-    val frequencyDueTotal = frequencyLevelStats.sumOf { it.third.second }
+    val frequencyPassedTotal = frequencyLevelStats.sumOf { it.second.successfullyPassedWords }
+    val frequencyPracticedTotal = frequencyLevelStats.sumOf { it.second.practicedWords }
+    val frequencyMasteredTotal = frequencyLevelStats.sumOf { it.second.longTermMasteredWords }
+    val frequencyWordTotal = frequencyLevelStats.sumOf { it.second.totalWords }
+    val frequencyDueTotal = frequencyLevelStats.sumOf { it.second.dueWords }
     val weakest = skillStats.filter { it.attempts >= 5 }.minByOrNull { it.accuracyPercent }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
@@ -246,26 +243,44 @@ internal fun LearningOverviewScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(frequencyMasteredTotal.toString() + " / " + frequencyWordTotal, color = Ink, fontSize = 25.sp, fontWeight = FontWeight.Bold)
-                            Text("dlouhodobě zvládnutých slov", color = Muted, fontSize = 11.sp)
+                            Text(frequencyPassedTotal.toString() + " / " + frequencyWordTotal, color = Ink, fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                            Text("slov úspěšně zvládnutých na 100 % alespoň jednou", color = Muted, fontSize = 11.sp)
                         }
-                        Text(frequencyDueTotal.toString() + " k opakování", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(frequencyMasteredTotal.toString(), color = ForestText, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                            Text("dlouhodobě upevněno", color = Muted, fontSize = 10.sp)
+                            Text(frequencyDueTotal.toString() + " k opakování", color = ForestText, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                        }
                     }
                     frequencyLevelStats.forEach { stat ->
                         Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(stat.first, color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                                Text(stat.second.toString() + " / " + stat.third.first, color = Muted, fontSize = 11.sp)
+                                Text(stat.second.successfullyPassedWords.toString() + " / " + stat.second.totalWords, color = Muted, fontSize = 11.sp)
                             }
                             LinearProgressIndicator(
-                                progress = { if (stat.third.first == 0) 0f else stat.second.toFloat() / stat.third.first },
+                                progress = {
+                                    if (stat.second.totalWords == 0) 0f
+                                    else stat.second.successfullyPassedWords.toFloat() / stat.second.totalWords
+                                },
                                 modifier = Modifier.fillMaxWidth(),
                                 color = ForestText,
                                 trackColor = Mint
                             )
+                            Text(
+                                "Procvičeno " + stat.second.practicedWords +
+                                    " · dlouhodobě upevněno " + stat.second.longTermMasteredWords,
+                                color = Muted,
+                                fontSize = 10.sp
+                            )
                         }
                     }
-                    Text("Slova se započítávají napříč frekvenčním drilem a denním tréninkem.", color = Muted, fontSize = 11.sp, lineHeight = 16.sp)
+                    Text(
+                        "100 % znamená zvládnutí všech tří částí Drilu. Dlouhodobé upevnění se počítá po třech úspěšných opakováních.",
+                        color = Muted,
+                        fontSize = 11.sp,
+                        lineHeight = 16.sp
+                    )
                 }
             }
 
