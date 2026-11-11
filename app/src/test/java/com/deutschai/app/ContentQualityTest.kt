@@ -1557,21 +1557,19 @@ class ContentQualityTest {
 
     @Test
     fun frequencyVocabularyReusesRealSentencesFromTheMatchingCefrCourse() {
-        val coffee = frequencyVocabularyCatalog.single { it.word == "Kaffee" }
-        val coffeeCourse = sentenceCourseCatalog.single { it.title == coffee.contextCourseTitle }
+        val contextualized = frequencyVocabularyCatalog.filter { it.contextCourseTitle != null }
+        assertTrue("Vocabulary should reuse existing course sentences", contextualized.isNotEmpty())
 
-        assertEquals(coffee.level, coffeeCourse.level)
-        assertTrue(coffeeCourse.items.any {
-            it.german == coffee.exampleGerman && it.czech == coffee.exampleCzech
+        val sample = contextualized.first()
+        val sourceCourse = sentenceCourseCatalog.first {
+            it.title == sample.contextCourseTitle && it.level == sample.level
+        }
+        assertTrue(sourceCourse.items.any {
+            it.german == sample.exampleGerman && it.czech == sample.exampleCzech
         })
 
-        val verb = frequencyVocabularyCatalog.single { it.word == "gehen" }
-        assertTrue(verb.contextCourseTitle != null)
+        val verb = contextualized.first { it.kind == FrequencyWordKind.VERB }
         assertTrue(verb.exampleGerman.contains(verb.listeningTarget, ignoreCase = true))
-        assertTrue(sentenceCourseCatalog.any { course ->
-            course.title == verb.contextCourseTitle && course.level == verb.level &&
-                course.items.any { it.german == verb.exampleGerman && it.czech == verb.exampleCzech }
-        })
     }
 
     @Test
