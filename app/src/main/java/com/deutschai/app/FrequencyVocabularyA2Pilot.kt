@@ -124,8 +124,6 @@ internal val frequencyVocabularyA2Pilot: List<FrequencyVocabularyEntry> = listOf
         "Ich schreibe dir später eine Nachricht.", "Později ti napíšu zprávu."),
     a2PilotNoun("das", "Rathaus", "radnice", "Pl.: die Rathäuser",
         "Das Rathaus ist im Stadtzentrum.", "Radnice je v centru města."),
-    a2PilotNoun("das", "Poster", "plakát", "Pl.: die Poster",
-        "Das Poster hängt über meinem Bett.", "Plakát visí nad mou postelí."),
     a2PilotNoun("die", "Postkarte", "pohlednice", "Pl.: die Postkarten",
         "Ich schicke meiner Oma eine Postkarte.", "Pošlu babičce pohlednici."),
     a2PilotNoun("die", "Postleitzahl", "poštovní směrovací číslo", "Pl.: die Postleitzahlen",
