@@ -23,6 +23,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +38,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.random.Random
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 internal enum class FrequencyDrillStage(val title: String, val instruction: String) {
     LEARN("Seznam se se slovem", "Přečti si význam a větu. Poslechni si přirozenou výslovnost."),
@@ -96,10 +99,11 @@ internal fun selectFrequencyVocabularyEntries(
     count: Int,
     reviewEntries: List<ReviewMemoryEntry>,
     nowMillis: Long = System.currentTimeMillis(),
-    random: Random = Random.Default
+    random: Random = Random.Default,
+    candidatePool: List<FrequencyVocabularyEntry>? = null
 ): List<FrequencyVocabularyEntry> {
     if (count <= 0) return emptyList()
-    val pool = frequencyVocabularyForLevel(level, verbsOnly).distinctBy { it.id }
+    val pool = (candidatePool ?: frequencyVocabularyForLevel(level, verbsOnly)).distinctBy { it.id }
     if (pool.isEmpty()) return emptyList()
     val history = reviewEntries.filter { it.question.sourceKind == "vocabulary" }
         .associateBy { it.question.id }
@@ -237,6 +241,29 @@ internal fun FrequencyVocabularyDrillScreen(
     var stageResults by remember { mutableStateOf<Map<String, Map<FrequencyDrillStage, Boolean>>>(emptyMap()) }
     var score by remember { mutableStateOf(0) }
     var finished by remember { mutableStateOf(false) }
+    var levelWords by remember(verbsOnly) { mutableStateOf(emptyList<FrequencyVocabularyEntry>()) }
+    var levelProgress by remember(verbsOnly) { mutableStateOf<FrequencyVocabularyProgress?>(null) }
+    var loadedLevel by remember(verbsOnly) { mutableStateOf<String?>(null) }
+
+    // Build the vocabulary catalogue and its progress summary away from the UI thread.
+    // The first access also enriches words with sentence context from the A1-B2 courses.
+    LaunchedEffect(selectedLevel, verbsOnly) {
+        loadedLevel = null
+        levelProgress = null
+        levelWords = emptyList()
+        val result = withContext(Dispatchers.Default) {
+            val words = frequencyVocabularyForLevel(selectedLevel, verbsOnly)
+            val progress = buildFrequencyVocabularyProgress(
+                words = words,
+                reviewEntries = LearningReviewStore.all(context),
+                perfectlyPassedIds = FrequencyVocabularyProgressStore.perfectlyPassedIds(context)
+            )
+            words to progress
+        }
+        levelWords = result.first
+        levelProgress = result.second
+        loadedLevel = selectedLevel
+    }
 
     val currentEntry = when (stage) {
         FrequencyDrillStage.LEARN -> entries.getOrNull(questionIndex)
@@ -254,7 +281,11 @@ internal fun FrequencyVocabularyDrillScreen(
 
     fun startDrill() {
         val selected = selectFrequencyVocabularyEntries(
-            selectedLevel, verbsOnly, selectedCount, LearningReviewStore.all(context)
+            selectedLevel,
+            verbsOnly,
+            selectedCount,
+            LearningReviewStore.all(context),
+            candidatePool = levelWords
         )
         entries = selected.shuffled()
         stageOrders = List(3) { entries.indices.shuffled() }
@@ -401,34 +432,45 @@ internal fun FrequencyVocabularyDrillScreen(
                             }
                         }
                     }
-                    val levelWords = frequencyVocabularyForLevel(selectedLevel, verbsOnly)
-                    val levelProgress = buildFrequencyVocabularyProgress(
-                        words = levelWords,
-                        reviewEntries = LearningReviewStore.all(context),
-                        perfectlyPassedIds = FrequencyVocabularyProgressStore.perfectlyPassedIds(context)
-                    )
-                    Text(
-                        "Úspěšně zvládnuto na 100 %: " +
-                            levelProgress.successfullyPassedWords + " / " + levelProgress.totalWords,
-                        color = ForestText,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        textAlign = TextAlign.Center
-                    )
-                    Text(
-                        "Procvičeno " + levelProgress.practicedWords +
-                            " · dlouhodobě upevněno " + levelProgress.longTermMasteredWords +
-                            " · k opakování " + levelProgress.dueWords,
-                        color = Muted,
-                        fontSize = 13.sp,
-                        textAlign = TextAlign.Center
-                    )
+                    val visibleProgress = levelProgress.takeIf { loadedLevel == selectedLevel }
+                    if (visibleProgress == null) {
+                        Text(
+                            "Připravuji slovní zásobu a přehled pokroku…",
+                            color = Muted,
+                            fontSize = 13.sp,
+                            textAlign = TextAlign.Center
+                        )
+                        LinearProgressIndicator(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = ForestText,
+                            trackColor = Mint
+                        )
+                    } else {
+                        Text(
+                            "Úspěšně zvládnuto na 100 %: " +
+                                visibleProgress.successfullyPassedWords + " / " + visibleProgress.totalWords,
+                            color = ForestText,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            "Procvičeno " + visibleProgress.practicedWords +
+                                " · dlouhodobě upevněno " + visibleProgress.longTermMasteredWords +
+                                " · k opakování " + visibleProgress.dueWords,
+                            color = Muted,
+                            fontSize = 13.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                     Spacer(Modifier.weight(1f))
                     Button(
-                        onClick = { startDrill() }, modifier = Modifier.fillMaxWidth().heightIn(min = if (compact) 48.dp else 54.dp),
+                        onClick = { startDrill() },
+                        enabled = loadedLevel == selectedLevel && levelWords.isNotEmpty(),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = if (compact) 48.dp else 54.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
                         shape = RoundedCornerShape(14.dp)
-                    ) { Text("Spustit dril", fontWeight = FontWeight.Bold) }
+                    ) { Text(if (loadedLevel == selectedLevel) "Spustit dril" else "Připravuji dril…", fontWeight = FontWeight.Bold) }
                 } else if (finished || stage == FrequencyDrillStage.FINISHED) {
                     val mastered = entries.count { entry ->
                         listOf(FrequencyDrillStage.MEANING, FrequencyDrillStage.WRITE, FrequencyDrillStage.LISTENING)
