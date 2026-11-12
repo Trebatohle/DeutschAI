@@ -27,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import kotlin.random.Random
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
 
 internal enum class FrequencyDrillStage(val title: String, val instruction: String) {
     LEARN("Seznam se se slovem", "Přečti si význam a větu. Poslechni si přirozenou výslovnost."),
@@ -241,6 +243,8 @@ internal fun FrequencyVocabularyDrillScreen(
     var stageResults by remember { mutableStateOf<Map<String, Map<FrequencyDrillStage, Boolean>>>(emptyMap()) }
     var score by remember { mutableStateOf(0) }
     var finished by remember { mutableStateOf(false) }
+    var isStartingDrill by remember { mutableStateOf(false) }
+    val drillScope = rememberCoroutineScope()
     var levelWords by remember(verbsOnly) { mutableStateOf(emptyList<FrequencyVocabularyEntry>()) }
     var levelProgress by remember(verbsOnly) { mutableStateOf<FrequencyVocabularyProgress?>(null) }
     var loadedLevel by remember(verbsOnly) { mutableStateOf<String?>(null) }
@@ -280,22 +284,30 @@ internal fun FrequencyVocabularyDrillScreen(
     }
 
     fun startDrill() {
-        val selected = selectFrequencyVocabularyEntries(
-            selectedLevel,
-            verbsOnly,
-            selectedCount,
-            LearningReviewStore.all(context),
-            candidatePool = levelWords
-        )
-        entries = selected.shuffled()
-        stageOrders = List(3) { entries.indices.shuffled() }
-        questionIndex = 0
-        stage = FrequencyDrillStage.LEARN
-        stageResults = emptyMap()
-        score = 0
-        finished = false
-        started = true
-        resetAnswer()
+        if (isStartingDrill || loadedLevel != selectedLevel || levelWords.isEmpty()) return
+        isStartingDrill = true
+        drillScope.launch {
+            val selected = withContext(Dispatchers.Default) {
+                val batch = selectFrequencyVocabularyEntries(
+                    selectedLevel,
+                    verbsOnly,
+                    selectedCount,
+                    LearningReviewStore.all(context),
+                    candidatePool = levelWords
+                )
+                enrichFrequencyVocabularyWithSentenceContext(batch)
+            }
+            entries = selected.shuffled()
+            stageOrders = List(3) { entries.indices.shuffled() }
+            questionIndex = 0
+            stage = FrequencyDrillStage.LEARN
+            stageResults = emptyMap()
+            score = 0
+            finished = false
+            started = true
+            isStartingDrill = false
+            resetAnswer()
+        }
     }
 
     fun advance() {
@@ -355,7 +367,7 @@ internal fun FrequencyVocabularyDrillScreen(
             if (mastered) {
                 FrequencyVocabularyProgressStore.recordPerfectDrillWord(context, entry)
             }
-            LearningReviewStore.recordAnswer(context, frequencyVocabularyReviewQuestion(entry), mastered)
+            LearningReviewStore.recordAnswer(context, frequencyVocabularyReviewQuestion(entry, allEntries = levelWords), mastered)
         }
         focusManager.clearFocus()
     }
@@ -466,11 +478,18 @@ internal fun FrequencyVocabularyDrillScreen(
                     Spacer(Modifier.weight(1f))
                     Button(
                         onClick = { startDrill() },
-                        enabled = loadedLevel == selectedLevel && levelWords.isNotEmpty(),
+                        enabled = loadedLevel == selectedLevel && levelWords.isNotEmpty() && !isStartingDrill,
                         modifier = Modifier.fillMaxWidth().heightIn(min = if (compact) 48.dp else 54.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
                         shape = RoundedCornerShape(14.dp)
-                    ) { Text(if (loadedLevel == selectedLevel) "Spustit dril" else "Připravuji dril…", fontWeight = FontWeight.Bold) }
+                    ) { Text(
+                        when {
+                            isStartingDrill -> "Připravuji sadu…"
+                            loadedLevel == selectedLevel -> "Spustit dril"
+                            else -> "Připravuji dril…"
+                        },
+                        fontWeight = FontWeight.Bold
+                    ) }
                 } else if (finished || stage == FrequencyDrillStage.FINISHED) {
                     val mastered = entries.count { entry ->
                         listOf(FrequencyDrillStage.MEANING, FrequencyDrillStage.WRITE, FrequencyDrillStage.LISTENING)
