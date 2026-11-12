@@ -128,7 +128,8 @@ internal data class Lesson(
     val questions: List<LessonQuestion>
 )
 
-private val lessons = sentenceCourseCatalog.map { course ->
+// Build lesson metadata lazily; avoid generating every lesson's full question list at app startup.
+private val lessons by lazy(LazyThreadSafetyMode.PUBLICATION) { sentenceCourseCatalog.map { course ->
     Lesson(
         id = course.id,
         title = course.title,
@@ -136,7 +137,7 @@ private val lessons = sentenceCourseCatalog.map { course ->
         level = course.level,
         questions = sentenceCourseQuestions(course.id)
     )
-}
+} }
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
