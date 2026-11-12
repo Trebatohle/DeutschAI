@@ -155,7 +155,7 @@ private fun fvParticle(level: String, word: String, czech: String, exampleGerman
  * The first two levels intentionally contain a high share of immediately useful verbs.
  * Examples and Czech translations are authored for DeutschAI; they are not copied corpus lines.
  */
-internal val frequencyVocabularyCatalog: List<FrequencyVocabularyEntry> = listOf(
+internal val frequencyVocabularyCatalog: List<FrequencyVocabularyEntry> by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { (listOf(
     // A1 — first words for everyday communication (verbs are deliberately front-loaded).
     fvVerb("A1", "sein", "být", "Ich bin heute zu Hause.", "Dnes jsem doma.", "ist · war · gewesen", "bin"),
     fvVerb("A1", "haben", "mít", "Ich habe heute Zeit.", "Dnes mám čas.", "hat · hatte · gehabt", "habe"),
@@ -573,9 +573,8 @@ internal val frequencyVocabularyCatalog: List<FrequencyVocabularyEntry> = listOf
     fvFunction("B2", "einerseits", "na jedné straně", "Einerseits bin ich müde, andererseits möchte ich ausgehen.", "Na jedné straně jsem unavený, na druhé straně chci jít ven."),
     fvFunction("B2", "andererseits", "na druhé straně", "Andererseits ist die Lösung nicht teuer.", "Na druhé straně není řešení drahé.")
 ).distinctBy { it.kind.name + ":" + it.word.lowercase() }
-    .let(::expandFrequencyVocabularyCatalog)
-    .let(::enrichFrequencyVocabularyWithSentenceContext) + frequencyVocabularyA2Pilot
-        .let(::enrichFrequencyVocabularyWithSentenceContext)
+    .let(::expandFrequencyVocabularyCatalog) + frequencyVocabularyA2Pilot
+).let(::enrichFrequencyVocabularyWithSentenceContext) }
 
 internal fun frequencyVocabularyForLevel(level: String, verbsOnly: Boolean = false): List<FrequencyVocabularyEntry> =
     frequencyVocabularyCatalog.filter { it.level == level && (!verbsOnly || it.kind == FrequencyWordKind.VERB) }
