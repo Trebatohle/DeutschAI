@@ -32,7 +32,7 @@ internal fun additionalPhraseCourse(
     )
 }
 
-internal val additionalA1SentenceCourseCatalog = listOf(
+internal val additionalA1SentenceCourseCatalog by lazy(LazyThreadSafetyMode.PUBLICATION) { listOf(
     additionalPhraseCourse("A1", "a1_pets_at_home", "Domácí mazlíčci", "Mluvit o zvířatech, péči o ně a jejich každodenních potřebách", listOf(
         "Unser Hund schläft gern auf dem Teppich.§Náš pes rád spí na koberci.",
         "Die Katze wartet vor der Tür.§Kočka čeká před dveřmi.",
@@ -979,3 +979,4 @@ internal val additionalA1SentenceCourseCatalog = listOf(
         "Wir möchten einem Tier ein neues Zuhause geben.§Chtěli bychom dát jednomu zvířeti nový domov."
     ))
 )
+}
