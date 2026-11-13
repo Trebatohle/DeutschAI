@@ -151,7 +151,7 @@ internal fun LearningHubScreen(
                 iconBackground = learningCategoryBackground(LearningCategoryVisual.COURSES),
                 title = "Kurzy A1–B2",
                 subtitle = "Čtyři úrovně podle náročnosti, tematické lekce a samostatné chytré opakování frází v každé úrovni.",
-                detail = sentenceCourseCatalog.size.toString() + " kurzů · 25 otázek v každém",
+                detail = "Tematické lekce A1–B2 · 25 otázek v každé",
                 onClick = onCourses
             )
             LearningCard(
@@ -159,7 +159,7 @@ internal fun LearningHubScreen(
                 iconBackground = learningCategoryBackground(LearningCategoryVisual.VERBS),
                 title = "Důležitá slovesa",
                 subtitle = "Procvič si časování ve větách, ne jen izolované tvary.",
-                detail = verbPracticeTopics.size.toString() + " lekcí · 25 smíšených otázek v každé",
+                detail = "Časování sloves v praktických větách · 25 otázek",
                 onClick = onVerbs
             )
             LearningCard(
@@ -167,7 +167,7 @@ internal fun LearningHubScreen(
                 iconBackground = learningCategoryBackground(LearningCategoryVisual.NOUNS),
                 title = "Členy a podstatná jména",
                 subtitle = "Vyber si slovní téma: bydlení, jídlo, práce, cestování a další.",
-                detail = articleCategories.size.toString() + " tematických sad · 25 slov v každé",
+                detail = "Tematické sady · 25 slov v každé",
                 onClick = onArticles
             )
             LearningCard(
@@ -175,7 +175,7 @@ internal fun LearningHubScreen(
                 iconBackground = Color(0xFFF6EFDF),
                 title = "Dril nejpoužívanějších slov",
                 subtitle = "Běžná mluvená němčina. V A1 a A2 dostávají přednost důležitá slovesa.",
-                detail = "${frequencyVocabularyCatalog.size} slov · úrovně A1–B2 · volba 5 nebo 10 slov",
+                detail = "Úrovně A1–B2 · volba 5 nebo 10 slov",
                 onClick = onVocabularyDrill
             )
             LearningCard(
@@ -183,7 +183,7 @@ internal fun LearningHubScreen(
                 iconBackground = learningCategoryBackground(LearningCategoryVisual.WORD_TOOLS),
                 title = "Slovní druhy a gramatika",
                 subtitle = "Předložky, spojky, příslovce, přivlastňovací zájmena a číslovky.",
-                detail = "${wordToolGroups.size - numberWordToolGroupIds.size} oblasti + číslovky · 3 způsoby procvičení",
+                detail = "Gramatické oblasti + číslovky · 3 způsoby procvičení",
                 onClick = onWordTools
             )
             LearningCard(
@@ -191,7 +191,7 @@ internal fun LearningHubScreen(
                 iconBackground = learningCategoryBackground(LearningCategoryVisual.READING),
                 title = "Čtení v němčině",
                 subtitle = "Dlouhé příběhy podle úrovně A1–C2; podrž slovo a zobrazíš český význam.",
-                detail = readingArticles.size.toString() + " příběhů · A1 až C2",
+                detail = "Příběhy podle úrovní A1–C2",
                 onClick = onReading
             )
             LearningCard(
@@ -199,7 +199,7 @@ internal fun LearningHubScreen(
                 iconBackground = learningCategoryBackground(LearningCategoryVisual.DIALOGUES),
                 title = "Řízené dialogy",
                 subtitle = "Tři doporučené odpovědi, vždy s českým překladem a navazující replikou.",
-                detail = guidedDialogueTopics.size.toString() + " dialogy v první sadě",
+                detail = "Řízené scénáře s doporučenými odpověďmi",
                 onClick = onDialogues
             )
             Card(
