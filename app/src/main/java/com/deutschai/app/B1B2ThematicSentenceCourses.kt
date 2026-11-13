@@ -19,10 +19,12 @@ private fun additionalLevelSentenceCourse(
     title = title,
     subtitle = subtitle,
     level = level,
-    items = rows.map { row ->
-        val fields = row.split("§", limit = 3)
-        require(fields.size == 3) { "Invalid thematic sentence-course row: $row" }
-        SentencePracticeItem(fields[0], fields[1], fields[2])
+    items = deferredCourseList(rows.size) {
+        rows.map { row ->
+            val fields = row.split("§", limit = 3)
+            require(fields.size == 3) { "Invalid thematic sentence-course row: $row" }
+            SentencePracticeItem(fields[0], fields[1], fields[2])
+        }
     }
 
 )
