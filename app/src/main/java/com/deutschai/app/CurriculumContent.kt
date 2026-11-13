@@ -684,6 +684,25 @@ internal data class SentenceCourseDefinition(
     val level: String = "A1"
 )
 
+/**
+ * Keeps course previews lightweight: the course list needs only id/title/level.
+ * Sentence rows are parsed once, only when a learner opens that specific course.
+ */
+internal fun <T> deferredCourseList(
+    expectedSize: Int,
+    createItems: () -> List<T>
+): List<T> = object : AbstractList<T>() {
+    private val materializedItems: List<T> by lazy(LazyThreadSafetyMode.PUBLICATION, createItems)
+
+    override val size: Int
+        get() = expectedSize
+
+    override fun get(index: Int): T {
+        if (index !in 0 until expectedSize) throw IndexOutOfBoundsException("Index: $index, size: $expectedSize")
+        return materializedItems[index]
+    }
+}
+
 private fun sentenceCourse(
     id: String,
     title: String,
@@ -693,10 +712,12 @@ private fun sentenceCourse(
     id = id,
     title = title,
     subtitle = subtitle,
-    items = rows.map { row ->
-        val fields = row.split("§", limit = 3)
-        require(fields.size == 3) { "Invalid sentence-course row: $row" }
-        SentencePracticeItem(fields[0], fields[1], fields[2])
+    items = deferredCourseList(rows.size) {
+        rows.map { row ->
+            val fields = row.split("§", limit = 3)
+            require(fields.size == 3) { "Invalid sentence-course row: $row" }
+            SentencePracticeItem(fields[0], fields[1], fields[2])
+        }
     }
 )
 
