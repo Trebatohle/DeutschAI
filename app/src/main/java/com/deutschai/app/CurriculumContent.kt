@@ -969,10 +969,32 @@ private val a1SentenceCourseCatalog = listOf(
     )
 )
 
-internal val sentenceCourseCatalog = a1SentenceCourseCatalog + expandedSentenceCourseCatalog + additionalA1SentenceCourseCatalog + additionalA2SentenceCourseCatalog + b1B2ThematicSentenceCourseCatalog
+/**
+ * Loads only the sentence-course groups needed for the selected CEFR level.
+ * The main course library can therefore stay responsive without initializing all
+ * A1-B2 sentence content when the learner only opens the level picker.
+ */
+internal fun sentenceCourseCatalogForLevel(level: String): List<SentenceCourseDefinition> =
+    when (level) {
+        "A1" -> a1SentenceCourseCatalog +
+            expandedSentenceCourseCatalog.filter { it.level == level } +
+            additionalA1SentenceCourseCatalog
+        "A2" -> expandedSentenceCourseCatalog.filter { it.level == level } +
+            additionalA2SentenceCourseCatalog
+        "B1", "B2" -> b1B2ThematicSentenceCourseCatalog.filter { it.level == level }
+        else -> emptyList()
+    }
 
-internal fun sentenceCourseQuestions(courseId: String): List<LessonQuestion> {
-    val course = sentenceCourseCatalog.firstOrNull { it.id == courseId } ?: return emptyList()
+internal val sentenceCourseCatalog by lazy(LazyThreadSafetyMode.PUBLICATION) {
+    listOf("A1", "A2", "B1", "B2").flatMap(::sentenceCourseCatalogForLevel)
+}
+
+internal fun sentenceCourseQuestions(
+    courseId: String,
+    level: String? = null
+): List<LessonQuestion> {
+    val courses = level?.let(::sentenceCourseCatalogForLevel) ?: sentenceCourseCatalog
+    val course = courses.firstOrNull { it.id == courseId } ?: return emptyList()
     val items = course.items
     return items.mapIndexed { index, item ->
         val options = listOf(
