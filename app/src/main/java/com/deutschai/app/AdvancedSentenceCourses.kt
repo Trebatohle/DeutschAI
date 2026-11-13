@@ -18,7 +18,7 @@ private fun levelSentenceCourse(
     }
 )
 
-internal val expandedSentenceCourseCatalog = listOf(
+internal val expandedSentenceCourseCatalog by lazy(LazyThreadSafetyMode.PUBLICATION) { listOf(
     levelSentenceCourse("A1", "a1_visiting", "Návštěvy a společenské situace", "Pozvat hosty, přivítat návštěvu a zdvořile reagovat",
         "Pozveš kamaráda na návštěvu.§Möchtest du mich am Samstag besuchen?§Nechceš mě v sobotu navštívit?",
         "Zeptáš se, v kolik má návštěva přijít.§Um wie viel Uhr soll ich kommen?§V kolik hodin mám přijít?",
@@ -1102,3 +1102,4 @@ internal val expandedSentenceCourseCatalog = listOf(
         "Uzavřeš diskusi vyváženým závěrem.§Insgesamt sprechen die Argumente dafür, allerdings nicht ohne Einschränkungen.§Celkově argumenty hovoří pro, ovšem s určitými výhradami."
     )
 )
+}
