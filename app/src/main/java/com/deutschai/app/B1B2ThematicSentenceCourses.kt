@@ -27,7 +27,7 @@ private fun additionalLevelSentenceCourse(
 
 )
 
-internal val b1B2ThematicSentenceCourseCatalog = listOf(
+internal val b1B2ThematicSentenceCourseCatalog by lazy(LazyThreadSafetyMode.PUBLICATION) { listOf(
     additionalLevelSentenceCourse("B1", "b1_consumption", "Spotřebitelská rozhodnutí a nakupování", "Porovnávat nabídky, hodnotit kvalitu a rozhodovat se při nákupu",
         "Přelož do němčiny: Je důležité, že spotřebitelé před nákupem porovnávají několik nabídek.§Es ist wichtig, dass die Verbraucher vor dem Kauf mehrere Angebote vergleichen.§Je důležité, že spotřebitelé před nákupem porovnávají několik nabídek.",
         "Přelož do němčiny: Je důležité, že nízká cena nezaručuje vždy dobrou kvalitu.§Es ist wichtig, dass ein niedriger Preis nicht immer eine gute Qualität garantiert.§Je důležité, že nízká cena nezaručuje vždy dobrou kvalitu.",
@@ -1110,3 +1110,4 @@ internal val b1B2ThematicSentenceCourseCatalog = listOf(
         "Přelož do němčiny: Musíme mít na paměti, že ne každá škoda je automaticky kryta pojištěním.§Wir müssen bedenken, dass nicht jeder Schaden automatisch durch die Versicherung gedeckt ist.§Musíme mít na paměti, že ne každá škoda je automaticky kryta pojištěním.",
     )
 )
+}
