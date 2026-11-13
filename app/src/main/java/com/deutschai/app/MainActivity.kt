@@ -1565,7 +1565,6 @@ private fun LessonLibraryScreen(
                     color = Muted, fontSize = 14.sp, lineHeight = 21.sp
                 )
                 levelDetails.forEach { (level, name, description) ->
-                    val levelLessons = courseCatalog.filter { it.level == level }
                     Card(
                         onClick = { selectedLevel = level },
                         modifier = Modifier.fillMaxWidth(),
