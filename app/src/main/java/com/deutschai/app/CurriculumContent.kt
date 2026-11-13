@@ -1007,7 +1007,8 @@ internal fun sentenceCourseCatalogForLevel(level: String): List<SentenceCourseDe
             additionalA1SentenceCourseCatalog
         "A2" -> expandedSentenceCourseCatalog.filter { it.level == level } +
             additionalA2SentenceCourseCatalog
-        "B1", "B2" -> b1B2ThematicSentenceCourseCatalog.filter { it.level == level }
+        "B1", "B2" -> expandedSentenceCourseCatalog.filter { it.level == level } +
+            b1B2ThematicSentenceCourseCatalog.filter { it.level == level }
         else -> emptyList()
     }
 
