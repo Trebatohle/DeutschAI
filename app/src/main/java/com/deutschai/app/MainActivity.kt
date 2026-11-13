@@ -1526,20 +1526,25 @@ private fun LessonLibraryScreen(
         Triple("B1", "Středně pokročilý", "Práce, argumentace, samostatná komunikace a složitější situace."),
         Triple("B2", "Vyšší středně pokročilý", "Přesné vyjadřování, profesní komunikace a náročnější témata.")
     )
-    var availableLessons by remember { mutableStateOf<List<Lesson>?>(null) }
-    LaunchedEffect(Unit) {
-        availableLessons = withContext(Dispatchers.Default) { lessons }
+    var availableLessons by remember { mutableStateOf<Pair<String, List<Lesson>>?>(null) }
+    LaunchedEffect(selectedLevel) {
+        val level = selectedLevel ?: return@LaunchedEffect
+        availableLessons = null
+        val loaded = withContext(Dispatchers.Default) {
+            sentenceCourseCatalogForLevel(level).map { course ->
+                Lesson(
+                    id = course.id,
+                    title = course.title,
+                    subtitle = course.subtitle,
+                    level = course.level
+                )
+            }
+        }
+        availableLessons = level to loaded
     }
     val courseCatalog = availableLessons
-    if (courseCatalog == null) {
-        CourseLoadingScreen(
-            title = "Kurzy podle úrovně",
-            message = "Připravuji kurzovou knihovnu…",
-            onBack = onBack,
-            onHome = onHome
-        )
-        return
-    }
+        ?.takeIf { it.first == selectedLevel }
+        ?.second
 
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
@@ -1581,14 +1586,21 @@ private fun LessonLibraryScreen(
                             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                                 Text("$level · $name", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
                                 Text(description, color = Muted, fontSize = 13.sp, lineHeight = 19.sp)
-                                Text("${levelLessons.size} tematických kurzů · 25 otázek v každém", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text("Tematické lekce · 25 otázek v každé", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
                 }
+            } else if (courseCatalog == null) {
+                CourseLoadingScreen(
+                    title = "Kurzová knihovna · $selectedLevel",
+                    message = "Načítám kurzy úrovně $selectedLevel…",
+                    onBack = { selectedLevel = null },
+                    onHome = onHome
+                )
             } else {
                 val level = selectedLevel!!
-                val levelLessons = courseCatalog.filter { it.level == level }
+                val levelLessons = courseCatalog
                 Text("Úroveň $level", color = Ink, fontSize = 27.sp, fontWeight = FontWeight.Bold, lineHeight = 32.sp)
                 Text(
                     "Vyber si konkrétní téma, nebo si procvič fráze, které aplikace vybere podle toho, kdy je potřebuješ zopakovat.",
@@ -1693,7 +1705,7 @@ private fun LessonScreen(
     }
     LaunchedEffect(lesson.id) {
         preparedQuestions = withContext(Dispatchers.Default) {
-            sentenceCourseQuestions(lesson.id)
+            sentenceCourseQuestions(lesson.id, lesson.level)
         }
     }
 
