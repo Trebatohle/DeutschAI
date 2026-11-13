@@ -1,6 +1,6 @@
 package com.deutschai.app
 
-internal val additionalA2SentenceCourseCatalog = listOf(
+internal val additionalA2SentenceCourseCatalog by lazy(LazyThreadSafetyMode.PUBLICATION) { listOf(
     additionalPhraseCourse("A2", "a2_insurance_claim", "Pojištění a hlášení škody", "Popsat událost, předat podklady a zjistit další postup", listOf(
         "Ich möchte einen Schaden an meiner Wohnung melden.§Chtěl bych nahlásit škodu ve svém bytě.",
         "Der Wasserschaden ist am Sonntagabend entstanden.§Škoda způsobená vodou vznikla v neděli večer.",
@@ -407,3 +407,4 @@ internal val additionalA2SentenceCourseCatalog = listOf(
         "Ich hoffe, dass wir künftig besser zusammenarbeiten können.§Doufám, že v budoucnu budeme moci lépe spolupracovat."
     ))
 )
+}
