@@ -1556,6 +1556,119 @@ class ContentQualityTest {
     }
 
     @Test
+    fun frequencyVocabularyListeningSentencesContainOnlyOneTargetFromTheSelectedBatch() {
+        val gehen = FrequencyVocabularyEntry(
+            id = "test-gehen",
+            level = "A1",
+            kind = FrequencyWordKind.VERB,
+            word = "gehen",
+            czech = "jít",
+            extraInfo = "gehe · geht",
+            exampleGerman = "Ich gehe nach Hause.",
+            exampleCzech = "Jdu domů.",
+            listeningAnswer = "gehe"
+        )
+        val sehen = FrequencyVocabularyEntry(
+            id = "test-sehen",
+            level = "A1",
+            kind = FrequencyWordKind.VERB,
+            word = "sehen",
+            czech = "vidět",
+            extraInfo = "sehe · sieht",
+            exampleGerman = "Ich sehe dich.",
+            exampleCzech = "Vidím tě.",
+            listeningAnswer = "sehe"
+        )
+        val course = SentenceCourseDefinition(
+            id = "ambiguous-listening-test",
+            title = "Test jednoznačnosti",
+            subtitle = "Testovací věty",
+            level = "A1",
+            items = listOf(
+                SentencePracticeItem(
+                    prompt = "Řekneš, že jdeš a vidíš.",
+                    german = "Ich gehe und sehe dich.",
+                    czech = "Jdu a vidím tě."
+                ),
+                SentencePracticeItem(
+                    prompt = "Řekneš, že jdeš domů.",
+                    german = "Ich gehe jetzt nach Hause.",
+                    czech = "Jdu teď domů."
+                ),
+                SentencePracticeItem(
+                    prompt = "Řekneš, že někoho vidíš.",
+                    german = "Ich sehe dich heute.",
+                    czech = "Dnes tě vidím."
+                )
+            )
+        )
+
+        val enriched = enrichFrequencyVocabularyWithSentenceContext(
+            entries = listOf(gehen, sehen),
+            courses = listOf(course),
+            requireUnambiguousBatch = true
+        )
+        val enrichedGehen = enriched.single { it.id == gehen.id }
+        val enrichedSehen = enriched.single { it.id == sehen.id }
+
+        assertEquals("Ich gehe jetzt nach Hause.", enrichedGehen.exampleGerman)
+        assertEquals("Ich sehe dich heute.", enrichedSehen.exampleGerman)
+        assertTrue(enrichedGehen.hasUnambiguousListeningSentence)
+        assertTrue(enrichedSehen.hasUnambiguousListeningSentence)
+        assertEquals("gehe", enrichedGehen.listeningTarget)
+        assertEquals("sehe", enrichedSehen.listeningTarget)
+    }
+
+    @Test
+    fun frequencyVocabularyListeningFallsBackToOneIsolatedTargetWhenNoUniqueSentenceExists() {
+        val gehen = FrequencyVocabularyEntry(
+            id = "test-gehen-fallback",
+            level = "A1",
+            kind = FrequencyWordKind.VERB,
+            word = "gehen",
+            czech = "jít",
+            extraInfo = "gehe · geht",
+            exampleGerman = "Ich gehe und sehe dich.",
+            exampleCzech = "Jdu a vidím tě.",
+            listeningAnswer = "gehe"
+        )
+        val sehen = FrequencyVocabularyEntry(
+            id = "test-sehen-fallback",
+            level = "A1",
+            kind = FrequencyWordKind.VERB,
+            word = "sehen",
+            czech = "vidět",
+            extraInfo = "sehe · sieht",
+            exampleGerman = "Ich gehe und sehe dich.",
+            exampleCzech = "Jdu a vidím tě.",
+            listeningAnswer = "sehe"
+        )
+        val course = SentenceCourseDefinition(
+            id = "ambiguous-only-test",
+            title = "Nejednoznačný test",
+            subtitle = "Testovací věta",
+            level = "A1",
+            items = listOf(
+                SentencePracticeItem(
+                    prompt = "Řekneš, že jdeš a vidíš.",
+                    german = "Ich gehe und sehe dich.",
+                    czech = "Jdu a vidím tě."
+                )
+            )
+        )
+
+        val enriched = enrichFrequencyVocabularyWithSentenceContext(
+            entries = listOf(gehen, sehen),
+            courses = listOf(course),
+            requireUnambiguousBatch = true
+        )
+
+        assertTrue(enriched.all { !it.hasUnambiguousListeningSentence })
+        assertEquals("gehe", enriched.single { it.id == gehen.id }.listeningTarget)
+        assertEquals("sehe", enriched.single { it.id == sehen.id }.listeningTarget)
+    }
+
+    @Test
     fun frequencyVocabularyReusesRealSentencesFromTheMatchingCefrCourse() {
         val contextualized = frequencyVocabularyCatalog.filter { it.contextCourseTitle != null }
         assertTrue("Vocabulary should reuse existing course sentences", contextualized.isNotEmpty())
