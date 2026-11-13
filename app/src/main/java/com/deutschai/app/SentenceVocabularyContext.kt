@@ -13,7 +13,8 @@ private data class SentenceVocabularySource(
 
 internal fun enrichFrequencyVocabularyWithSentenceContext(
     entries: List<FrequencyVocabularyEntry>,
-    courses: List<SentenceCourseDefinition> = sentenceCourseCatalog
+    courses: List<SentenceCourseDefinition> = sentenceCourseCatalog,
+    requireUnambiguousBatch: Boolean = false
 ): List<FrequencyVocabularyEntry> {
     if (entries.isEmpty()) return emptyList()
 
@@ -37,8 +38,7 @@ internal fun enrichFrequencyVocabularyWithSentenceContext(
         .mapNotNull { it.firstOrNull() }
         .toSet()
 
-    // Index only sentence tokens that could begin one of the selected vocabulary forms.
-    // This avoids keeping a large index of every word from every course in memory.
+    // Index only sentence tokens that could begin one of this batch's vocabulary forms.
     val sourcesByToken = mutableMapOf<String, MutableList<SentenceVocabularySource>>()
     courses.forEach { course ->
         course.items.forEach { item ->
@@ -93,6 +93,22 @@ internal fun enrichFrequencyVocabularyWithSentenceContext(
         return uniqueSources.values.mapNotNull { source ->
             val matchedForm = forms.firstNotNullOfOrNull { form -> findSurface(source, form) }
                 ?: return@mapNotNull null
+
+            // In the three-stage drill a complete sentence is accepted only when it
+            // contains a recognizable form of this entry and no other selected entry.
+            // Otherwise another word from the same five/ten-word batch could also be
+            // a legitimate answer to the listening prompt.
+            if (requireUnambiguousBatch) {
+                val matchingEntries = entries.filter { candidate ->
+                    formsByEntry[candidate].orEmpty().any { form ->
+                        findSurface(source, form) != null
+                    }
+                }
+                if (matchingEntries.size != 1 || matchingEntries.single().id != entry.id) {
+                    return@mapNotNull null
+                }
+            }
+
             val exactLemma = matchedForm.equals(entry.word, ignoreCase = true)
             Triple(source, matchedForm, if (exactLemma) 1 else 0)
         }.maxByOrNull { it.third }
@@ -102,13 +118,18 @@ internal fun enrichFrequencyVocabularyWithSentenceContext(
         val forms = formsByEntry[entry].orEmpty()
         val best = bestMatch(entry, forms, entry.level)
             ?: bestMatch(entry, forms, null)
-            ?: return@map entry
+            ?: return@map if (requireUnambiguousBatch) {
+                entry.copy(hasUnambiguousListeningSentence = false)
+            } else {
+                entry
+            }
 
         entry.copy(
             exampleGerman = best.first.item.german,
             exampleCzech = best.first.item.czech,
             listeningAnswer = best.second,
-            contextCourseTitle = best.first.course.title
+            contextCourseTitle = best.first.course.title,
+            hasUnambiguousListeningSentence = requireUnambiguousBatch
         )
     }
 }
