@@ -67,7 +67,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 private val darkModeState = mutableStateOf(true)
 private val mintColorState = mutableStateOf(Color(0xFF243A32))
@@ -125,19 +127,22 @@ internal data class Lesson(
     val title: String,
     val subtitle: String,
     val level: String,
-    val questions: List<LessonQuestion>
+    val questions: List<LessonQuestion> = emptyList()
 )
 
-// Build lesson metadata lazily; avoid generating every lesson's full question list at app startup.
-private val lessons by lazy(LazyThreadSafetyMode.PUBLICATION) { sentenceCourseCatalog.map { course ->
-    Lesson(
-        id = course.id,
-        title = course.title,
-        subtitle = course.subtitle,
-        level = course.level,
-        questions = sentenceCourseQuestions(course.id)
-    )
-} }
+private const val LESSON_QUESTION_COUNT = 25
+
+// Build only lightweight lesson metadata; question sets are generated on demand.
+private val lessons by lazy(LazyThreadSafetyMode.PUBLICATION) {
+    sentenceCourseCatalog.map { course ->
+        Lesson(
+            id = course.id,
+            title = course.title,
+            subtitle = course.subtitle,
+            level = course.level
+        )
+    }
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -1465,6 +1470,47 @@ private fun HomeRecommendationCard(
 }
 
 @Composable
+private fun CourseLoadingScreen(
+    title: String,
+    message: String,
+    onBack: () -> Unit,
+    onHome: () -> Unit
+) {
+    Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+                .navigationBarsPadding()
+                .padding(horizontal = 22.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
+            AppScreenHeader(title = title, onBack = onBack, onHome = onHome)
+            Spacer(Modifier.weight(1f))
+            Text(
+                message,
+                modifier = Modifier.fillMaxWidth(),
+                color = Ink,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+            LinearProgressIndicator(
+                modifier = Modifier.fillMaxWidth(),
+                color = ForestText,
+                trackColor = Mint
+            )
+            Text(
+                "Načítám pouze potřebné otázky. Výukový obsah zůstává uložený offline.",
+                modifier = Modifier.fillMaxWidth(),
+                color = Muted,
+                fontSize = 13.sp,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+            Spacer(Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
 private fun LessonLibraryScreen(
     onBack: () -> Unit,
     onSelectLesson: (Lesson) -> Unit,
@@ -1480,6 +1526,20 @@ private fun LessonLibraryScreen(
         Triple("B1", "Středně pokročilý", "Práce, argumentace, samostatná komunikace a složitější situace."),
         Triple("B2", "Vyšší středně pokročilý", "Přesné vyjadřování, profesní komunikace a náročnější témata.")
     )
+    var availableLessons by remember { mutableStateOf<List<Lesson>?>(null) }
+    LaunchedEffect(Unit) {
+        availableLessons = withContext(Dispatchers.Default) { lessons }
+    }
+    val courseCatalog = availableLessons
+    if (courseCatalog == null) {
+        CourseLoadingScreen(
+            title = "Kurzy podle úrovně",
+            message = "Připravuji kurzovou knihovnu…",
+            onBack = onBack,
+            onHome = onHome
+        )
+        return
+    }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
@@ -1500,7 +1560,7 @@ private fun LessonLibraryScreen(
                     color = Muted, fontSize = 14.sp, lineHeight = 21.sp
                 )
                 levelDetails.forEach { (level, name, description) ->
-                    val levelLessons = lessons.filter { it.level == level }
+                    val levelLessons = courseCatalog.filter { it.level == level }
                     Card(
                         onClick = { selectedLevel = level },
                         modifier = Modifier.fillMaxWidth(),
@@ -1528,7 +1588,7 @@ private fun LessonLibraryScreen(
                 }
             } else {
                 val level = selectedLevel!!
-                val levelLessons = lessons.filter { it.level == level }
+                val levelLessons = courseCatalog.filter { it.level == level }
                 Text("Úroveň $level", color = Ink, fontSize = 27.sp, fontWeight = FontWeight.Bold, lineHeight = 32.sp)
                 Text(
                     "Vyber si konkrétní téma, nebo si procvič fráze, které aplikace vybere podle toho, kdy je potřebuješ zopakovat.",
@@ -1585,7 +1645,7 @@ private fun LessonLibraryScreen(
                                 "Zkus si frázi vybavit před odhalením odpovědi. Opakování se načasuje podle toho, jak dobře ji znáš.",
                                 color = Color(0xFFE0EAE5), fontSize = 13.sp, lineHeight = 19.sp
                             )
-                            Text("${levelLessons.sumOf { it.questions.size }} frází z úrovně $level", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text("${levelLessons.size * LESSON_QUESTION_COUNT} frází z úrovně $level", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -1610,7 +1670,7 @@ private fun LessonLibraryScreen(
                             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                                 Text(lesson.title, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
                                 Text(lesson.subtitle, color = Muted, fontSize = 13.sp, lineHeight = 18.sp)
-                                Text("${lesson.level}  •  ${lesson.questions.size} otázek", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text("${lesson.level}  •  $LESSON_QUESTION_COUNT otázek", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 LatestResultLine(CourseResultStore.load(context, "sentence_${lesson.id}"))
                             }
                         }
@@ -1628,12 +1688,31 @@ private fun LessonScreen(
     onComplete: (score: Int, total: Int) -> Unit,
     onHome: () -> Unit = onBack
 ) {
-    LessonPracticeScreen(
-        lesson = lesson,
-        onBack = onBack,
-        onComplete = onComplete,
-        onHome = onHome
-    )
+    var preparedQuestions by remember(lesson.id) {
+        mutableStateOf<List<LessonQuestion>?>(null)
+    }
+    LaunchedEffect(lesson.id) {
+        preparedQuestions = withContext(Dispatchers.Default) {
+            sentenceCourseQuestions(lesson.id)
+        }
+    }
+
+    val questions = preparedQuestions
+    if (questions == null) {
+        CourseLoadingScreen(
+            title = lesson.title + " · " + lesson.level,
+            message = "Připravuji otázky pro lekci…",
+            onBack = onBack,
+            onHome = onHome
+        )
+    } else {
+        LessonPracticeScreen(
+            lesson = lesson.copy(questions = questions),
+            onBack = onBack,
+            onComplete = onComplete,
+            onHome = onHome
+        )
+    }
 }
 
 private data class GuidedDialogueLine(
