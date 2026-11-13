@@ -18,6 +18,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material.icons.filled.FormatListNumbered
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.CallSplit
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -111,6 +116,60 @@ internal val wordToolGroups = listOf(
         "fünfzig§padesát§Das Zimmer kostet fünfzig Euro pro Nacht.§Pokoj stojí padesát eur za noc.",
         "hundert§sto§In diesem Buch sind hundert Seiten.§Tato kniha má sto stran.",
         "tausend§tisíc§Tausend Menschen besuchen das Fest.§Oslavu navštíví tisíc lidí."
+    ),
+    wordToolGroup("ordinal-numbers", "Řadové číslovky", "První až dvacátý pátý; 25 otázek",
+        "ersten§první§Am ersten Tag besuche ich einen neuen Kurs.§První den navštívím nový kurz.",
+        "zweiten§druhý§Am zweiten Tag lerne ich neue Wörter.§Druhý den se učím nová slova.",
+        "dritten§třetí§Am dritten Tag fahre ich nach Berlin.§Třetí den jedu do Berlína.",
+        "vierten§čtvrtý§Am vierten Tag habe ich einen Termin.§Čtvrtý den mám schůzku.",
+        "fünften§pátý§Am fünften Tag arbeite ich von zu Hause.§Pátý den pracuji z domova.",
+        "sechsten§šestý§Am sechsten Tag besuche ich meine Familie.§Šestý den navštívím rodinu.",
+        "siebten§sedmý§Am siebten Tag mache ich eine Pause.§Sedmý den si udělám přestávku.",
+        "achten§osmý§Am achten Tag beginnt ein neues Projekt.§Osmý den začíná nový projekt.",
+        "neunten§devátý§Am neunten Tag schreibe ich einen Test.§Devátý den píšu test.",
+        "zehnten§desátý§Am zehnten Tag endet der Sprachkurs.§Desátý den končí jazykový kurz.",
+        "elften§jedenáctý§Am elften Tag kommt ein wichtiger Brief.§Jedenáctý den přijde důležitý dopis.",
+        "zwölften§dvanáctý§Am zwölften Tag fahren wir ans Meer.§Dvanáctý den jedeme k moři.",
+        "dreizehnten§třináctý§Am dreizehnten Tag besichtigen wir ein Museum.§Třináctý den navštívíme muzeum.",
+        "vierzehnten§čtrnáctý§Am vierzehnten Tag kehre ich nach Hause zurück.§Čtrnáctý den se vrátím domů.",
+        "fünfzehnten§patnáctý§Am fünfzehnten Tag treffe ich meine Freunde.§Patnáctý den se setkám s přáteli.",
+        "sechzehnten§šestnáctý§Am sechzehnten Tag beginnt die nächste Etappe.§Šestnáctý den začíná další etapa.",
+        "siebzehnten§sedmnáctý§Am siebzehnten Tag kaufe ich ein neues Buch.§Sedmnáctý den si koupím novou knihu.",
+        "achtzehnten§osmnáctý§Am achtzehnten Tag besuchen wir unsere Nachbarn.§Osmnáctý den navštívíme sousedy.",
+        "neunzehnten§devatenáctý§Am neunzehnten Tag findet die Besprechung statt.§Devatenáctý den se koná porada.",
+        "zwanzigsten§dvacátý§Am zwanzigsten Tag bekomme ich die Ergebnisse.§Dvacátý den dostanu výsledky.",
+        "einundzwanzigsten§dvacátý první§Am einundzwanzigsten Tag beginnt mein Urlaub.§Dvacátý první den začíná moje dovolená.",
+        "zweiundzwanzigsten§dvacátý druhý§Am zweiundzwanzigsten Tag besuche ich einen Freund.§Dvacátý druhý den navštívím kamaráda.",
+        "dreiundzwanzigsten§dvacátý třetí§Am dreiundzwanzigsten Tag fahren wir mit dem Zug.§Dvacátý třetí den jedeme vlakem.",
+        "vierundzwanzigsten§dvacátý čtvrtý§Am vierundzwanzigsten Tag feiern wir ein Fest.§Dvacátý čtvrtý den slavíme.",
+        "fünfundzwanzigsten§dvacátý pátý§Am fünfundzwanzigsten Tag endet unsere Reise.§Dvacátý pátý den končí naše cesta."
+    ),
+    wordToolGroup("multiplicative-numbers", "Násobné číslovky", "Jednou, dvakrát, třikrát a další násobky; 25 otázek",
+        "einmal§jednou§Ich lese den Text einmal laut vor.§Přečtu text jednou nahlas.",
+        "zweimal§dvakrát§Ich höre mir die Aufnahme zweimal an.§Poslechnu si nahrávku dvakrát.",
+        "dreimal§třikrát§Sie ruft ihre Mutter dreimal pro Woche an.§Volá mamince třikrát týdně.",
+        "viermal§čtyřikrát§Wir treffen uns viermal im Monat.§Setkáváme se čtyřikrát měsíčně.",
+        "fünfmal§pětkrát§Er wiederholt das Wort fünfmal.§Opakuje to slovo pětkrát.",
+        "sechsmal§šestkrát§Der Bus fährt sechsmal am Tag.§Autobus jede šestkrát denně.",
+        "siebenmal§sedmkrát§Ich wiederhole die Übung siebenmal.§Opakuji cvičení sedmkrát.",
+        "achtmal§osmkrát§Die Maschine piept achtmal.§Stroj osmkrát zapípá.",
+        "neunmal§devětkrát§Sie hat neunmal versucht, ihn zu erreichen.§Devětkrát se ho pokusila zastihnout.",
+        "zehnmal§desetkrát§Bitte lies den Satz zehnmal.§Přečti prosím větu desetkrát.",
+        "elfmal§jedenáctkrát§Der Spieler hat elfmal getroffen.§Hráč skóroval jedenáctkrát.",
+        "zwölfmal§dvanáctkrát§Die Uhr schlägt zwölfmal.§Hodiny odbijí dvanáctkrát.",
+        "dreizehnmal§třináctkrát§Ich habe dreizehnmal dieselbe Frage gehört.§Stejnou otázku jsem slyšel třináctkrát.",
+        "vierzehnmal§čtrnáctkrát§Sie kontrolliert die Liste vierzehnmal.§Kontroluje seznam čtrnáctkrát.",
+        "fünfzehnmal§patnáctkrát§Der Trainer wiederholt die Übung fünfzehnmal.§Trenér opakuje cvičení patnáctkrát.",
+        "sechzehnmal§šestnáctkrát§Wir haben sechzehnmal angerufen.§Volali jsme šestnáctkrát.",
+        "siebzehnmal§sedmnáctkrát§Das Wort kommt siebzehnmal im Text vor.§Toto slovo se v textu vyskytuje sedmnáctkrát.",
+        "achtzehnmal§osmnáctkrát§Er hat achtzehnmal nachgefragt.§Osmnáctkrát se doptával.",
+        "neunzehnmal§devatenáctkrát§Die Datei wurde neunzehnmal geöffnet.§Soubor byl otevřen devatenáctkrát.",
+        "zwanzigmal§dvacetkrát§Ich habe die Regel zwanzigmal erklärt.§Pravidlo jsem vysvětlil dvacetkrát.",
+        "dreißigmal§třicetkrát§Der Name steht dreißigmal auf der Liste.§Jméno je na seznamu třicetkrát.",
+        "vierzigmal§čtyřicetkrát§Die Frage wurde vierzigmal gestellt.§Otázka byla položena čtyřicetkrát.",
+        "fünfzigmal§padesátkrát§Sie hat das Lied fünfzigmal gehört.§Píseň slyšela padesátkrát.",
+        "hundertmal§stokrát§Ich habe dir das hundertmal gesagt.§Řekl jsem ti to stokrát.",
+        "tausendmal§tisíckrát§Dieses Bild wurde tausendmal geteilt.§Tento obrázek byl sdílen tisíckrát."
     ),
     wordToolGroup("prepositions", "Předložky", "Místo, směr, čas a vztahy",
         "an§na / u§Ich warte an der Haltestelle.§Čekám na zastávce.",
@@ -255,6 +314,30 @@ private fun arabicNumeral(germanNumber: String): String = when (germanNumber) {
     else -> germanNumber
 }
 
+private fun wordToolCategoryIcon(groupId: String): ImageVector = when (groupId) {
+    "numbers" -> Icons.Default.FormatListNumbered
+    "prepositions" -> Icons.Default.Place
+    "conjunctions" -> Icons.Default.CallSplit
+    "possessives" -> Icons.Default.Person
+    else -> Icons.Default.Translate
+}
+
+private fun wordToolCategoryTint(groupId: String): Color = when (groupId) {
+    "numbers" -> Color(0xFF8A672F)
+    "prepositions" -> Color(0xFF35617E)
+    "conjunctions" -> Color(0xFF67568E)
+    "possessives" -> Color(0xFF47704E)
+    else -> ForestText
+}
+
+private fun wordToolCategoryBackground(groupId: String): Color = when (groupId) {
+    "numbers" -> Color(0xFFF6EFDF)
+    "prepositions" -> Color(0xFFE9F1F6)
+    "conjunctions" -> Color(0xFFF0ECF7)
+    "possessives" -> Color(0xFFEAF1E9)
+    else -> Mint
+}
+
 private fun displayedWordToolAnswer(item: WordToolItem, modeId: String): String = when (modeId) {
     "words" -> item.czech
     "sentences" -> item.german
@@ -304,6 +387,10 @@ internal fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Li
                 val sentencePrompt = when {
                     group.id == "numbers" ->
                         "Jak se německy řekne číslo $numeral?\n$sentenceWithBlank"
+                    group.id == "ordinal-numbers" ->
+                        "Jak se německy řekne řadová číslovka „${item.czech}“?\n$sentenceWithBlank"
+                    group.id == "multiplicative-numbers" ->
+                        "Jak se německy řekne „${item.czech}“?\n$sentenceWithBlank"
                     group.id == "possessives" ->
                         "Doplň správný tvar podle věty a českého významu:\n$sentenceWithBlank\nČesky: ${item.sentenceCzech}"
                     else ->
@@ -340,7 +427,9 @@ internal fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Li
 @Composable
 internal fun WordToolsScreen(
     onBack: () -> Unit,
-    onComplete: (score: Int, total: Int, activityKey: String) -> Unit
+    onNumbers: () -> Unit,
+    onComplete: (score: Int, total: Int, activityKey: String) -> Unit,
+    onHome: () -> Unit = onBack
 ) {
     val context = LocalContext.current
     var selectedGroup by remember { mutableStateOf<WordToolGroup?>(null) }
@@ -395,24 +484,11 @@ internal fun WordToolsScreen(
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(
-                    onClick = { goBackOneLevel() },
-                    colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Zpět")
-                    Text("Zpět")
-                }
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("DEUTSCHAI", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
-                    Text(
-                        selectedMode?.title ?: selectedGroup?.title ?: "Další slovní druhy",
-                        color = Muted,
-                        fontSize = 13.sp
-                    )
-                }
-            }
+            AppScreenHeader(
+                title = selectedMode?.title ?: selectedGroup?.title ?: "Slovní druhy a gramatika",
+                onBack = { goBackOneLevel() },
+                onHome = onHome
+            )
 
             when {
                 selectedMode == null && selectedGroup == null -> {
@@ -421,7 +497,35 @@ internal fun WordToolsScreen(
                         "Vyber oblast a pak způsob procvičení. Každá sada má 25 promíchaných otázek.",
                         color = Muted, fontSize = 14.sp, lineHeight = 21.sp
                     )
-                    wordToolGroups.forEach { group ->
+                    Card(
+                        onClick = onNumbers,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = CardSurface)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(18.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(14.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier.size(46.dp).background(wordToolCategoryBackground("numbers"), RoundedCornerShape(14.dp)),
+                                contentAlignment = Alignment.Center
+                            ) { Icon(wordToolCategoryIcon("numbers"), contentDescription = null, tint = wordToolCategoryTint("numbers")) }
+                            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text("Číslovky", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                                Text(
+                                    "Základní, řadové a násobné číslovky v samostatných sadách i ve smíšeném drilu.",
+                                    color = Muted,
+                                    fontSize = 13.sp,
+                                    lineHeight = 18.sp
+                                )
+                                Text("3 samostatné sady · 25 otázek ve smíšeném drilu", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                LatestResultLine(CourseResultStore.load(context, "numbers_mixed"))
+                            }
+                        }
+                    }
+                    wordToolGroups.filterNot { it.id in numberWordToolGroupIds }.forEach { group ->
                         Card(
                             onClick = { selectedGroup = group },
                             modifier = Modifier.fillMaxWidth(),
@@ -434,9 +538,9 @@ internal fun WordToolsScreen(
                                 horizontalArrangement = Arrangement.spacedBy(14.dp)
                             ) {
                                 Box(
-                                    modifier = Modifier.size(46.dp).background(Mint, RoundedCornerShape(14.dp)),
+                                    modifier = Modifier.size(46.dp).background(wordToolCategoryBackground(group.id), RoundedCornerShape(14.dp)),
                                     contentAlignment = Alignment.Center
-                                ) { Icon(Icons.Default.Translate, contentDescription = null, tint = ForestText) }
+                                ) { Icon(wordToolCategoryIcon(group.id), contentDescription = null, tint = wordToolCategoryTint(group.id)) }
                                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                     Text(group.title, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
                                     Text(group.subtitle, color = Muted, fontSize = 13.sp, lineHeight = 18.sp)

@@ -19,12 +19,21 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Translate
-import androidx.compose.material.icons.filled.Verified
+import androidx.compose.material.icons.filled.Forum
+import androidx.compose.material.icons.filled.Label
+import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.LibraryBooks
+import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.TextFields
+import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -46,6 +55,68 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/**
+ * One stable visual identity for every learning category. The icons use native
+ * Material vectors (not generated lettering), so they remain crisp and cannot
+ * introduce accidental foreign characters into the UI.
+ */
+internal enum class LearningCategoryVisual(
+    val image: ImageVector,
+    val lightBackground: Color,
+    val lightTint: Color,
+    val darkBackground: Color,
+    val darkTint: Color
+) {
+    COURSES(
+        Icons.Default.Layers,
+        Color(0xFFE8EFF7), Color(0xFF315B82),
+        Color(0xFF263747), Color(0xFFAFCBE6)
+    ),
+    VERBS(
+        Icons.Default.SwapHoriz,
+        Color(0xFFF6EFDF), Color(0xFF8A672F),
+        Color(0xFF3C3426), Color(0xFFE4C58B)
+    ),
+    NOUNS(
+        Icons.Default.Label,
+        Color(0xFFF5EBEE), Color(0xFF8E5363),
+        Color(0xFF3E2D34), Color(0xFFE2B5C2)
+    ),
+    WORD_TOOLS(
+        Icons.Default.School,
+        Color(0xFFEAF1E9), Color(0xFF47704E),
+        Color(0xFF29392D), Color(0xFFB1D4B3)
+    ),
+    READING(
+        Icons.Default.MenuBook,
+        Color(0xFFE9F1F6), Color(0xFF35617E),
+        Color(0xFF253743), Color(0xFFAFCBDD)
+    ),
+    DIALOGUES(
+        Icons.Default.Forum,
+        Color(0xFFF0ECF7), Color(0xFF67568E),
+        Color(0xFF342D43), Color(0xFFC8B9E8)
+    ),
+    LISTENING(
+        Icons.Default.VolumeUp,
+        Color(0xFFE5F2EE), Color(0xFF2F6A5C),
+        Color(0xFF233B35), Color(0xFFA6D9CB)
+    ),
+    NOTEBOOK(
+        Icons.Default.LibraryBooks,
+        Color(0xFFEEF1E8), Color(0xFF637348),
+        Color(0xFF343B2B), Color(0xFFD0D9AA)
+    )
+}
+
+@Composable
+internal fun learningCategoryBackground(category: LearningCategoryVisual): Color =
+    if (IsDarkTheme) category.darkBackground else category.lightBackground
+
+@Composable
+internal fun learningCategoryTint(category: LearningCategoryVisual): Color =
+    if (IsDarkTheme) category.darkTint else category.lightTint
+
 @Composable
 internal fun LearningHubScreen(
     onBack: () -> Unit,
@@ -54,7 +125,9 @@ internal fun LearningHubScreen(
     onVerbs: () -> Unit,
     onDialogues: () -> Unit,
     onReading: () -> Unit,
-    onWordTools: () -> Unit
+    onWordTools: () -> Unit,
+    onVocabularyDrill: () -> Unit,
+    onHome: () -> Unit = onBack
 ) {
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(
@@ -65,7 +138,7 @@ internal fun LearningHubScreen(
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            ScreenHeader("Knihovna učení", onBack)
+            ScreenHeader("Knihovna učení", onBack, onHome)
             Text("Co chceš dnes procvičit?", color = Ink, fontSize = 27.sp, fontWeight = FontWeight.Bold)
             Text(
                 "Vyber hlavní kategorii a potom konkrétní téma. Každé cvičení funguje offline.",
@@ -74,46 +147,60 @@ internal fun LearningHubScreen(
                 lineHeight = 21.sp
             )
             LearningCard(
-                icon = { Icon(Icons.Default.MenuBook, contentDescription = null, tint = ForestText) },
+                icon = { Icon(LearningCategoryVisual.COURSES.image, contentDescription = null, tint = learningCategoryTint(LearningCategoryVisual.COURSES)) },
+                iconBackground = learningCategoryBackground(LearningCategoryVisual.COURSES),
                 title = "Kurzy A1–B2",
                 subtitle = "Čtyři úrovně podle náročnosti, tematické lekce a samostatné chytré opakování frází v každé úrovni.",
-                detail = sentenceCourseCatalog.size.toString() + " kurzů · 25 otázek v každém",
+                detail = "Tematické lekce A1–B2 · 25 otázek v každé",
                 onClick = onCourses
             )
             LearningCard(
-                icon = { Icon(Icons.Default.Book, contentDescription = null, tint = ForestText) },
-                title = "Členy a podstatná jména",
-                subtitle = "Vyber si slovní téma: bydlení, jídlo, práce, cestování a další.",
-                detail = articleCategories.size.toString() + " tematických sad · 25 slov v každé",
-                onClick = onArticles
-            )
-            LearningCard(
-                icon = { Icon(Icons.Default.Translate, contentDescription = null, tint = ForestText) },
-                title = "Slovní druhy a gramatika",
-                subtitle = "Číslovky, předložky, spojky, příslovce i přivlastňovací zájmena.",
-                detail = "${wordToolGroups.size} oblastí · 3 způsoby procvičení",
-                onClick = onWordTools
-            )
-            LearningCard(
-                icon = { Icon(Icons.Default.School, contentDescription = null, tint = ForestText) },
+                icon = { Icon(LearningCategoryVisual.VERBS.image, contentDescription = null, tint = learningCategoryTint(LearningCategoryVisual.VERBS)) },
+                iconBackground = learningCategoryBackground(LearningCategoryVisual.VERBS),
                 title = "Důležitá slovesa",
                 subtitle = "Procvič si časování ve větách, ne jen izolované tvary.",
-                detail = verbPracticeTopics.size.toString() + " lekcí · 25 smíšených otázek v každé",
+                detail = "Časování sloves v praktických větách · 25 otázek",
                 onClick = onVerbs
             )
             LearningCard(
-                icon = { Icon(Icons.Default.ChatBubbleOutline, contentDescription = null, tint = ForestText) },
-                title = "Řízené dialogy",
-                subtitle = "Tři doporučené odpovědi, vždy s českým překladem a navazující replikou.",
-                detail = guidedDialogueTopics.size.toString() + " dialogy v první sadě",
-                onClick = onDialogues
+                icon = { Icon(LearningCategoryVisual.NOUNS.image, contentDescription = null, tint = learningCategoryTint(LearningCategoryVisual.NOUNS)) },
+                iconBackground = learningCategoryBackground(LearningCategoryVisual.NOUNS),
+                title = "Členy a podstatná jména",
+                subtitle = "Vyber si slovní téma: bydlení, jídlo, práce, cestování a další.",
+                detail = "Tematické sady · 25 slov v každé",
+                onClick = onArticles
             )
             LearningCard(
-                icon = { Icon(Icons.Default.Book, contentDescription = null, tint = ForestText) },
+                icon = { Icon(Icons.Default.FlashOn, contentDescription = null, tint = Color(0xFF8A672F)) },
+                iconBackground = Color(0xFFF6EFDF),
+                title = "Dril nejpoužívanějších slov",
+                subtitle = "Běžná mluvená němčina. V A1 a A2 dostávají přednost důležitá slovesa.",
+                detail = "Úrovně A1–B2 · volba 5 nebo 10 slov",
+                onClick = onVocabularyDrill
+            )
+            LearningCard(
+                icon = { Icon(LearningCategoryVisual.WORD_TOOLS.image, contentDescription = null, tint = learningCategoryTint(LearningCategoryVisual.WORD_TOOLS)) },
+                iconBackground = learningCategoryBackground(LearningCategoryVisual.WORD_TOOLS),
+                title = "Slovní druhy a gramatika",
+                subtitle = "Předložky, spojky, příslovce, přivlastňovací zájmena a číslovky.",
+                detail = "Gramatické oblasti + číslovky · 3 způsoby procvičení",
+                onClick = onWordTools
+            )
+            LearningCard(
+                icon = { Icon(LearningCategoryVisual.READING.image, contentDescription = null, tint = learningCategoryTint(LearningCategoryVisual.READING)) },
+                iconBackground = learningCategoryBackground(LearningCategoryVisual.READING),
                 title = "Čtení v němčině",
                 subtitle = "Dlouhé příběhy podle úrovně A1–C2; podrž slovo a zobrazíš český význam.",
-                detail = readingArticles.size.toString() + " příběhů · A1 až C2",
+                detail = "Příběhy podle úrovní A1–C2",
                 onClick = onReading
+            )
+            LearningCard(
+                icon = { Icon(LearningCategoryVisual.DIALOGUES.image, contentDescription = null, tint = learningCategoryTint(LearningCategoryVisual.DIALOGUES)) },
+                iconBackground = learningCategoryBackground(LearningCategoryVisual.DIALOGUES),
+                title = "Řízené dialogy",
+                subtitle = "Tři doporučené odpovědi, vždy s českým překladem a navazující replikou.",
+                detail = "Řízené scénáře s doporučenými odpověďmi",
+                onClick = onDialogues
             )
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -140,7 +227,10 @@ internal fun LearningHubScreen(
 @Composable
 internal fun ArticleCategoryLibraryScreen(
     onBack: () -> Unit,
-    onSelectCategory: (ArticleCategory) -> Unit
+    onVocabulary: () -> Unit,
+    onDrill: () -> Unit,
+    onSelectCategory: (ArticleCategory) -> Unit,
+    onHome: () -> Unit = onBack
 ) {
     val context = LocalContext.current
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
@@ -152,13 +242,28 @@ internal fun ArticleCategoryLibraryScreen(
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            ScreenHeader("Členy a slovíčka", onBack)
+            ScreenHeader("Členy a slovíčka", onBack, onHome)
             Text("Vyber slovní téma", color = Ink, fontSize = 27.sp, fontWeight = FontWeight.Bold)
             Text(
                 "V každé sadě je 25 podstatných jmen. Vyber správný člen der, die nebo das a uč se zároveň český význam.",
                 color = Muted,
                 fontSize = 14.sp,
                 lineHeight = 21.sp
+            )
+            LearningCard(
+                icon = { Icon(Icons.Default.Book, contentDescription = null, tint = ForestText) },
+                title = "Slovní zásoba",
+                subtitle = "Každá otázka ukáže pouze německý člen a podstatné jméno (der/die/das). Příkladovou větu uslyšíš až po odpovědi.",
+                detail = "${vocabularyCatalog.size} slov · náhodné sady po 25",
+                onClick = onVocabulary
+            )
+            LearningCard(
+                icon = { Icon(Icons.Default.FlashOn, contentDescription = null, tint = Color(0xFF8A672F)) },
+                iconBackground = Color(0xFFF6EFDF),
+                title = "Dril nejpoužívanějších slov",
+                subtitle = "Slova pro každodenní mluvu. V jedné sadě 5 nebo 10 výrazů s aktivním vybavováním a poslechem.",
+                detail = "${frequencyVocabularyCatalog.size} slov · A1–B2",
+                onClick = onDrill
             )
             articleCategories.forEachIndexed { index, category ->
                 Card(
@@ -194,7 +299,9 @@ internal fun ArticleCategoryLibraryScreen(
 @Composable
 internal fun VerbCategoryLibraryScreen(
     onBack: () -> Unit,
-    onSelectTopic: (VerbPracticeLesson) -> Unit
+    onFrequencyDrill: () -> Unit,
+    onSelectTopic: (VerbPracticeLesson) -> Unit,
+    onHome: () -> Unit = onBack
 ) {
     val context = LocalContext.current
     var selectedPart by remember { mutableStateOf<String?>(null) }
@@ -208,9 +315,11 @@ internal fun VerbCategoryLibraryScreen(
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            ScreenHeader("Důležitá slovesa") {
-                if (selectedPart != null) selectedPart = null else onBack()
-            }
+            ScreenHeader(
+                "Důležitá slovesa",
+                onBack = { if (selectedPart != null) selectedPart = null else onBack() },
+                onHome = onHome
+            )
             Text(
                 if (selectedPart == null) "Vyber způsob procvičování"
                 else if (selectedPart == "advanced") "Pokročilé procvičování"
@@ -234,14 +343,24 @@ internal fun VerbCategoryLibraryScreen(
 
             if (selectedPart == null) {
                 LearningCard(
-                    icon = { Icon(Icons.Default.Verified, contentDescription = null, tint = ForestText) },
+                    icon = { Icon(Icons.Default.FlashOn, contentDescription = null, tint = Color(0xFF8A672F)) },
+                    iconBackground = Color(0xFFF6EFDF),
+                    title = "Frekvenční dril sloves A1–B2",
+                    subtitle = "Procvič nejpoužívanější slovesa v běžných větách, včetně důležitých tvarů a poslechu.",
+                    detail = frequencyVocabularyCatalog.count { it.kind == FrequencyWordKind.VERB }.toString() + " sloves · možnost 5 nebo 10",
+                    onClick = onFrequencyDrill
+                )
+                LearningCard(
+                    icon = { Icon(Icons.Default.TextFields, contentDescription = null, tint = learningCategoryTint(LearningCategoryVisual.VERBS)) },
+                    iconBackground = learningCategoryBackground(LearningCategoryVisual.VERBS),
                     title = "1. Základní procvičování",
                     subtitle = "Nauč se tvary pěti důležitých sloves v různých větách.",
                     detail = verbPracticeTopics.size.toString() + " lekcí · 25 otázek v každé",
                     onClick = { selectedPart = "basic" }
                 )
                 LearningCard(
-                    icon = { Icon(Icons.Default.School, contentDescription = null, tint = ForestText) },
+                    icon = { Icon(Icons.Default.School, contentDescription = null, tint = Color(0xFF315B82)) },
+                    iconBackground = Color(0xFFE8EFF7),
                     title = "2. Pokročilé procvičování",
                     subtitle = "Rozlišuj významy pěti sloves a vybírej správný tvar ze čtyř různých sloves.",
                     detail = verbPracticeTopics.size.toString() + " lekcí · 25 otázek v každé",
@@ -262,17 +381,17 @@ internal fun VerbCategoryLibraryScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Box(
-                                modifier = Modifier.size(42.dp).background(Mint, RoundedCornerShape(13.dp)),
+                                modifier = Modifier.size(42.dp).background(learningCategoryBackground(LearningCategoryVisual.VERBS), RoundedCornerShape(13.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text((index + 1).toString(), color = ForestText, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                Text((index + 1).toString(), color = learningCategoryTint(LearningCategoryVisual.VERBS), fontSize = 18.sp, fontWeight = FontWeight.Bold)
                             }
                             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Text(topic.title, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
                                 Text(topic.subtitle, color = Muted, fontSize = 13.sp, lineHeight = 18.sp)
                                 val verbNames = topic.verbIds.mapNotNull { id -> verbDefinitions.find { it.id == id }?.infinitive }
-                                Text(verbNames.joinToString(" · "), color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                                Text("25 otázek · stejných 5 sloves v sadě", color = ForestText, fontSize = 12.sp)
+                                Text(verbNames.joinToString(" · "), color = learningCategoryTint(LearningCategoryVisual.VERBS), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text("25 otázek · stejných 5 sloves v sadě", color = Muted, fontSize = 12.sp)
                                 LatestResultLine(CourseResultStore.load(context, "verbs_${topic.id}"))
                             }
                         }
@@ -287,7 +406,8 @@ internal fun VerbCategoryLibraryScreen(
 internal fun ArticleQuizScreen(
     category: ArticleCategory,
     onBack: () -> Unit,
-    onComplete: (score: Int, total: Int) -> Unit
+    onComplete: (score: Int, total: Int) -> Unit,
+    onHome: () -> Unit = onBack
 ) {
     val context = LocalContext.current
     var words by remember(category.id) { mutableStateOf(category.words.shuffled()) }
@@ -330,7 +450,7 @@ internal fun ArticleQuizScreen(
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            ScreenHeader(category.title, onBack)
+            ScreenHeader(category.title, onBack, onHome)
             if (finished) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -495,7 +615,8 @@ internal fun ArticleQuizScreen(
 internal fun VerbQuizScreen(
     topic: VerbPracticeLesson,
     onBack: () -> Unit,
-    onComplete: (score: Int, total: Int) -> Unit
+    onComplete: (score: Int, total: Int) -> Unit,
+    onHome: () -> Unit = onBack
 ) {
     val context = LocalContext.current
     var questions by remember(topic.id) { mutableStateOf(buildVerbQuestions(topic).shuffled()) }
@@ -536,7 +657,7 @@ internal fun VerbQuizScreen(
                 .padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            ScreenHeader(topic.title, onBack)
+            ScreenHeader(topic.title, onBack, onHome)
             Text(topic.subtitle, color = Muted, fontSize = 14.sp, lineHeight = 20.sp)
             Text(
                 "Slovesa: " + topic.verbIds.mapNotNull { id -> verbDefinitions.find { it.id == id }?.infinitive }.joinToString(" · "),
@@ -772,31 +893,14 @@ private fun createVerbQuestions(lesson: VerbPracticeLesson): List<LessonQuestion
 }
 
 @Composable
-private fun ScreenHeader(title: String, onBack: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Button(
-            onClick = onBack,
-            colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.heightIn(min = 52.dp)
-        ) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Zpět")
-            Text("Zpět")
-        }
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text("DEUTSCHAI", color = ForestText, fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 2.sp)
-            Text(title, color = Muted, fontSize = 13.sp)
-        }
-    }
+private fun ScreenHeader(title: String, onBack: () -> Unit, onHome: () -> Unit = onBack) {
+    AppScreenHeader(title = title, onBack = onBack, onHome = onHome)
 }
 
 @Composable
 private fun LearningCard(
     icon: @Composable () -> Unit,
+    iconBackground: Color = Mint,
     title: String,
     subtitle: String,
     detail: String,
@@ -809,19 +913,25 @@ private fun LearningCard(
         colors = CardDefaults.cardColors(containerColor = CardSurface)
     ) {
         Row(
-            modifier = Modifier.padding(17.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 15.dp),
             horizontalArrangement = Arrangement.spacedBy(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier.size(48.dp).background(Mint, RoundedCornerShape(15.dp)),
+                modifier = Modifier.size(52.dp).background(iconBackground, RoundedCornerShape(16.dp)),
                 contentAlignment = Alignment.Center
             ) { icon() }
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Text(title, color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
-                Text(subtitle, color = Muted, fontSize = 13.sp, lineHeight = 19.sp)
-                Text(detail, color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(title, color = Ink, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(subtitle, color = Muted, fontSize = 12.sp, lineHeight = 18.sp)
+                Text(detail, color = ForestText, fontSize = 11.sp, fontWeight = FontWeight.Bold)
             }
+            Icon(
+                imageVector = Icons.Default.ArrowForward,
+                contentDescription = null,
+                tint = Muted,
+                modifier = Modifier.size(18.dp)
+            )
         }
     }
 }

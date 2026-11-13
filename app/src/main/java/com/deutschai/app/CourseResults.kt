@@ -3,6 +3,8 @@ package com.deutschai.app
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -107,7 +109,8 @@ internal object LearningProgressStore {
     }
 
     private fun resultKeys(): List<String> =
-        listOf("daily_training") +
+        listOf("daily_training", "vocabulary_learning", "saved_vocabulary", "vocabulary_drill") +
+            readingArticles.map { "reading_${it.id}" } +
             sentenceCourseCatalog.map { "sentence_${it.id}" } +
             articleCategories.map { "articles_${it.id}" } +
             (verbPracticeTopics + advancedVerbPracticeTopics).map { "verbs_${it.id}" } +
@@ -123,16 +126,82 @@ internal fun LatestResultLine(result: CourseResult?) {
     if (result != null) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.dp)
+            horizontalArrangement = Arrangement.spacedBy(7.dp)
         ) {
-            Text("Poslední výsledek:", color = Color(0xFF66736D), fontSize = 12.sp)
-            Text(
-                if (result.isPerfect) "${result.score}/${result.total} · Úspěch ✓"
-                else "${result.score}/${result.total}",
-                color = if (result.isPerfect) Color(0xFF21864D) else Color(0xFF163D35),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Text("Poslední výsledek", color = Color(0xFF66736D), fontSize = 11.sp)
+            Surface(
+                color = if (result.isPerfect) Color(0xFFE3F1E7) else Color(0xFFE9EFEB),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(9.dp)
+            ) {
+                Text(
+                    if (result.isPerfect) "${result.score}/${result.total} · 100 %" else "${result.score}/${result.total}",
+                    modifier = androidx.compose.ui.Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
+                    color = if (result.isPerfect) Color(0xFF21864D) else Color(0xFF163D35),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
+    }
+}
+
+
+internal data class SentenceCourseLearningProgress(
+    val courseId: String,
+    val title: String,
+    val subtitle: String,
+    val level: String,
+    val totalQuestions: Int,
+    val answeredQuestions: Int,
+    val latestResult: CourseResult?
+) {
+    val isCompleted: Boolean get() = latestResult != null
+    val progressPercent: Int
+        get() = if (isCompleted) 100 else if (totalQuestions <= 0) 0
+        else (answeredQuestions * 100 / totalQuestions).coerceIn(0, 99)
+    val statusLabel: String
+        get() = when {
+            isCompleted -> "Dokončeno"
+            answeredQuestions > 0 -> "Rozpracováno"
+            else -> "Nezahájeno"
+        }
+}
+
+/**
+ * Combines the per-course result store with uniquely tracked question IDs.
+ * New answers use courseId; older history can be matched by title only when
+ * that title is unique in the catalogue, avoiding accidental cross-level matches.
+ */
+internal fun buildSentenceCourseLearningProgress(
+    courses: List<SentenceCourseDefinition>,
+    reviewEntries: List<ReviewMemoryEntry>,
+    latestResults: Map<String, CourseResult?>
+): List<SentenceCourseLearningProgress> {
+    val titleCounts = courses.groupingBy { it.title }.eachCount()
+    return courses.map { course ->
+        val courseEntries = reviewEntries.filter { entry ->
+            val question = entry.question
+            question.sourceKind == "sentences" &&
+                entry.attemptCount > 0 &&
+                (
+                    question.courseId == course.id ||
+                        (
+                            question.courseId.isBlank() &&
+                                titleCounts[course.title] == 1 &&
+                                question.sourceTitle == course.title &&
+                                (question.cefrLevel.isBlank() || question.cefrLevel == course.level)
+                            )
+                    )
+        }
+        SentenceCourseLearningProgress(
+            courseId = course.id,
+            title = course.title,
+            subtitle = course.subtitle,
+            level = course.level,
+            totalQuestions = course.items.size,
+            answeredQuestions = courseEntries.map { it.question.id }.distinct().size
+                .coerceAtMost(course.items.size),
+            latestResult = latestResults[course.id]
+        )
     }
 }

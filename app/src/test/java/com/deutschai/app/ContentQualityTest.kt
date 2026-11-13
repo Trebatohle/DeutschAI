@@ -13,6 +13,74 @@ class ContentQualityTest {
         readingArticlesB2Extra
 
     @Test
+    fun readingNotebookQuestionsIncludeSavedWordAndOriginalSentence() {
+        val item = ReadingNotebookWord(
+            id = "reader-test-1",
+            word = "entscheiden",
+            meaning = "rozhodnout",
+            exampleGerman = "Sie muss heute entscheiden.",
+            sourceTitle = "Ein neuer Anfang",
+            sourceLevel = "B1",
+            savedAtMillis = 123L
+        )
+
+        val questions = buildPersonalNotebookQuestions(
+            catalogEntries = emptyList(),
+            readingEntries = listOf(item),
+            count = 10,
+            random = kotlin.random.Random(19)
+        )
+
+        assertEquals(1, questions.size)
+        val question = questions.single()
+        assertTrue(question.prompt.contains("entscheiden"))
+        assertEquals(4, question.choices.size)
+        assertEquals(4, question.choices.toSet().size)
+        assertEquals("rozhodnout", question.choices[question.correctIndex])
+        assertEquals("Sie muss heute entscheiden.", question.germanSentence)
+        assertTrue(question.explanation.contains("Ein neuer Anfang"))
+    }
+
+    @Test
+    fun readingNotebookWordsAreSortedAlphabeticallyAndMeaningIsStoredSeparately() {
+        val words = listOf(
+            ReadingNotebookWord("2", "zuerst", "nejprve", "Zuerst essen wir.", "Text", "A2", 2L),
+            ReadingNotebookWord("1", "ankommen", "dorazit", "Wir kommen an.", "Text", "A2", 1L)
+        )
+
+        val result = filterReadingNotebookWords(words)
+
+        assertEquals(listOf("ankommen", "zuerst"), result.map { it.word })
+        assertEquals("dorazit", result.first().meaning)
+    }
+
+    @Test
+    fun readingExampleSentenceReturnsTheSentenceContainingTheSelectedWord() {
+        val article = readingArticles.first()
+        val word = article.body.split(Regex("\\s+")).first { it.length > 4 }
+            .trim(',', '.', '!', '?', ';', ':', '„', '“', '"', '(', ')')
+        val sentence = readingExampleSentence(article, word)
+
+        assertTrue(sentence.isNotBlank())
+        assertTrue(sentence.contains(word, ignoreCase = true))
+    }
+
+    @Test
+    fun personalVocabularyNotebookFiltersAndSortsOnlySavedEntries() {
+        val sample = vocabularyCatalog.take(12)
+        val savedIds = sample.filterIndexed { index, _ -> index % 3 == 0 }.map { it.id }.toSet()
+
+        val result = filterVocabularyNotebookEntries(sample, savedIds)
+
+        assertEquals(savedIds, result.map { it.id }.toSet())
+        assertEquals(result.size, result.map { it.id }.toSet().size)
+        assertEquals(
+            result.map { it.word.lowercase() }.sorted(),
+            result.map { it.word.lowercase() }
+        )
+    }
+
+    @Test
     fun everyNewA1ToB2StoryExceedsOneThousandWords() {
         assertEquals("Eight additional stories are expected", 8, additionalStories.size)
         additionalStories.forEach { article ->
@@ -134,6 +202,176 @@ class ContentQualityTest {
     }
 
     @Test
+    fun rewardPointsAreOnlyEarnedForPerfectResultsAndOnlyOncePerUniqueTest() {
+        assertFalse(qualifiesForRewardPoint(9, 10))
+        assertFalse(qualifiesForRewardPoint(10, 0))
+        assertTrue(qualifiesForRewardPoint(10, 10))
+
+        val firstAward = addRewardedTest(emptySet(), "sentence_a1_greetings")
+        assertEquals(1, firstAward.size)
+
+        val sameTestAgain = addRewardedTest(firstAward, "sentence_a1_greetings")
+        assertEquals("Repeating the same test must not award another point", 1, sameTestAgain.size)
+
+        val secondTest = addRewardedTest(sameTestAgain, "sentence_a1_shopping")
+        assertEquals(2, secondTest.size)
+    }
+
+    @Test
+    fun fifteenUniquePerfectTestsUnlockTheFifteenPercentLicenseReward() {
+        val beforeUnlock = RewardPointsProgress(14)
+        assertEquals(14, beforeUnlock.displayedPoints)
+        assertEquals(1, beforeUnlock.pointsRemaining)
+        assertEquals(14f / 15f, beforeUnlock.progressFraction, 0.0001f)
+        assertFalse(beforeUnlock.discountUnlocked)
+
+        val unlocked = RewardPointsProgress(15)
+        assertEquals(15, unlocked.displayedPoints)
+        assertEquals(0, unlocked.pointsRemaining)
+        assertEquals(1f, unlocked.progressFraction)
+        assertTrue(unlocked.discountUnlocked)
+        assertEquals(15, LICENSE_DISCOUNT_PERCENT)
+    }
+
+    @Test
+    fun sentenceLessonPracticeUsesFiveWritingAndFiveDifferentDictationQuestions() {
+        val course = sentenceCourseCatalog.first { it.level == "A1" }
+        val questions = sentenceCourseQuestions(course.id)
+        val selection = createLessonPracticeSelection(questions, kotlin.random.Random(41))
+
+        assertEquals(25, selection.introduction.size)
+        assertEquals(5, selection.writing.size)
+        assertEquals(5, selection.dictation.size)
+        assertEquals(25, selection.introduction.toSet().size)
+        assertEquals(
+            10,
+            (selection.writing + selection.dictation)
+                .map { it.germanSentence }
+                .toSet()
+                .size
+        )
+        assertEquals(
+            selection.introduction.map { it.germanSentence }.toSet(),
+            (selection.writing + selection.dictation).map { it.germanSentence }
+                .toSet() + selection.introduction.drop(10).map { it.germanSentence }
+        )
+    }
+
+    @Test
+    fun deferredCourseSentencesAreNotMaterializedUntilAnIndividualSentenceIsRequested() {
+        var materializationCount = 0
+        val items = deferredCourseList(25) {
+            materializationCount += 1
+            (1..25).map { index ->
+                SentencePracticeItem(
+                    prompt = "Testovací otázka $index",
+                    german = "Das ist Satz Nummer $index.",
+                    czech = "To je věta číslo $index."
+                )
+            }
+        }
+
+        assertEquals(0, materializationCount)
+        assertEquals(25, items.size)
+        assertEquals(0, materializationCount)
+        assertEquals("Das ist Satz Nummer 1.", items.first().german)
+        assertEquals(1, materializationCount)
+        assertEquals("Das ist Satz Nummer 25.", items.last().german)
+        assertEquals("Sentence items should be materialized only once", 1, materializationCount)
+    }
+
+    @Test
+    fun perLevelSentenceCatalogMatchesTheCombinedCatalogueWithoutLoadingOtherLevels() {
+        val allCourses = sentenceCourseCatalog
+        listOf("A1", "A2", "B1", "B2").forEach { level ->
+            val levelCourses = sentenceCourseCatalogForLevel(level)
+            val expectedIds = allCourses.filter { it.level == level }.map { it.id }
+            assertEquals("Course metadata for $level must remain complete", expectedIds, levelCourses.map { it.id })
+            assertTrue("All loaded courses must belong to $level", levelCourses.all { it.level == level })
+            assertTrue("Each $level course must keep 25 phrases", levelCourses.all { it.items.size == 25 })
+        }
+    }
+
+    @Test
+    fun everySentenceCourseKeepsTwentyFiveFourChoiceIntroductionQuestions() {
+        val dailySentencePool = buildDailyTrainingPool().filter { it.sourceKind == "sentences" }
+        sentenceCourseCatalog.forEach { course ->
+            val questions = sentenceCourseQuestions(course.id)
+            assertEquals("${course.id} must keep 25 introduction questions", 25, questions.size)
+            val dailyQuestions = dailySentencePool.filter { it.courseId == course.id }
+            assertEquals("${course.id} must keep 25 daily-training questions", 25, dailyQuestions.size)
+            assertEquals("${course.id} must keep 25 unique German answers", 25, questions.map { it.germanSentence }.toSet().size)
+            val dailyQuestionsById = dailyQuestions.associateBy { it.id }
+
+            questions.forEachIndexed { index, question ->
+                assertEquals("${course.id} question $index must have four choices", 4, question.choices.size)
+                assertEquals("${course.id} question $index must have unique choices", 4, question.choices.toSet().size)
+                assertTrue(
+                    "${course.id} question $index must point to the correct German phrase",
+                    question.correctIndex in question.choices.indices &&
+                        question.choices[question.correctIndex] == question.germanSentence
+                )
+                assertTrue("${course.id} question $index needs a Czech prompt", question.prompt.isNotBlank())
+            }
+
+            questions.forEachIndexed { index, courseQuestion ->
+                val dailyQuestionId = stableReviewId("sentence", course.id, index.toString())
+                val dailyQuestion = dailyQuestionsById[dailyQuestionId]
+                    ?: error("${course.id} daily question $index is missing from the pool")
+                assertEquals(
+                    "${course.id} daily training must reuse the course-approved answer choices",
+                    courseQuestion.choices.toSet(),
+                    dailyQuestion.choices.toSet()
+                )
+                assertEquals(
+                    courseQuestion.germanSentence,
+                    dailyQuestion.choices[dailyQuestion.correctIndex]
+                )
+            }
+        }
+    }
+
+    @Test
+    fun broadA1EveningAndSundayPromptsHaveOneClearlyMatchingCourseAnswer() {
+        val evening = sentenceCourseQuestions("alltag").single {
+            it.germanSentence == "Vor dem Schlafen lese ich ein Buch."
+        }
+        assertEquals("Řekneš, že před spaním čteš knihu.", evening.prompt)
+        assertTrue(evening.choices.contains("Am Abend koche ich das Abendessen."))
+
+        val sunday = sentenceCourseQuestions("leisure").single {
+            it.germanSentence == "Am Sonntag möchte ich lange schlafen und danach frühstücken."
+        }
+        assertEquals(
+            "Řekneš, že v neděli chceš dlouho spát a potom snídat.",
+            sunday.prompt
+        )
+        assertTrue(sunday.choices.contains("Lass uns am Sonntag einen Ausflug machen."))
+    }
+
+    @Test
+    fun writtenGermanAnswersAreStrictExceptForHarmlessWhitespaceAndExplicitAlternatives() {
+        val question = LessonQuestion(
+            prompt = "Přelož do němčiny.",
+            choices = emptyList(),
+            correctIndex = 0,
+            explanation = "",
+            germanSentence = "Ich möchte einen Kaffee.",
+            translation = "Chtěl bych kávu.",
+            acceptedAnswers = listOf("Ich hätte gern einen Kaffee.")
+        )
+
+        assertTrue(isGermanWrittenAnswerCorrect(question, "Ich möchte einen Kaffee."))
+        assertTrue(isGermanWrittenAnswerCorrect(question, "  Ich   möchte einen Kaffee.  "))
+        assertTrue(isGermanWrittenAnswerCorrect(question, "Ich hätte gern einen Kaffee."))
+        assertFalse(isGermanWrittenAnswerCorrect(question, "ich möchte einen Kaffee."))
+        assertFalse(isGermanWrittenAnswerCorrect(question, "Ich mochte einen Kaffee."))
+        assertFalse(isGermanWrittenAnswerCorrect(question, "Ich möchte einen Kaffee"))
+        assertFalse(isGermanWrittenAnswerCorrect(question, "Ich möchte Kaffee."))
+        assertFalse(isGermanWrittenAnswerCorrect(question, ""))
+    }
+
+    @Test
     fun sentenceCoursesContainCompleteGermanAndCzechPairs() {
         assertTrue(sentenceCourseCatalog.isNotEmpty())
         val ids = sentenceCourseCatalog.map { it.id }
@@ -167,6 +405,131 @@ class ContentQualityTest {
     }
 
     @Test
+    fun branchingDialogueScenariosHaveValidGraphsAndMoreThanOnePossibleRoute() {
+        assertEquals(6, branchingGuidedDialogueTopics.size)
+        branchingGuidedDialogueTopics.forEach { topic ->
+            assertTrue(
+                "${topic.id} has graph errors: ${branchingDialogueValidationErrors(topic)}",
+                branchingDialogueValidationErrors(topic).isEmpty()
+            )
+            val paths = branchingDialoguePaths(topic)
+            assertTrue("${topic.id} should have at least two possible paths", paths.size >= 2)
+            assertTrue("${topic.id} paths should actually diverge", paths.distinct().size >= 2)
+            assertTrue(paths.all { it.first() == topic.startNodeId })
+            topic.nodes.forEach { node ->
+                assertEquals(3, node.options.size)
+                assertEquals(1, node.options.count { it.quality == DialogueAnswerQuality.RECOMMENDED })
+            }
+        }
+    }
+
+    @Test
+    fun additionalBranchingScenariosCoverWorkTravelComplaintsAndPhoneCalls() {
+        val expectedIds = setOf(
+            "team_meeting_b1",
+            "train_travel_b1",
+            "customer_complaint_b1",
+            "phone_appointment_a2"
+        )
+        assertEquals(expectedIds, additionalBranchingDialogueTopics.map { it.id }.toSet())
+        additionalBranchingDialogueTopics.forEach { topic ->
+            assertTrue("Scenario should expose more than one route", branchingDialoguePaths(topic).size >= 2)
+            assertTrue("Every added scenario should have at least five situations", topic.nodes.size >= 5)
+            assertTrue(topic.subtitle.contains(topic.level))
+        }
+    }
+
+    @Test
+    fun branchingDialogueMistakesCreateSpacedReviewWithRecommendedAnswer() {
+        val topic = branchingGuidedDialogueTopics.first()
+        val node = topic.nodes.first { it.id == topic.startNodeId }
+        val mistakeIndex = node.options.indexOfFirst { it.quality == DialogueAnswerQuality.NEEDS_WORK }
+        val recommendedIndex = node.options.indexOfFirst { it.quality == DialogueAnswerQuality.RECOMMENDED }
+
+        val review = buildBranchingDialogueReview(topic, node, mistakeIndex)
+
+        assertFalse(review.wasCorrect)
+        assertEquals(recommendedIndex, review.question.correctIndex)
+        assertEquals(3, review.question.choices.size)
+        assertTrue(review.question.explanation.contains("Lepší formulace"))
+        assertEquals("phrases", review.question.sourceKind)
+    }
+
+    @Test
+    fun acceptableBranchingDialogueAlternativesAreNotMarkedAsMistakes() {
+        val topic = branchingGuidedDialogueTopics.last()
+        val node = topic.nodes.first { it.id == topic.startNodeId }
+        val alternativeIndex = node.options.indexOfFirst { it.quality == DialogueAnswerQuality.ACCEPTABLE }
+
+        val review = buildBranchingDialogueReview(topic, node, alternativeIndex)
+
+        assertTrue(review.wasCorrect)
+        assertEquals(alternativeIndex, review.question.correctIndex)
+        assertTrue(review.question.explanation.isNotBlank())
+    }
+
+    @Test
+    fun expandedA1AndA2SentenceCoursesAddTenNewSectionsAndTwoHundredFiftyPhrases() {
+        val expectedIds = setOf("a1_visiting", "a1_health_everyday", "a1_hobbies_sports", "a1_weather_clothes", "a1_phone_messages", "a2_money_payments", "a2_transport_city", "a2_services_travel", "a2_cooking_household", "a2_goals_experiences")
+        val addedCourses = sentenceCourseCatalog.filter { it.id in expectedIds }
+        assertEquals("Ten new course sections should be present", 10, addedCourses.size)
+        assertEquals("Five added sections should belong to A1", 5, addedCourses.count { it.level == "A1" })
+        assertEquals("Five added sections should belong to A2", 5, addedCourses.count { it.level == "A2" })
+        assertEquals("The new sections should contain exactly 250 phrases", 250, addedCourses.sumOf { it.items.size })
+        addedCourses.forEach { course ->
+            assertEquals("${course.id} should contain 25 phrases", 25, course.items.size)
+            assertEquals("${course.id} should produce 25 lesson questions", 25, sentenceCourseQuestions(course.id).size)
+            course.items.forEachIndexed { index, item ->
+                assertTrue("${course.id} item ${index + 1} has a blank prompt", item.prompt.isNotBlank())
+                assertTrue("${course.id} item ${index + 1} has a blank German phrase", item.german.isNotBlank())
+                assertTrue("${course.id} item ${index + 1} has a blank Czech translation", item.czech.isNotBlank())
+            }
+        }
+    }
+
+    @Test
+    fun additionalA1AndA2SpeakingCoursesContainFiftyCoursesAnd1250UniqueNewPhrases() {
+        val addedCourseIds = setOf("a1_pets_at_home", "a1_veterinary_visit", "a1_post_office", "a1_library", "a1_hairdresser", "a1_florist", "a1_optician", "a1_photo_service", "a1_fuel_station", "a1_car_wash", "a1_bicycle_repair", "a1_swimming_pool", "a1_camping", "a1_forest_walk", "a1_gardening", "a1_houseplants", "a1_laundry_service", "a1_recycling", "a1_home_tools", "a1_lost_property", "a1_information_desk", "a1_zoo", "a1_museum", "a1_cinema", "a1_theatre_concerts", "a1_birthday_party", "a1_neighbours", "a1_school_supplies", "a1_kindergarten", "a1_community_volunteering", "a1_playground", "a1_stationery_shop", "a1_farmers_market", "a1_local_festival", "a1_animal_shelter", "a2_insurance_claim", "a2_car_rental", "a2_product_warranty", "a2_mobile_internet_contract", "a2_online_orders_delivery", "a2_apartment_handover", "a2_job_interview", "a2_shift_planning", "a2_parent_teacher_meeting", "a2_training_certification", "a2_volunteer_project", "a2_event_organisation", "a2_travel_disruptions", "a2_group_reservations", "a2_feedback_misunderstandings")
+        val addedCourses = sentenceCourseCatalog.filter { it.id in addedCourseIds }
+
+        assertEquals("Exactly 50 additional speaking courses should be present", 50, addedCourses.size)
+        assertEquals("A1 should receive 35 new courses", 35, addedCourses.count { it.level == "A1" })
+        assertEquals("A2 should receive 15 new courses", 15, addedCourses.count { it.level == "A2" })
+        assertEquals("The added catalogue should contain 1,250 phrases", 1250, addedCourses.sumOf { it.items.size })
+
+        addedCourses.forEach { course ->
+            assertEquals("${course.id} should contain exactly 25 questions", 25, course.items.size)
+            course.items.forEachIndexed { index, item ->
+                assertTrue("${course.id} question ${index + 1} has no prompt", item.prompt.isNotBlank())
+                assertTrue("${course.id} question ${index + 1} has no German phrase", item.german.isNotBlank())
+                assertTrue("${course.id} question ${index + 1} has no Czech translation", item.czech.isNotBlank())
+            }
+        }
+
+        fun normalizeGermanPhrase(value: String): String = value.lowercase()
+            .filter { it.isLetterOrDigit() || it.isWhitespace() }
+            .split(Regex("\\s+"))
+            .filter { it.isNotBlank() }
+            .joinToString(" ")
+
+        val previousGermanPhrases = sentenceCourseCatalog
+            .filterNot { it.id in addedCourseIds }
+            .flatMap { it.items }
+            .map { normalizeGermanPhrase(it.german) }
+            .toSet()
+        val newGermanPhrases = addedCourses
+            .flatMap { it.items }
+            .map { normalizeGermanPhrase(it.german) }
+
+        assertEquals("All 1,250 newly added German phrases must be unique", 1250, newGermanPhrases.toSet().size)
+        val repeatedPhrases = newGermanPhrases.filter { it in previousGermanPhrases }
+        assertTrue(
+            "New phrases must not repeat existing course phrases: ${repeatedPhrases.joinToString()}",
+            repeatedPhrases.isEmpty()
+        )
+    }
+
+    @Test
     fun cakeAndTableTranslationsRemainDistinctAndCorrect() {
         val translatedItems = sentenceCourseCatalog.flatMap { it.items }
         assertTrue(
@@ -185,7 +548,7 @@ class ContentQualityTest {
 
     @Test
     fun wordToolGroupsContainTwentyFiveCompletePracticeItems() {
-        assertEquals("Five grammar and vocabulary areas are expected", 5, wordToolGroups.size)
+        assertEquals("Seven grammar and vocabulary areas are expected", 7, wordToolGroups.size)
         val ids = wordToolGroups.map { it.id }
         assertEquals("Word-tool group IDs must be unique", ids.size, ids.toSet().size)
 
@@ -320,4 +683,1068 @@ class ContentQualityTest {
         assertNotEquals("tabulka", lookupReadingWordTranslation(article, "Tisch"))
         assertEquals("stůl", lookupReadingWordTranslation(article, "Tisch"))
     }
+
+    @Test
+    fun numberPracticeHasThreeSeparateTwentyFiveQuestionGroups() {
+        assertEquals(setOf("numbers", "ordinal-numbers", "multiplicative-numbers"), numberWordToolGroupIds)
+        numberWordToolGroupIds.forEach { groupId ->
+            val group = wordToolGroups.single { it.id == groupId }
+            assertEquals("$groupId should contain 25 items", 25, group.items.size)
+            group.items.forEachIndexed { index, item ->
+                assertTrue("$groupId item $index has no German form", item.german.isNotBlank())
+                assertTrue("$groupId item $index has no Czech meaning", item.czech.isNotBlank())
+                assertTrue("$groupId item $index has no German example", item.sentenceGerman.isNotBlank())
+                assertTrue("$groupId item $index has no Czech example", item.sentenceCzech.isNotBlank())
+            }
+        }
+    }
+
+    @Test
+    fun mixedNumberDrillContainsTwentyFiveRandomQuestionsAcrossAllThreeKinds() {
+        val questions = buildMixedNumberDrillQuestions(kotlin.random.Random(2026))
+        assertEquals(25, questions.size)
+        assertEquals(25, questions.map { it.id }.toSet().size)
+
+        val counts = questions.groupingBy { it.kind }.eachCount()
+        assertEquals(setOf("basic", "ordinal", "multiplicative"), counts.keys)
+        assertEquals(25, counts.values.sum())
+        assertEquals(9, counts["basic"])
+        assertEquals(8, counts["ordinal"])
+        assertEquals(8, counts["multiplicative"])
+
+        val nextRound = buildMixedNumberDrillQuestions(kotlin.random.Random(2027))
+        assertEquals(25, nextRound.size)
+        assertNotEquals(
+            "A new round should select a different randomized question order and sample",
+            questions.map { it.id },
+            nextRound.map { it.id }
+        )
+    }
+
+    @Test
+    fun everyMixedNumberQuestionHasExactlyThreeChoicesAndOneOfEachNumberKind() {
+        val requiredKinds = setOf("basic", "ordinal", "multiplicative")
+        buildMixedNumberDrillQuestions(kotlin.random.Random(42)).forEach { question ->
+            assertEquals("Question ${question.id} should have exactly three options", 3, question.choices.size)
+            assertEquals(
+                "Question ${question.id} has duplicate answer options",
+                3,
+                question.choices.map { it.lowercase() }.toSet().size
+            )
+            assertEquals(
+                "Question ${question.id} must identify the kind of every answer",
+                3,
+                question.choiceKinds.size
+            )
+            assertEquals(
+                "Question ${question.id} must offer one basic, one ordinal and one multiplicative numeral",
+                requiredKinds,
+                question.choiceKinds.toSet()
+            )
+            assertEquals(
+                "Only the option matching the question's target kind may be correct",
+                1,
+                question.choiceKinds.count { it == question.kind }
+            )
+            assertTrue(question.correctIndex in question.choices.indices)
+            assertEquals(question.kind, question.choiceKinds[question.correctIndex])
+            assertTrue(question.fullGerman.isNotBlank())
+            assertFalse(question.fullGerman.contains("___"))
+            assertTrue(question.fullGerman.contains(question.choices[question.correctIndex]))
+            assertTrue(question.fullCzech.isNotBlank())
+            assertTrue(question.explanation.contains(question.choices[question.correctIndex]))
+            assertTrue(question.prompt.startsWith("Doplň správnou číslovku:"))
+        }
+    }
+
+    @Test
+    fun individualNumberCategoriesGenerateTwentyFiveFourChoiceQuestions() {
+        numberWordToolGroupIds.forEach { groupId ->
+            val questions = makeNumberCategoryQuestions(groupId)
+            assertEquals(groupId, 25, questions.size)
+            questions.forEach { question ->
+                assertEquals(4, question.choices.size)
+                assertEquals(4, question.choices.toSet().size)
+                assertTrue(question.correctIndex in question.choices.indices)
+                assertTrue(
+                    "${question.id} correct number form is missing from its German sentence",
+                    question.fullGerman.contains(question.choices[question.correctIndex], ignoreCase = true)
+                )
+                assertTrue(question.fullCzech.isNotBlank())
+            }
+        }
+    }
+
+
+    @Test
+    fun vocabularyCatalogueContainsExactlyTwoThousandUniqueCompleteNouns() {
+        assertEquals("The vocabulary learning pack must contain exactly 2,000 items", 2000, vocabularyCatalog.size)
+        val normalizedWords = vocabularyCatalog.map { it.word.trim().lowercase() }
+        assertEquals("Vocabulary words must be unique", normalizedWords.size, normalizedWords.toSet().size)
+        val ids = vocabularyCatalog.map { it.id }
+        assertEquals("Vocabulary IDs must be unique", ids.size, ids.toSet().size)
+
+        vocabularyCatalog.forEach { entry ->
+            assertTrue("${entry.word} has an invalid German article", entry.article in setOf("der", "die", "das"))
+            assertTrue("A vocabulary item has a blank German noun", entry.word.isNotBlank())
+            assertTrue("${entry.word} has a blank Czech meaning", entry.czech.isNotBlank())
+            assertTrue("${entry.word} has a blank stable ID", entry.id.isNotBlank())
+        }
+    }
+
+    @Test
+    fun racletteGrillHasCorrectGermanArticleAndCzechMeaning() {
+        val raclette = vocabularyCatalog.single { it.word == "Raclette-Grill" }
+        assertEquals("der", raclette.article)
+        assertEquals("stolní gril na raclette", raclette.czech)
+    }
+
+    @Test
+    fun readingTranslationFallsBackToTheFullBundledVocabulary() {
+        val uncommon = vocabularyCatalog.first { it.word == "Raclette-Grill" }
+        val article = ReadingArticle(
+            id = "translation-test",
+            level = "A1",
+            title = "Test",
+            subtitle = "",
+            body = "Das ist ein Test."
+        )
+        assertEquals(uncommon.czech, lookupReadingWordTranslation(article, uncommon.word))
+    }
+
+    @Test
+    fun vocabularyNounsGenerateGermanAndCzechExampleSentences() {
+        vocabularyCatalog.forEach { entry ->
+            val german = vocabularySentenceGerman(entry)
+            val czech = vocabularySentenceCzech(entry)
+            assertTrue("${entry.word} has no German example", german.isNotBlank())
+            assertTrue("${entry.word} example omits its article", german.contains(entry.article))
+            assertTrue("${entry.word} example omits its noun", german.contains(entry.word))
+            assertTrue("${entry.word} has no Czech example", czech.isNotBlank())
+            assertTrue("${entry.word} Czech example omits its meaning", czech.contains(entry.czech))
+        }
+        assertEquals("Das ist der Tisch.", vocabularySentenceGerman(
+            vocabularyCatalog.single { it.word == "Tisch" }
+        ))
+        assertEquals("To je stůl.", vocabularySentenceCzech(
+            vocabularyCatalog.single { it.word == "Tisch" }
+        ))
+    }
+
+    @Test
+    fun vocabularyBatchContainsTwentyFiveRandomizedUniqueItems() {
+        val batch = buildVocabularyBatch(vocabularyCatalog, count = 25, random = kotlin.random.Random(2026))
+        assertEquals(25, batch.size)
+        assertEquals(25, batch.map { it.entry.id }.toSet().size)
+        batch.forEach { question ->
+            assertEquals("Every item in the 2,000-word pack must show only article + noun", VocabularyPresentation.WORD, question.presentation)
+            assertEquals("${question.entry.article} ${question.entry.word}", question.germanText)
+            assertTrue(question.germanText.isNotBlank())
+            assertTrue(question.correctCzech.isNotBlank())
+            assertEquals(4, question.choices.size)
+            assertEquals(4, question.choices.toSet().size)
+            assertTrue(question.correctIndex in question.choices.indices)
+            assertEquals(question.correctCzech, question.choices[question.correctIndex])
+            when (question.presentation) {
+                VocabularyPresentation.WORD ->
+                    assertEquals("${question.entry.article} ${question.entry.word}", question.germanText)
+                VocabularyPresentation.SENTENCE ->
+                    assertEquals(vocabularySentenceGerman(question.entry), question.germanText)
+            }
+        }
+    }
+
+    @Test
+    fun vocabularyWordAndSentenceModesBothHaveFourUniqueCzechChoices() {
+        val entry = vocabularyCatalog.single { it.word == "Tisch" }
+        listOf(VocabularyPresentation.WORD, VocabularyPresentation.SENTENCE).forEach { presentation ->
+            val question = makeVocabularyQuestion(entry, presentation, vocabularyCatalog, kotlin.random.Random(17))
+            assertEquals(4, question.choices.size)
+            assertEquals(4, question.choices.toSet().size)
+            assertTrue(question.correctIndex in question.choices.indices)
+            assertEquals(question.correctCzech, question.choices[question.correctIndex])
+        }
+    }
+
+
+    @Test
+    fun savedNounRecognitionQuestionShowsTheActualGermanNounBeforeCzechChoices() {
+        val table = vocabularyCatalog.single { it.word == "Tisch" }
+        val questions = buildPersonalNotebookQuestions(
+            catalogEntries = listOf(table),
+            readingEntries = emptyList(),
+            random = kotlin.random.Random(19)
+        )
+
+        val question = questions.single()
+        assertTrue(question.prompt.contains("der Tisch"))
+        assertEquals("Můj slovníček", question.sourceTitle)
+        assertEquals("Das ist der Tisch.", question.germanSentence)
+        assertEquals("stůl", question.choices[question.correctIndex])
+        assertEquals(4, question.choices.size)
+        assertEquals(4, question.choices.toSet().size)
+    }
+
+    @Test
+    fun activeVocabularyRecallRequiresTypedGermanAndKeepsNounArticle() {
+        val table = vocabularyCatalog.single { it.word == "Tisch" }
+        val reading = ReadingNotebookWord(
+            id = "active-reading-1",
+            word = "entscheiden",
+            meaning = "rozhodnout",
+            exampleGerman = "Sie muss heute entscheiden.",
+            sourceTitle = "Ein neuer Anfang",
+            sourceLevel = "B1",
+            savedAtMillis = 123L
+        )
+
+        val questions = buildActiveVocabularyQuestions(
+            catalogEntries = listOf(table),
+            readingEntries = listOf(reading),
+            count = 10,
+            random = kotlin.random.Random(21)
+        )
+
+        assertEquals(2, questions.size)
+        assertEquals(2, questions.map { it.id }.toSet().size)
+        assertTrue(questions.any { it.czechPrompt == table.czech && it.answerGerman == "der Tisch" })
+        assertTrue(questions.any { it.czechPrompt == "rozhodnout" && it.answerGerman == "entscheiden" })
+        assertTrue(questions.all { it.exampleGerman.isNotBlank() })
+        questions.forEach { question ->
+            assertTrue(question.reviewChoices.size >= 2)
+            assertEquals(
+                "The correct German term must appear among review choices",
+                1,
+                question.reviewChoices.count { it == question.answerGerman }
+            )
+            assertTrue("Review choices must be unique", question.reviewChoices.size == question.reviewChoices.toSet().size)
+        }
+    }
+
+    @Test
+    fun activeVocabularyRecallDoesNotDuplicateWordsAlreadyInTheCuratedNotebook() {
+        val table = vocabularyCatalog.single { it.word == "Tisch" }
+        val reading = ReadingNotebookWord(
+            id = "reading-table",
+            word = "Tisch",
+            meaning = "stůl",
+            exampleGerman = "Der Tisch ist groß.",
+            sourceTitle = "Ein Zimmer",
+            sourceLevel = "A1",
+            savedAtMillis = 123L
+        )
+
+        val questions = buildActiveVocabularyQuestions(
+            catalogEntries = listOf(table),
+            readingEntries = listOf(reading),
+            random = kotlin.random.Random(5)
+        )
+
+        assertEquals(1, questions.size)
+        assertEquals("der Tisch", questions.single().answerGerman)
+    }
+
+    @Test
+    fun germanRecallAnswerNormalizationIgnoresCaseExtraSpacesAndFinalPunctuation() {
+        assertEquals(
+            normalizeGermanRecallAnswer("der Tisch."),
+            normalizeGermanRecallAnswer("  DER   Tisch  ")
+        )
+        assertFalse(
+            normalizeGermanRecallAnswer("das Tisch") == normalizeGermanRecallAnswer("der Tisch")
+        )
+        assertFalse(
+            normalizeGermanRecallAnswer("schon") == normalizeGermanRecallAnswer("schön")
+        )
+    }
+
+    @Test
+    fun adaptiveReviewIntervalsUsePredictableEarlyStepsAndAdjustLater() {
+        assertEquals(1, calculateNextReviewIntervalDays(0, 0, 0, 0, 0))
+        assertEquals(3, calculateNextReviewIntervalDays(1, 1, 0, 1, 1))
+        assertEquals(7, calculateNextReviewIntervalDays(2, 3, 0, 2, 2))
+        assertEquals(14, calculateNextReviewIntervalDays(3, 7, 0, 3, 3))
+
+        val highAccuracy = calculateNextReviewIntervalDays(
+            correctStreak = 4,
+            previousIntervalDays = 14,
+            wrongCount = 0,
+            attemptCount = 10,
+            correctCount = 10
+        )
+        val repeatedMistakes = calculateNextReviewIntervalDays(
+            correctStreak = 4,
+            previousIntervalDays = 14,
+            wrongCount = 4,
+            attemptCount = 10,
+            correctCount = 5
+        )
+
+        assertTrue("Strongly retained items should receive a longer interval", highAccuracy > repeatedMistakes)
+        assertTrue("Review intervals must not exceed sixty days", calculateNextReviewIntervalDays(
+            correctStreak = 12,
+            previousIntervalDays = 60,
+            wrongCount = 0,
+            attemptCount = 20,
+            correctCount = 20
+        ) <= 60)
+    }
+
+
+    @Test
+    fun listeningPracticeProvidesAllFourExerciseModesWithValidQuestions() {
+        val meaning = buildListeningQuestions(
+            "A1",
+            ListeningExerciseMode.MEANING,
+            count = 5,
+            random = kotlin.random.Random(10)
+        )
+        assertEquals(5, meaning.size)
+        meaning.forEach { question ->
+            assertEquals(ListeningExerciseMode.MEANING, question.mode)
+            assertEquals(4, question.choices.size)
+            assertTrue(question.correctIndex in question.choices.indices)
+            assertEquals(question.source.item.czech, question.answerText)
+            assertEquals("A1", listeningReviewQuestion(question).cefrLevel)
+        }
+
+        val gaps = buildListeningQuestions(
+            "A1",
+            ListeningExerciseMode.GAP,
+            count = 5,
+            random = kotlin.random.Random(11)
+        )
+        assertEquals(5, gaps.size)
+        gaps.forEach { question ->
+            assertEquals(ListeningExerciseMode.GAP, question.mode)
+            assertEquals(4, question.choices.size)
+            assertTrue(question.correctIndex in question.choices.indices)
+            assertEquals(question.answerText, question.choices[question.correctIndex])
+            assertTrue(question.displayWithGap.contains("_____"))
+            assertEquals("A1", listeningReviewQuestion(question).cefrLevel)
+        }
+
+        val dictation = buildListeningQuestions(
+            "A1",
+            ListeningExerciseMode.DICTATION,
+            count = 5,
+            random = kotlin.random.Random(12)
+        )
+        assertEquals(5, dictation.size)
+        dictation.forEach { question ->
+            assertEquals(ListeningExerciseMode.DICTATION, question.mode)
+            assertTrue(question.choices.isEmpty())
+            assertEquals(question.listeningText, question.answerText)
+            assertEquals("A1", listeningReviewQuestion(question).cefrLevel)
+        }
+
+        val context = buildListeningQuestions(
+            "A1",
+            ListeningExerciseMode.CONTEXT,
+            count = 5,
+            random = kotlin.random.Random(13)
+        )
+        assertEquals(5, context.size)
+        context.forEach { question ->
+            assertEquals(ListeningExerciseMode.CONTEXT, question.mode)
+            assertEquals(4, question.choices.size)
+            assertTrue(question.correctIndex in question.choices.indices)
+            assertEquals(question.source.courseTitle, question.choices[question.correctIndex])
+            assertTrue(question.listeningText.split(Regex("\\s+")).size > 5)
+            assertEquals("A1", listeningReviewQuestion(question).cefrLevel)
+        }
+    }
+
+    @Test
+    fun listeningModesKeepIndependentReviewHistoryForTheSamePhrase() {
+        val courseId = sentenceCourseCatalog.first { it.level == "A1" }.id
+        val itemIndex = 0
+        val meaningId = stableReviewId("listening", "A1", ListeningExerciseMode.MEANING.name, courseId, itemIndex.toString())
+        val gapId = stableReviewId("listening", "A1", ListeningExerciseMode.GAP.name, courseId, itemIndex.toString())
+        assertNotEquals(meaningId, gapId)
+    }
+
+    @Test
+    fun listeningConfidenceOffersExactlyThreeFixedIntervals() {
+        val options = listeningConfidenceOptions()
+        assertEquals(3, options.size)
+        assertEquals(
+            listOf(10L * 60L * 1000L, 24L * 60L * 60L * 1000L, 14L * 24L * 60L * 60L * 1000L),
+            options.map { it.intervalMillis }
+        )
+        assertEquals(listOf("Zatím ne", "Nejsem si jistý", "Umím"), options.map { it.title })
+        assertEquals(listOf("Znovu", "Zítra", "Za 14 dní"), options.map { it.subtitle })
+    }
+
+    @Test
+    fun gapListeningCreatesOnlyTheRequestedTwentyFiveQuestionSession() {
+        val questions = buildListeningQuestions(
+            level = "A1",
+            mode = ListeningExerciseMode.GAP,
+            count = 25,
+            random = kotlin.random.Random(404)
+        )
+        assertEquals(25, questions.size)
+        assertEquals(25, questions.map { it.id }.toSet().size)
+        questions.forEach { question ->
+            assertEquals(4, question.choices.size)
+            assertEquals(4, question.choices.toSet().size)
+            assertTrue(question.correctIndex in question.choices.indices)
+            assertEquals(question.answerText, question.choices[question.correctIndex])
+            assertTrue(question.displayWithGap.contains("_____"))
+        }
+    }
+
+    @Test
+    fun listeningDictationNormalizationIgnoresCapitalizationAndPunctuationButKeepsUmlauts() {
+        assertEquals(
+            normalizeListeningDictation("Ich habe heute Zeit."),
+            normalizeListeningDictation("  ICH habe heute ZEIT  ")
+        )
+        assertFalse(
+            normalizeListeningDictation("schon heute") ==
+                normalizeListeningDictation("schön heute")
+        )
+    }
+
+
+    @Test
+    fun phraseReviewQuestionsHaveFourRealGermanOptions() {
+        val card = PhraseReviewCard(
+            id = "A1_test_course_0",
+            courseTitle = "První kroky",
+            prompt = "Jak řekneš německy: Dnes mám čas.",
+            german = "Ich habe heute Zeit.",
+            czech = "Dnes mám čas."
+        )
+
+        val question = phraseReviewQuestion(card)
+
+        assertEquals(4, question.choices.size)
+        assertEquals(4, question.choices.toSet().size)
+        assertEquals(card.german, question.choices[question.correctIndex])
+        assertEquals("A1", question.cefrLevel)
+        assertFalse(question.choices.contains("Ještě si nevzpomínám"))
+    }
+
+    @Test
+    fun legacyScheduledListeningAndPhraseQuestionsAreUpgradedToFourRealChoices() {
+        val legacyListening = ReviewQuestion(
+            id = "listening_legacy_test",
+            sourceKind = "listening",
+            sourceTitle = "Test poslechu",
+            prompt = "Zapiš celou německou větu, kterou uslyšíš:",
+            choices = listOf("Ich habe heute Zeit.", "Jiná odpověď"),
+            correctIndex = 0,
+            explanation = "Správný přepis.",
+            germanSentence = "Ich habe heute Zeit.",
+            translation = "Dnes mám čas."
+        )
+        val listening = enrichScheduledReviewQuestion(legacyListening)
+        assertEquals(4, listening.choices.size)
+        assertEquals(4, listening.choices.toSet().size)
+        assertEquals("Ich habe heute Zeit.", listening.choices[listening.correctIndex])
+        assertTrue(listening.prompt.contains("slyšel/a"))
+
+        val legacyPhrase = ReviewQuestion(
+            id = "phrases_legacy_test",
+            sourceKind = "phrases",
+            sourceTitle = "Test fráze",
+            prompt = "Jak bys řekl/a německy: Dnes mám čas.",
+            choices = listOf("Ich habe heute Zeit.", "Ještě si nevzpomínám"),
+            correctIndex = 0,
+            explanation = "Překlad.",
+            germanSentence = "Ich habe heute Zeit.",
+            translation = "Dnes mám čas."
+        )
+        val phrase = enrichScheduledReviewQuestion(legacyPhrase)
+        assertEquals(4, phrase.choices.size)
+        assertEquals(4, phrase.choices.toSet().size)
+        assertEquals("Ich habe heute Zeit.", phrase.choices[phrase.correctIndex])
+        assertFalse(phrase.choices.contains("Ještě si nevzpomínám"))
+    }
+
+    @Test
+    fun oldActiveVocabularyReviewsReceiveRealGermanDistractors() {
+        val legacy = ReviewQuestion(
+            id = "notebook_active_old_word",
+            sourceKind = "vocabulary",
+            sourceTitle = "Můj slovníček",
+            prompt = "Jak se německy řekne: stůl?",
+            choices = listOf("der Tisch", "Jiná odpověď"),
+            correctIndex = 0,
+            explanation = "Správně: der Tisch.",
+            germanSentence = "Der Tisch ist groß.",
+            translation = "Stůl je velký."
+        )
+
+        val enriched = enrichScheduledReviewQuestion(legacy)
+
+        assertEquals(4, enriched.choices.size)
+        assertEquals(4, enriched.choices.toSet().size)
+        assertEquals("der Tisch", enriched.choices[enriched.correctIndex])
+        assertFalse(enriched.choices.contains("Jiná odpověď"))
+    }
+
+
+    @Test
+    fun homeRecommendationPrioritizesDueReviewsFromTheNextDueSkill() {
+        val dueArticle = studyPlanTestEntry(
+            id = "due-article",
+            sourceKind = "articles",
+            attempts = 3,
+            correct = 1,
+            wrongCount = 2
+        )
+        val dueSentence = studyPlanTestEntry(
+            id = "due-sentence",
+            sourceKind = "sentences",
+            attempts = 2,
+            correct = 1,
+            wrongCount = 1
+        )
+
+        val recommendation = buildHomeStudyRecommendation(
+            allEntries = listOf(dueArticle, dueSentence),
+            dueEntries = listOf(dueArticle, dueSentence),
+            hasLastActivity = true
+        )
+
+        assertEquals(HomeRecommendationType.REVIEW_DUE, recommendation.type)
+        assertEquals("articles", recommendation.sourceKind)
+        assertEquals(2, recommendation.dueCount)
+        assertEquals("Spustit denní trénink", recommendation.actionLabel)
+        assertTrue(recommendation.explanation.contains("opakovaně pletly"))
+    }
+
+    @Test
+    fun homeRecommendationSelectsWeakSkillOnlyFromRecordedAccuracy() {
+        val weakerArticles = (1..4).map { index ->
+            studyPlanTestEntry(
+                id = "article-$index",
+                sourceKind = "articles",
+                attempts = 1,
+                correct = 0,
+                wrongCount = 1
+            )
+        }
+        val strongerVocabulary = (1..5).map { index ->
+            studyPlanTestEntry(
+                id = "vocabulary-$index",
+                sourceKind = "vocabulary",
+                attempts = 1,
+                correct = 1,
+                wrongCount = 0
+            )
+        }
+
+        val summaries = summarizeLearningSkillPerformance(weakerArticles + strongerVocabulary)
+        assertEquals(4, summaries.first().attempts)
+        assertEquals(0, summaries.first().accuracyPercent)
+
+        val recommendation = buildHomeStudyRecommendation(
+            allEntries = weakerArticles + strongerVocabulary,
+            dueEntries = emptyList(),
+            hasLastActivity = false
+        )
+
+        assertEquals(HomeRecommendationType.FOCUS_SKILL, recommendation.type)
+        assertEquals("articles", recommendation.sourceKind)
+        assertEquals(0, recommendation.accuracyPercent)
+        assertTrue(recommendation.explanation.contains("4 odpovědí"))
+    }
+
+    @Test
+    fun homeRecommendationNeverInventsAWeakSkillFromLegacyEntriesWithoutAttemptCounts() {
+        val legacyEntry = studyPlanTestEntry(
+            id = "legacy-article",
+            sourceKind = "articles",
+            attempts = 0,
+            correct = 0,
+            wrongCount = 4
+        )
+
+        val recommendation = buildHomeStudyRecommendation(
+            allEntries = listOf(legacyEntry),
+            dueEntries = emptyList(),
+            hasLastActivity = false
+        )
+
+        assertEquals(HomeRecommendationType.EXPLORE_LIBRARY, recommendation.type)
+        assertEquals(null, recommendation.accuracyPercent)
+        assertTrue(summarizeLearningSkillPerformance(listOf(legacyEntry)).isEmpty())
+    }
+
+    @Test
+    fun homeRecommendationDoesNotPushPlacementTestIntoTheDailyStudyPlan() {
+        val recommendation = buildHomeStudyRecommendation(
+            allEntries = emptyList(),
+            dueEntries = emptyList(),
+            hasLastActivity = false
+        )
+
+        assertEquals(HomeRecommendationType.EXPLORE_LIBRARY, recommendation.type)
+        assertEquals("Vybrat první lekci", recommendation.actionLabel)
+    }
+
+    @Test
+    fun placementAssessmentAnswersAreExcludedFromDailyTrainingAndStudyRecommendations() {
+        val byTitleBase = studyPlanTestEntry(
+            id = "placement-by-title",
+            sourceKind = "sentences",
+            attempts = 6,
+            correct = 1,
+            wrongCount = 5
+        )
+        val byTitle = byTitleBase.copy(
+            question = byTitleBase.question.copy(sourceTitle = "Rozřazovací test A1")
+        )
+        val byKind = studyPlanTestEntry(
+            id = "placement-by-kind",
+            sourceKind = "placement",
+            attempts = 2,
+            correct = 0,
+            wrongCount = 2
+        )
+        val normal = studyPlanTestEntry(
+            id = "normal-course-question",
+            sourceKind = "sentences",
+            attempts = 1,
+            correct = 1,
+            wrongCount = 0
+        )
+
+        assertEquals(
+            listOf(normal),
+            selectDailyTrainingDueEntries(listOf(byTitle, byKind, normal), limit = 10)
+        )
+        assertTrue(summarizeLearningSkillPerformance(listOf(byTitle, byKind)).isEmpty())
+
+        val recommendation = buildHomeStudyRecommendation(
+            allEntries = listOf(byTitle, byKind),
+            dueEntries = listOf(byTitle, byKind),
+            hasLastActivity = false
+        )
+        assertEquals(HomeRecommendationType.EXPLORE_LIBRARY, recommendation.type)
+    }
+
+    private fun studyPlanTestEntry(
+        id: String,
+        sourceKind: String,
+        attempts: Int,
+        correct: Int,
+        wrongCount: Int
+    ): ReviewMemoryEntry {
+        val question = ReviewQuestion(
+            id = id,
+            sourceKind = sourceKind,
+            sourceTitle = "Test",
+            prompt = "Vyber správnou odpověď.",
+            choices = listOf("A", "B"),
+            correctIndex = 0,
+            explanation = "Testovací vysvětlení."
+        )
+        return ReviewMemoryEntry(
+            question = question,
+            wrongCount = wrongCount,
+            correctStreak = if (correct > 0) 1 else 0,
+            intervalDays = if (correct > 0) 1 else 0,
+            dueAtMillis = 1L,
+            attemptCount = attempts,
+            correctCount = correct,
+            lastAnsweredAtMillis = 100L
+        )
+    }
+
+
+    @Test
+    fun vocabularyDrillUsesFiveUniqueWordsAndThreeDistinctMeaningChoices() {
+        assertEquals(2000, vocabularyCatalog.size)
+        val batch = buildVocabularyDrillBatch(count = 5, random = kotlin.random.Random(42))
+
+        assertEquals(5, batch.size)
+        assertEquals(5, batch.map { it.entry.id }.toSet().size)
+        batch.forEach { question ->
+            assertEquals(3, question.choices.size)
+            assertEquals(3, question.choices.map { it.lowercase() }.toSet().size)
+            assertEquals(question.entry.czech, question.choices[question.correctIndex])
+            assertTrue(question.entry.article in setOf("der", "die", "das"))
+        }
+    }
+
+    @Test
+    fun vocabularyDrillWritingRequiresTheCorrectArticleAndNoun() {
+        assertEquals("der hund", normalizeVocabularyDrillAnswer("  DER   Hund "))
+        assertNotEquals(
+            normalizeVocabularyDrillAnswer("der Hund"),
+            normalizeVocabularyDrillAnswer("Hund")
+        )
+    }
+
+    @Test
+    fun dedicatedListeningLevelsEachProduceOneTwentyFiveQuestionMeaningSet() {
+        listOf("A1", "A2", "B1", "B2").forEach { level ->
+            val questions = buildListeningQuestions(
+                level = level,
+                mode = ListeningExerciseMode.MEANING,
+                count = 25,
+                random = kotlin.random.Random(91)
+            )
+            assertEquals("$level should contain exactly 25 questions", 25, questions.size)
+            assertEquals(25, questions.map { it.id }.toSet().size)
+            assertTrue(questions.all { it.mode == ListeningExerciseMode.MEANING && it.cefrLevel == level })
+        }
+    }
+
+
+
+    @Test
+    fun vocabularyDrillCreatesTypedGermanReviewWithArticleAndAudioContext() {
+        val entry = vocabularyCatalog.single { it.word == "Hund" }
+        val question = makeVocabularyDrillReviewQuestion(
+            entry = entry,
+            random = kotlin.random.Random(23)
+        )
+
+        assertEquals(vocabularyDrillReviewId(entry), question.id)
+        assertEquals("vocabulary", question.sourceKind)
+        assertTrue(question.prompt.contains(entry.czech))
+        assertEquals("${entry.article} ${entry.word}", question.choices[question.correctIndex])
+        assertEquals(4, question.choices.size)
+        assertEquals(4, question.choices.toSet().size)
+        assertTrue(question.germanSentence.isNotBlank())
+        assertTrue(question.translation.isNotBlank())
+    }
+
+    @Test
+    fun vocabularyDrillSelectionPrioritizesDueWordsAndAvoidsDuplicates() {
+        val dog = vocabularyCatalog.single { it.word == "Hund" }
+        val cat = vocabularyCatalog.single { it.word == "Katze" }
+        val dueQuestion = makeVocabularyDrillReviewQuestion(dog, random = kotlin.random.Random(24))
+        val dueEntry = ReviewMemoryEntry(
+            question = dueQuestion,
+            wrongCount = 2,
+            correctStreak = 0,
+            intervalDays = 0,
+            dueAtMillis = 100L,
+            attemptCount = 2,
+            correctCount = 0,
+            lastAnsweredAtMillis = 50L
+        )
+
+        val selected = selectVocabularyDrillEntries(
+            entries = listOf(dog, cat),
+            reviewEntries = listOf(dueEntry),
+            count = 2,
+            nowMillis = 100L,
+            random = kotlin.random.Random(25)
+        )
+
+        assertEquals(2, selected.size)
+        assertEquals(dog.id, selected.first().id)
+        assertEquals(2, selected.map { it.id }.toSet().size)
+    }
+
+    @Test
+    fun vocabularyDrillChecksMeaningAndGermanRecallWithoutRemovingUmlauts() {
+        assertTrue(isVocabularyDrillMeaningCorrect("  ROZHODNUTÍ ", "rozhodnutí"))
+        assertFalse(isVocabularyDrillMeaningCorrect("rozmyslet", "rozhodnutí"))
+        assertEquals(
+            normalizeVocabularyDrillAnswer("der Tisch."),
+            normalizeVocabularyDrillAnswer("  DER   Tisch ")
+        )
+        assertNotEquals(
+            normalizeVocabularyDrillAnswer("schon"),
+            normalizeVocabularyDrillAnswer("schön")
+        )
+    }
+
+    @Test
+    fun frequencyVocabularyHasEveryLevelAndPrioritizesEverydayVerbsForBeginners() {
+        assertEquals(setOf("A1", "A2", "B1", "B2"), frequencyVocabularyCatalog.map { it.level }.toSet())
+        assertEquals(397 + SPOKEN_FREQUENCY_ADDITION_COUNT + FREQUENCY_VOCABULARY_A2_PILOT_COUNT, frequencyVocabularyCatalog.size)
+        val allUniqueCount = frequencyVocabularyCatalog.map { it.word.trim().lowercase() }.toSet().size
+        println("A2 CATALOGUE DIAGNOSTIC: catalogueSize=${frequencyVocabularyCatalog.size}, uniqueWords=$allUniqueCount")
+        assertEquals(
+            1396 + FREQUENCY_VOCABULARY_A2_PILOT_COUNT,
+            allUniqueCount
+        )
+        assertEquals(SPOKEN_FREQUENCY_ADDITION_COUNT + FREQUENCY_VOCABULARY_A2_PILOT_COUNT, frequencyVocabularyCatalog.size - 397)
+        assertTrue(frequencyVocabularyForLevel("A1").size > 100)
+        assertTrue(frequencyVocabularyForLevel("A2").size > 100)
+        assertTrue(frequencyVocabularyForLevel("B1").size > 100)
+        assertTrue(frequencyVocabularyForLevel("B2").size > 100)
+        assertEquals(frequencyVocabularyCatalog.size, frequencyVocabularyCatalog.map { it.id }.toSet().size)
+        assertEquals(
+            frequencyVocabularyCatalog.size,
+            frequencyVocabularyCatalog.map { it.kind.name + ":" + it.word.lowercase() }.toSet().size
+        )
+
+        frequencyVocabularyCatalog.forEach { entry ->
+            assertTrue(entry.word.isNotBlank())
+            assertTrue(entry.czech.isNotBlank())
+            assertTrue(entry.exampleGerman.isNotBlank())
+            assertTrue(entry.exampleCzech.isNotBlank())
+            assertTrue(entry.id.isNotBlank())
+            assertEquals(entry.kind == FrequencyWordKind.NOUN, entry.article != null)
+            if (entry.article != null) assertTrue(entry.article in setOf("der", "die", "das"))
+            assertFalse(entry.listeningTarget.contains("..."))
+            entry.listeningTarget.split(" ").filter { it.isNotBlank() }.forEach { spokenPart ->
+                assertTrue(
+                    entry.word + " listening answer part is not present in its example sentence: " + spokenPart,
+                    entry.exampleGerman.contains(spokenPart, ignoreCase = true)
+                )
+            }
+        }
+
+        assertTrue(frequencyVocabularyVerbCount("A1") >= 40)
+        assertTrue(frequencyVocabularyVerbCount("A2") >= 40)
+        assertTrue(frequencyVocabularyForLevel("A1", verbsOnly = true).all { it.kind == FrequencyWordKind.VERB })
+        assertTrue(frequencyVocabularyForLevel("A2", verbsOnly = true).all { it.kind == FrequencyWordKind.VERB })
+    }
+
+    @Test
+    fun frequencyVocabularyDrillSupportsFiveAndTenWordsWithBeginnerVerbPriority() {
+        val a1Five = selectFrequencyVocabularyEntries(
+            level = "A1",
+            verbsOnly = false,
+            count = 5,
+            reviewEntries = emptyList(),
+            random = kotlin.random.Random(51)
+        )
+        val a1Ten = selectFrequencyVocabularyEntries(
+            level = "A1",
+            verbsOnly = false,
+            count = 10,
+            reviewEntries = emptyList(),
+            random = kotlin.random.Random(52)
+        )
+        val a2Ten = selectFrequencyVocabularyEntries(
+            level = "A2",
+            verbsOnly = false,
+            count = 10,
+            reviewEntries = emptyList(),
+            random = kotlin.random.Random(53)
+        )
+        val verbsOnly = selectFrequencyVocabularyEntries(
+            level = "A2",
+            verbsOnly = true,
+            count = 10,
+            reviewEntries = emptyList(),
+            random = kotlin.random.Random(54)
+        )
+
+        assertEquals(5, a1Five.size)
+        assertEquals(10, a1Ten.size)
+        assertEquals(10, a2Ten.size)
+        assertTrue(a1Five.count { it.kind == FrequencyWordKind.VERB } >= 4)
+        assertTrue(a1Ten.count { it.kind == FrequencyWordKind.VERB } >= 7)
+        assertTrue(a2Ten.count { it.kind == FrequencyWordKind.VERB } >= 7)
+        assertEquals(10, verbsOnly.size)
+        assertTrue(verbsOnly.all { it.kind == FrequencyWordKind.VERB })
+        assertEquals(a1Ten.size, a1Ten.map { it.id }.toSet().size)
+    }
+
+    @Test
+    fun frequencyVocabularyReviewQuestionsHaveFourUniqueGermanOptionsAndKeepLevel() {
+        frequencyVocabularyCatalog.forEach { entry ->
+            val question = frequencyVocabularyReviewQuestion(entry, random = kotlin.random.Random(entry.id.hashCode()))
+            assertEquals("vocabulary", question.sourceKind)
+            assertTrue(question.sourceTitle.startsWith("Frekvenční"))
+            assertEquals(entry.level, question.cefrLevel)
+            assertEquals(4, question.choices.size)
+            assertEquals(4, question.choices.toSet().size)
+            assertEquals(entry.germanAnswer, question.choices[question.correctIndex])
+            assertEquals(entry.exampleGerman, question.germanSentence)
+            assertEquals(entry.exampleCzech, question.translation)
+        }
+    }
+
+    @Test
+    fun frequencyVocabularySelectionKeepsDueItemsAndCanOpenVerbOnlyMode() {
+        val dueWord = frequencyVocabularyForLevel("A1", verbsOnly = true).single { it.word == "haben" }
+        val dueQuestion = frequencyVocabularyReviewQuestion(dueWord)
+        val dueEntry = ReviewMemoryEntry(
+            question = dueQuestion,
+            wrongCount = 3,
+            correctStreak = 0,
+            intervalDays = 0,
+            dueAtMillis = 100L,
+            attemptCount = 3,
+            correctCount = 0,
+            lastAnsweredAtMillis = 50L
+        )
+
+        val selected = selectFrequencyVocabularyEntries(
+            level = "A1",
+            verbsOnly = true,
+            count = 5,
+            reviewEntries = listOf(dueEntry),
+            nowMillis = 100L,
+            random = kotlin.random.Random(55)
+        )
+
+        assertEquals(dueWord.id, selected.first().id)
+        assertEquals(5, selected.size)
+        assertTrue(selected.all { it.kind == FrequencyWordKind.VERB })
+        assertEquals(selected.size, selected.map { it.id }.toSet().size)
+    }
+
+    @Test
+    fun frequencyVocabularyListeningSentencesContainOnlyOneTargetFromTheSelectedBatch() {
+        val gehen = FrequencyVocabularyEntry(
+            id = "test-gehen",
+            level = "A1",
+            kind = FrequencyWordKind.VERB,
+            word = "gehen",
+            czech = "jít",
+            extraInfo = "gehe · geht",
+            exampleGerman = "Ich gehe nach Hause.",
+            exampleCzech = "Jdu domů.",
+            listeningAnswer = "gehe"
+        )
+        val sehen = FrequencyVocabularyEntry(
+            id = "test-sehen",
+            level = "A1",
+            kind = FrequencyWordKind.VERB,
+            word = "sehen",
+            czech = "vidět",
+            extraInfo = "sehe · sieht",
+            exampleGerman = "Ich sehe dich.",
+            exampleCzech = "Vidím tě.",
+            listeningAnswer = "sehe"
+        )
+        val course = SentenceCourseDefinition(
+            id = "ambiguous-listening-test",
+            title = "Test jednoznačnosti",
+            subtitle = "Testovací věty",
+            level = "A1",
+            items = listOf(
+                SentencePracticeItem(
+                    prompt = "Řekneš, že jdeš a vidíš.",
+                    german = "Ich gehe und sehe dich.",
+                    czech = "Jdu a vidím tě."
+                ),
+                SentencePracticeItem(
+                    prompt = "Řekneš, že jdeš domů.",
+                    german = "Ich gehe jetzt nach Hause.",
+                    czech = "Jdu teď domů."
+                ),
+                SentencePracticeItem(
+                    prompt = "Řekneš, že někoho vidíš.",
+                    german = "Ich sehe dich heute.",
+                    czech = "Dnes tě vidím."
+                )
+            )
+        )
+
+        val enriched = enrichFrequencyVocabularyWithSentenceContext(
+            entries = listOf(gehen, sehen),
+            courses = listOf(course),
+            requireUnambiguousBatch = true
+        )
+        val enrichedGehen = enriched.single { it.id == gehen.id }
+        val enrichedSehen = enriched.single { it.id == sehen.id }
+
+        assertEquals("Ich gehe jetzt nach Hause.", enrichedGehen.exampleGerman)
+        assertEquals("Ich sehe dich heute.", enrichedSehen.exampleGerman)
+        assertTrue(enrichedGehen.hasUnambiguousListeningSentence)
+        assertTrue(enrichedSehen.hasUnambiguousListeningSentence)
+        assertEquals("gehe", enrichedGehen.listeningTarget)
+        assertEquals("sehe", enrichedSehen.listeningTarget)
+    }
+
+    @Test
+    fun frequencyVocabularyListeningFallsBackToOneIsolatedTargetWhenNoUniqueSentenceExists() {
+        val gehen = FrequencyVocabularyEntry(
+            id = "test-gehen-fallback",
+            level = "A1",
+            kind = FrequencyWordKind.VERB,
+            word = "gehen",
+            czech = "jít",
+            extraInfo = "gehe · geht",
+            exampleGerman = "Ich gehe und sehe dich.",
+            exampleCzech = "Jdu a vidím tě.",
+            listeningAnswer = "gehe"
+        )
+        val sehen = FrequencyVocabularyEntry(
+            id = "test-sehen-fallback",
+            level = "A1",
+            kind = FrequencyWordKind.VERB,
+            word = "sehen",
+            czech = "vidět",
+            extraInfo = "sehe · sieht",
+            exampleGerman = "Ich gehe und sehe dich.",
+            exampleCzech = "Jdu a vidím tě.",
+            listeningAnswer = "sehe"
+        )
+        val course = SentenceCourseDefinition(
+            id = "ambiguous-only-test",
+            title = "Nejednoznačný test",
+            subtitle = "Testovací věta",
+            level = "A1",
+            items = listOf(
+                SentencePracticeItem(
+                    prompt = "Řekneš, že jdeš a vidíš.",
+                    german = "Ich gehe und sehe dich.",
+                    czech = "Jdu a vidím tě."
+                )
+            )
+        )
+
+        val enriched = enrichFrequencyVocabularyWithSentenceContext(
+            entries = listOf(gehen, sehen),
+            courses = listOf(course),
+            requireUnambiguousBatch = true
+        )
+
+        assertTrue(enriched.all { !it.hasUnambiguousListeningSentence })
+        assertEquals("gehe", enriched.single { it.id == gehen.id }.listeningTarget)
+        assertEquals("sehe", enriched.single { it.id == sehen.id }.listeningTarget)
+    }
+
+    @Test
+    fun frequencyVocabularyReusesRealSentencesFromTheMatchingCefrCourse() {
+        val contextualized = frequencyVocabularyCatalog.filter { it.contextCourseTitle != null }
+        assertTrue("Vocabulary should reuse existing course sentences", contextualized.isNotEmpty())
+
+        val sample = contextualized.first()
+        val sourceCourse = sentenceCourseCatalog.first {
+            it.title == sample.contextCourseTitle && it.level == sample.level
+        }
+        assertTrue(sourceCourse.items.any {
+            it.german == sample.exampleGerman && it.czech == sample.exampleCzech
+        })
+
+        val verb = contextualized.first { it.kind == FrequencyWordKind.VERB }
+        assertTrue(verb.exampleGerman.contains(verb.listeningTarget, ignoreCase = true))
+    }
+
+    @Test
+    fun frequencyVocabularyProgressCountsPerfectlyPassedWords() {
+        val entry = frequencyVocabularyForLevel("A1").first()
+        val review = ReviewMemoryEntry(
+            question = frequencyVocabularyReviewQuestion(entry),
+            wrongCount = 0,
+            correctStreak = 3,
+            intervalDays = 7,
+            dueAtMillis = 10_000L,
+            attemptCount = 3,
+            correctCount = 3,
+            lastAnsweredAtMillis = 1_000L
+        )
+
+        val progress = buildFrequencyVocabularyProgress(
+            words = listOf(entry),
+            reviewEntries = listOf(review),
+            perfectlyPassedIds = setOf(entry.id),
+            nowMillis = 2_000L
+        )
+
+        assertEquals(1, progress.practicedWords)
+        assertEquals(1, progress.successfullyPassedWords)
+        assertEquals(1, progress.longTermMasteredWords)
+        assertEquals(0, progress.dueWords)
+    }
+
 }
