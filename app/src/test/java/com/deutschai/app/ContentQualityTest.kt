@@ -258,6 +258,29 @@ class ContentQualityTest {
     }
 
     @Test
+    fun deferredCourseSentencesAreNotMaterializedUntilAnIndividualSentenceIsRequested() {
+        var materializationCount = 0
+        val items = deferredCourseList(25) {
+            materializationCount += 1
+            (1..25).map { index ->
+                SentencePracticeItem(
+                    prompt = "Testovací otázka $index",
+                    german = "Das ist Satz Nummer $index.",
+                    czech = "To je věta číslo $index."
+                )
+            }
+        }
+
+        assertEquals(0, materializationCount)
+        assertEquals(25, items.size)
+        assertEquals(0, materializationCount)
+        assertEquals("Das ist Satz Nummer 1.", items.first().german)
+        assertEquals(1, materializationCount)
+        assertEquals("Das ist Satz Nummer 25.", items.last().german)
+        assertEquals("Sentence items should be materialized only once", 1, materializationCount)
+    }
+
+    @Test
     fun perLevelSentenceCatalogMatchesTheCombinedCatalogueWithoutLoadingOtherLevels() {
         val allCourses = sentenceCourseCatalog
         listOf("A1", "A2", "B1", "B2").forEach { level ->
