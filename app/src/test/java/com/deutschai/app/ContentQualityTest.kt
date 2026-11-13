@@ -258,6 +258,18 @@ class ContentQualityTest {
     }
 
     @Test
+    fun perLevelSentenceCatalogMatchesTheCombinedCatalogueWithoutLoadingOtherLevels() {
+        val allCourses = sentenceCourseCatalog
+        listOf("A1", "A2", "B1", "B2").forEach { level ->
+            val levelCourses = sentenceCourseCatalogForLevel(level)
+            val expectedIds = allCourses.filter { it.level == level }.map { it.id }
+            assertEquals("Course metadata for $level must remain complete", expectedIds, levelCourses.map { it.id })
+            assertTrue("All loaded courses must belong to $level", levelCourses.all { it.level == level })
+            assertTrue("Each $level course must keep 25 phrases", levelCourses.all { it.items.size == 25 })
+        }
+    }
+
+    @Test
     fun everySentenceCourseKeepsTwentyFiveFourChoiceIntroductionQuestions() {
         val dailySentencePool = buildDailyTrainingPool().filter { it.sourceKind == "sentences" }
         sentenceCourseCatalog.forEach { course ->
