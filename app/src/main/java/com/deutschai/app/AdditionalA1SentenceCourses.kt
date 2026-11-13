@@ -12,16 +12,18 @@ internal fun additionalPhraseCourse(
     phrases: List<String>
 ): SentenceCourseDefinition {
     require(phrases.size == 25) { "$id must contain exactly 25 phrases, got ${phrases.size}" }
-    val items = phrases.mapIndexed { index, row ->
-        val fields = row.split("§", limit = 2)
-        require(fields.size == 2 && fields.all { it.isNotBlank() }) {
-            "Invalid phrase $index in $id"
+    val items = deferredCourseList(phrases.size) {
+        phrases.mapIndexed { index, row ->
+            val fields = row.split("§", limit = 2)
+            require(fields.size == 2 && fields.all { it.isNotBlank() }) {
+                "Invalid phrase $index in $id"
+            }
+            SentencePracticeItem(
+                prompt = "Jak řekneš německy: ${fields[1]}",
+                german = fields[0],
+                czech = fields[1]
+            )
         }
-        SentencePracticeItem(
-            prompt = "Jak řekneš německy: ${fields[1]}",
-            german = fields[0],
-            czech = fields[1]
-        )
     }
     return SentenceCourseDefinition(
         id = id,
