@@ -47,7 +47,7 @@ internal enum class FrequencyDrillStage(val title: String, val instruction: Stri
     LEARN("Seznam se se slovem", "Přečti si význam a větu. Poslechni si přirozenou výslovnost."),
     MEANING("Vybav si český význam", "Bez nabídky odpovědí napiš, co německý výraz znamená."),
     WRITE("Napiš německý výraz", "Z českého významu si vybav německý základní tvar."),
-    LISTENING("Poznej výraz podle poslechu", "Poslechni si větu a napiš procvičovaný německý výraz."),
+    LISTENING("Poznej výraz podle poslechu", "Poslechni si větu nebo výraz a napiš procvičovaný německý výraz."),
     FINISHED("Procvičování dokončeno", "Slova byla zařazena do tvého dlouhodobého opakování.")
 }
 
@@ -295,7 +295,10 @@ internal fun FrequencyVocabularyDrillScreen(
                     LearningReviewStore.all(context),
                     candidatePool = levelWords
                 )
-                enrichFrequencyVocabularyWithSentenceContext(batch)
+                enrichFrequencyVocabularyWithSentenceContext(
+                    batch,
+                    requireUnambiguousBatch = true
+                )
             }
             entries = selected.shuffled()
             stageOrders = List(3) { entries.indices.shuffled() }
@@ -603,8 +606,22 @@ internal fun FrequencyVocabularyDrillScreen(
                                             Text(currentEntry.czech, color = Ink, fontSize = if (compact) 25.sp else 28.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                                         }
                                         FrequencyDrillStage.LISTENING -> {
-                                            Text("POSLECHNI SI VĚTU", color = ForestText, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                                            GermanAudioControls(player = speaker, text = currentEntry.exampleGerman, showSlow = true)
+                                            Text(
+                                                if (currentEntry.hasUnambiguousListeningSentence) "POSLECHNI SI VĚTU"
+                                                else "POSLECHNI SI VÝRAZ",
+                                                color = ForestText,
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            GermanAudioControls(
+                                                player = speaker,
+                                                text = if (currentEntry.hasUnambiguousListeningSentence) {
+                                                    currentEntry.exampleGerman
+                                                } else {
+                                                    currentEntry.listeningTarget
+                                                },
+                                                showSlow = true
+                                            )
                                         }
                                         else -> Unit
                                     }
@@ -618,7 +635,7 @@ internal fun FrequencyVocabularyDrillScreen(
                                     Text(when (stage) {
                                         FrequencyDrillStage.MEANING -> "Český význam"
                                         FrequencyDrillStage.WRITE -> "Německý základní tvar"
-                                        FrequencyDrillStage.LISTENING -> "Co jsi slyšel/a?"
+                                        FrequencyDrillStage.LISTENING -> "Německý výraz"
                                         else -> "Odpověď"
                                     })
                                 },
@@ -626,7 +643,7 @@ internal fun FrequencyVocabularyDrillScreen(
                                     Text(when (stage) {
                                         FrequencyDrillStage.MEANING -> "např. jít / chodit"
                                         FrequencyDrillStage.WRITE -> if (currentEntry.article != null) "např. der Hund" else "např. gehen"
-                                        FrequencyDrillStage.LISTENING -> "Napiš slyšený tvar"
+                                        FrequencyDrillStage.LISTENING -> "Napiš procvičovaný výraz"
                                         else -> ""
                                     })
                                 }
@@ -646,8 +663,20 @@ internal fun FrequencyVocabularyDrillScreen(
                                             },
                                             color = ForestText, fontSize = 16.sp, fontWeight = FontWeight.Bold
                                         )
-                                        Text(currentEntry.exampleGerman, color = Ink, fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.SemiBold)
-                                        Text(currentEntry.exampleCzech, color = Muted, fontSize = 14.sp, lineHeight = 19.sp)
+                                        Text(
+                                            if (stage == FrequencyDrillStage.LISTENING && !currentEntry.hasUnambiguousListeningSentence) {
+                                                currentEntry.listeningTarget
+                                            } else {
+                                                currentEntry.exampleGerman
+                                            },
+                                            color = Ink,
+                                            fontSize = 16.sp,
+                                            lineHeight = 22.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                        if (stage != FrequencyDrillStage.LISTENING || currentEntry.hasUnambiguousListeningSentence) {
+                                            Text(currentEntry.exampleCzech, color = Muted, fontSize = 14.sp, lineHeight = 19.sp)
+                                        }
                                     }
                                 }
                             } else {
