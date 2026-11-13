@@ -20,7 +20,7 @@ internal data class GuidedDialogueTopic(
     val turns: List<GuidedDialogueTurn>
 )
 
-internal val starterGuidedDialogueTopics = listOf(
+internal val starterGuidedDialogueTopics by lazy(LazyThreadSafetyMode.PUBLICATION) { listOf(
     GuidedDialogueTopic(
         id = "kennenlernen",
         title = "Seznámení",
@@ -178,6 +178,7 @@ internal val starterGuidedDialogueTopics = listOf(
         )
     )
 )
+}
 
 internal data class ArticleWord(val article: String, val word: String, val czech: String)
 internal data class ArticleCategory(
@@ -189,7 +190,7 @@ internal data class ArticleCategory(
 
 private fun aw(article: String, word: String, czech: String) = ArticleWord(article, word, czech)
 
-internal val articleCategories = listOf(
+internal val articleCategories by lazy(LazyThreadSafetyMode.PUBLICATION) { listOf(
     ArticleCategory("zuhause", "Bydlení a domácnost", "Pokoje, nábytek a vybavení", listOf(
         aw("die","Wohnung","byt"), aw("das","Zimmer","pokoj"), aw("die","Küche","kuchyně"), aw("das","Bad","koupelna"), aw("der","Flur","chodba"),
         aw("die","Tür","dveře"), aw("das","Fenster","okno"), aw("der","Tisch","stůl"), aw("der","Stuhl","židle"), aw("das","Bett","postel"),
@@ -331,6 +332,7 @@ internal val articleCategories = listOf(
         aw("die","Abfahrt","odjezd"), aw("die","Ankunft","příjezd"), aw("der","Gepäckwagen","vozík na zavazadla"), aw("die","Toilette","toaleta"), aw("der","Notausgang","nouzový východ")
     ))
 )
+}
 
 internal data class VerbPhrase(
     val german: String,
@@ -358,7 +360,7 @@ internal data class VerbPracticeLesson(
 
 private fun vp(german: String, czech: String) = VerbPhrase(german, czech)
 
-private val baseVerbDefinitions = listOf(
+private val baseVerbDefinitions by lazy(LazyThreadSafetyMode.PUBLICATION) { listOf(
     VerbDefinition(
         "sein", "sein", "být", "Stav a vlastnosti",
         listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
@@ -564,10 +566,11 @@ private val baseVerbDefinitions = listOf(
         listOf(vp("die Frage sehr gut","otázce velmi dobře"),vp("diesen Satz nicht","této větě nerozumím"),vp("den Text ohne Wörterbuch","textu bez slovníku"),vp("einander immer besser","si navzájem stále lépe"),vp("die Erklärung jetzt","vysvětlení teď"))
     )
 )
+}
 
-internal val verbDefinitions = baseVerbDefinitions + extendedVerbDefinitions
+internal val verbDefinitions by lazy(LazyThreadSafetyMode.PUBLICATION) { baseVerbDefinitions + extendedVerbDefinitions }
 
-private val baseVerbPracticeTopics = listOf(
+private val baseVerbPracticeTopics by lazy(LazyThreadSafetyMode.PUBLICATION) { listOf(
     VerbPracticeLesson("verb_basics", "1. Základní slovesa", "Být, mít, přijít, dělat a jít", listOf("sein","haben","kommen","machen","gehen")),
     VerbPracticeLesson("verb_communication", "2. Komunikace a znalosti", "Mluvit, vědět, rozumět, číst a psát", listOf("sprechen","wissen","verstehen","lesen","schreiben")),
     VerbPracticeLesson("verb_food", "3. Jídlo a nákup", "Jíst, pít, kupovat, brát a potřebovat", listOf("essen","trinken","kaufen","nehmen","brauchen")),
@@ -579,16 +582,17 @@ private val baseVerbPracticeTopics = listOf(
     VerbPracticeLesson("verb_work", "9. Práce a komunikace", "Pracovat, mluvit, psát, dávat a brát", listOf("arbeiten","sprechen","schreiben","geben","nehmen")),
     VerbPracticeLesson("verb_mixed", "10. Smíšené opakování", "Mix důležitých sloves ze všech předchozích sad", listOf("sein","haben","wissen","essen","trinken"))
 )
+}
 
-internal val verbPracticeTopics = baseVerbPracticeTopics + extendedVerbPracticeTopics
+internal val verbPracticeTopics by lazy(LazyThreadSafetyMode.PUBLICATION) { baseVerbPracticeTopics + extendedVerbPracticeTopics }
 
-internal val advancedVerbPracticeTopics = verbPracticeTopics.mapIndexed { index, topic ->
+internal val advancedVerbPracticeTopics by lazy(LazyThreadSafetyMode.PUBLICATION) { verbPracticeTopics.mapIndexed { index, topic ->
     topic.copy(
         id = "advanced_${topic.id}",
         title = "${index + 1}. ${topic.title.substringAfter(". ")} · Pokročilé",
         subtitle = "Stejných pět sloves, ale vybíráš správné sloveso ze čtyř různých možností."
     )
-}
+} }
 
 internal fun expandedCourseQuestions(id: String): List<LessonQuestion> {
     fun q(prompt: String, choices: List<String>, answer: Int, explanation: String) =
@@ -696,7 +700,7 @@ private fun sentenceCourse(
     }
 )
 
-private val a1SentenceCourseCatalog = listOf(
+private val a1SentenceCourseCatalog by lazy(LazyThreadSafetyMode.PUBLICATION) { listOf(
     sentenceCourse("first_steps", "První kroky", "Pozdravy, seznamování a zdvořilé fráze",
         "Pozdravíš někoho ráno.§Guten Morgen!§Dobré ráno!",
         "Přes den někoho zdvořile pozdravíš.§Guten Tag!§Dobrý den!",
@@ -968,6 +972,7 @@ private val a1SentenceCourseCatalog = listOf(
         "Poděkuješ za pobyt a rozloučíš se.§Vielen Dank für den angenehmen Aufenthalt.§Moc děkuji za příjemný pobyt."
     )
 )
+}
 
 /**
  * Loads only the sentence-course groups needed for the selected CEFR level.
