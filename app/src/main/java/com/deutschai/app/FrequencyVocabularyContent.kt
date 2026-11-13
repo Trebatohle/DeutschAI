@@ -25,7 +25,8 @@ internal data class FrequencyVocabularyEntry(
     val exampleGerman: String,
     val exampleCzech: String,
     val listeningAnswer: String = "",
-    val contextCourseTitle: String? = null
+    val contextCourseTitle: String? = null,
+    val hasUnambiguousListeningSentence: Boolean = false
 ) {
     val germanAnswer: String
         get() = if (article == null) word else article + " " + word
