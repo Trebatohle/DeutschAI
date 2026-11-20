@@ -126,7 +126,6 @@ internal fun LearningHubScreen(
     onDialogues: () -> Unit,
     onReading: () -> Unit,
     onWordTools: () -> Unit,
-    onVocabularyDrill: () -> Unit,
     onHome: () -> Unit = onBack
 ) {
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
@@ -169,14 +168,6 @@ internal fun LearningHubScreen(
                 subtitle = "Vyber si slovní téma: bydlení, jídlo, práce, cestování a další.",
                 detail = "Tematické sady · 25 slov v každé",
                 onClick = onArticles
-            )
-            LearningCard(
-                icon = { Icon(Icons.Default.FlashOn, contentDescription = null, tint = Color(0xFF8A672F)) },
-                iconBackground = Color(0xFFF6EFDF),
-                title = "Dril nejpoužívanějších slov",
-                subtitle = "Běžná mluvená němčina. V A1 a A2 dostávají přednost důležitá slovesa.",
-                detail = "Úrovně A1–B2 · volba 5 nebo 10 slov",
-                onClick = onVocabularyDrill
             )
             LearningCard(
                 icon = { Icon(LearningCategoryVisual.WORD_TOOLS.image, contentDescription = null, tint = learningCategoryTint(LearningCategoryVisual.WORD_TOOLS)) },
@@ -228,7 +219,6 @@ internal fun LearningHubScreen(
 internal fun ArticleCategoryLibraryScreen(
     onBack: () -> Unit,
     onVocabulary: () -> Unit,
-    onDrill: () -> Unit,
     onSelectCategory: (ArticleCategory) -> Unit,
     onHome: () -> Unit = onBack
 ) {
@@ -256,14 +246,6 @@ internal fun ArticleCategoryLibraryScreen(
                 subtitle = "Každá otázka ukáže pouze německý člen a podstatné jméno (der/die/das). Příkladovou větu uslyšíš až po odpovědi.",
                 detail = "${vocabularyCatalog.size} slov · náhodné sady po 25",
                 onClick = onVocabulary
-            )
-            LearningCard(
-                icon = { Icon(Icons.Default.FlashOn, contentDescription = null, tint = Color(0xFF8A672F)) },
-                iconBackground = Color(0xFFF6EFDF),
-                title = "Dril nejpoužívanějších slov",
-                subtitle = "Slova pro každodenní mluvu. V jedné sadě 5 nebo 10 výrazů s aktivním vybavováním a poslechem.",
-                detail = "${frequencyVocabularyCatalog.size} slov · A1–B2",
-                onClick = onDrill
             )
             articleCategories.forEachIndexed { index, category ->
                 Card(
