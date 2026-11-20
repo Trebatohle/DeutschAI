@@ -40,7 +40,7 @@ class LearningActivitySummaryTest {
 
     @Test
     fun newWordsUseTheDeviceLocalCalendarDateAtMonthBoundary() {
-        val timestamp = Instant.parse("2026-10-31T22:30:00Z").toEpochMilli()
+        val timestamp = Instant.parse("2026-10-31T23:30:00Z").toEpochMilli()
 
         val overview = buildLearningActivityOverview(
             dailyActivities = emptyMap(),
