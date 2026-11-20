@@ -440,6 +440,16 @@ internal fun FrequencyVocabularyDrillScreen(
                     ).all { stageResults[entry.id]?.get(it) == true }
                     if (mastered) FrequencyVocabularyProgressStore.recordPerfectDrillWord(context, entry)
                 }
+                if (dailyPlanMode) {
+                    val reviewedIds = LearningReviewStore.all(context)
+                        .filter { it.question.sourceKind == "vocabulary" }
+                        .map { it.question.id }
+                        .toSet()
+                    val passedIds = FrequencyVocabularyProgressStore.perfectlyPassedIds(context)
+                    dailyAvailableWords = levelWords.count {
+                        it.id !in passedIds && it.id !in reviewedIds
+                    }
+                }
                 stage = FrequencyDrillStage.FINISHED
                 finished = true
                 CourseResultStore.save(context, "frequency_vocabulary_" + selectedLevel, score, entries.size * 3)
@@ -668,10 +678,18 @@ internal fun FrequencyVocabularyDrillScreen(
                     }
                     Spacer(Modifier.weight(1f))
                     Button(
-                        onClick = { startDrill() }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                        onClick = { startDrill() },
+                        enabled = !dailyPlanMode || dailyAvailableWords > 0,
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
                         shape = RoundedCornerShape(14.dp)
-                    ) { Text("Další sada", fontWeight = FontWeight.Bold) }
+                    ) {
+                        Text(
+                            if (dailyPlanMode && dailyAvailableWords == 0) "V této úrovni už nejsou nová slova"
+                            else "Další sada",
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                     Button(
                         onClick = { started = false; finished = false }, modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText),
