@@ -22,6 +22,13 @@ class DailyStudyPlanTest {
     }
 
     @Test
+    fun onlyTheFirstPerfectDrillPassCountsAsANewWord() {
+        assertTrue(isFirstPerfectDrillPass("word_1", emptySet()))
+        assertFalse(isFirstPerfectDrillPass("word_1", setOf("word_1")))
+        assertFalse(isFirstPerfectDrillPass("", emptySet()))
+    }
+
+    @Test
     fun dailyPlanCountsFirstLearnedWordsOnTheirLocalCalendarDay() {
         val today = LocalDate.of(2026, 11, 20)
         val learned = buildMap {
