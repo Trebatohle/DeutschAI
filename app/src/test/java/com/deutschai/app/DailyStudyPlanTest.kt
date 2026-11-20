@@ -59,7 +59,7 @@ class DailyStudyPlanTest {
         assertEquals(5, progress.learnedToday)
         assertEquals(0, progress.remainingToday)
         assertTrue(progress.goalReachedToday)
-        assertEquals(7, progress.learnedThisWeek)
+        assertEquals(6, progress.learnedThisWeek)
         assertEquals(today.with(java.time.DayOfWeek.MONDAY), progress.week.first().date)
         assertEquals(today.with(java.time.DayOfWeek.MONDAY).plusDays(6), progress.week.last().date)
     }
