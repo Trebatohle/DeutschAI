@@ -22,6 +22,16 @@ internal data class DailyStudyPlanProgress(
     val week: List<DailyStudyDayProgress>
 )
 
+/** Uses the placement result as a starting point; the learner can always change it. */
+internal fun recommendedDailyVocabularyLevel(report: PlacementAssessmentReport?): String =
+    when (report?.estimatedLevel?.uppercase()) {
+        "A2" -> "A2"
+        "B1" -> "B1"
+        "B2", "C1", "C2" -> "B2"
+        else -> "A1"
+    }
+
+
 internal fun isValidDailyStudyGoal(targetWords: Int): Boolean =
     targetWords in dailyStudyGoalOptions
 
