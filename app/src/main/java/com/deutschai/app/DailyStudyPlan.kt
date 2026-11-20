@@ -25,6 +25,9 @@ internal data class DailyStudyPlanProgress(
 internal fun isValidDailyStudyGoal(targetWords: Int): Boolean =
     targetWords in dailyStudyGoalOptions
 
+internal fun isFirstPerfectDrillPass(entryId: String, alreadyPassedIds: Set<String>): Boolean =
+    entryId.isNotBlank() && entryId !in alreadyPassedIds
+
 /**
  * Counts each vocabulary entry once, on the device-local calendar date when
  * the learner first completed all three stages of the vocabulary drill.
