@@ -162,6 +162,80 @@ internal fun selectFrequencyVocabularyEntries(
     return selected.distinctBy { it.id }.take(target)
 }
 
+/**
+ * New-word-only selection for the daily plan.
+ *
+ * Previously attempted items belong to spaced repetition, and already passed
+ * words are excluded. For A1/A2, at least 70% of the session is verbs; the
+ * remaining slots favor word types with the lowest mastered share in this level.
+ */
+internal fun selectDailyNewFrequencyVocabularyEntries(
+    level: String,
+    count: Int,
+    reviewEntries: List<ReviewMemoryEntry>,
+    perfectlyPassedIds: Set<String>,
+    random: Random = Random.Default,
+    candidatePool: List<FrequencyVocabularyEntry>? = null
+): List<FrequencyVocabularyEntry> {
+    if (count <= 0) return emptyList()
+
+    val allWords = (candidatePool ?: frequencyVocabularyForLevel(level))
+        .distinctBy { it.id }
+    if (allWords.isEmpty()) return emptyList()
+
+    val previouslyAttemptedIds = reviewEntries
+        .filter { it.question.sourceKind == "vocabulary" }
+        .map { it.question.id }
+        .toSet()
+    val newWords = allWords.filter {
+        it.id !in perfectlyPassedIds && it.id !in previouslyAttemptedIds
+    }
+    if (newWords.isEmpty()) return emptyList()
+
+    val target = minOf(count, newWords.size)
+    val totalsByKind = allWords.groupingBy { it.kind }.eachCount()
+    val passedByKind = allWords
+        .filter { it.id in perfectlyPassedIds }
+        .groupingBy { it.kind }
+        .eachCount()
+    val availableByKind = newWords.groupBy { it.kind }
+        .mapValues { (_, entries) -> entries.shuffled(random).toMutableList() }
+
+    fun masteryShare(kind: FrequencyWordKind): Float {
+        val total = totalsByKind[kind] ?: 0
+        return if (total == 0) 1f else (passedByKind[kind] ?: 0).toFloat() / total
+    }
+
+    val selected = mutableListOf<FrequencyVocabularyEntry>()
+
+    fun takeFromLeastMasteredKinds(kinds: Set<FrequencyWordKind>, limit: Int) {
+        while (selected.size < limit) {
+            val nextKind = availableByKind.keys
+                .filter { it in kinds && availableByKind[it].orEmpty().isNotEmpty() }
+                .shuffled(random)
+                .minByOrNull(::masteryShare) ?: break
+            val next = availableByKind[nextKind]?.removeAt(0) ?: break
+            selected += next
+        }
+    }
+
+    if (level in setOf("A1", "A2")) {
+        val verbQuota = (target * 7 + 9) / 10
+        takeFromLeastMasteredKinds(setOf(FrequencyWordKind.VERB), verbQuota)
+        takeFromLeastMasteredKinds(
+            FrequencyWordKind.entries.filterNot { it == FrequencyWordKind.VERB }.toSet(),
+            target
+        )
+    } else if (availableByKind.keys.isNotEmpty()) {
+        takeFromLeastMasteredKinds(availableByKind.keys, target)
+    }
+
+    // If one category is exhausted, fill the remaining places from any untouched
+    // category rather than returning a shorter session unnecessarily.
+    takeFromLeastMasteredKinds(availableByKind.keys, target)
+    return selected.distinctBy { it.id }.take(target)
+}
+
 internal data class FrequencyVocabularyProgress(
     val totalWords: Int,
     val practicedWords: Int,
@@ -227,12 +301,17 @@ internal fun FrequencyVocabularyDrillScreen(
     onBack: () -> Unit,
     onComplete: (score: Int, total: Int) -> Unit,
     verbsOnly: Boolean = false,
-    onHome: () -> Unit = onBack
+    onHome: () -> Unit = onBack,
+    dailyPlanMode: Boolean = false,
+    recommendedLevel: String = "A1",
+    dailyTargetCount: Int = 5
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val speaker = rememberGermanSpeechPlayer()
-    var selectedLevel by remember(verbsOnly) { mutableStateOf("A1") }
+    var selectedLevel by remember(verbsOnly, dailyPlanMode, recommendedLevel) {
+        mutableStateOf(if (dailyPlanMode) recommendedLevel else "A1")
+    }
     var selectedCount by remember { mutableStateOf(5) }
     var entries by remember { mutableStateOf(emptyList<FrequencyVocabularyEntry>()) }
     var started by remember { mutableStateOf(false) }
@@ -250,6 +329,7 @@ internal fun FrequencyVocabularyDrillScreen(
     var levelWords by remember(verbsOnly) { mutableStateOf(emptyList<FrequencyVocabularyEntry>()) }
     var levelProgress by remember(verbsOnly) { mutableStateOf<FrequencyVocabularyProgress?>(null) }
     var loadedLevel by remember(verbsOnly) { mutableStateOf<String?>(null) }
+    var dailyAvailableWords by remember(verbsOnly, dailyPlanMode) { mutableStateOf(0) }
 
     // Build the vocabulary catalogue and its progress summary away from the UI thread.
     // The first access also enriches words with sentence context from the A1-B2 courses.
@@ -259,15 +339,25 @@ internal fun FrequencyVocabularyDrillScreen(
         levelWords = emptyList()
         val result = withContext(Dispatchers.Default) {
             val words = frequencyVocabularyForLevel(selectedLevel, verbsOnly)
+            val reviews = LearningReviewStore.all(context)
+            val passedIds = FrequencyVocabularyProgressStore.perfectlyPassedIds(context)
             val progress = buildFrequencyVocabularyProgress(
                 words = words,
-                reviewEntries = LearningReviewStore.all(context),
-                perfectlyPassedIds = FrequencyVocabularyProgressStore.perfectlyPassedIds(context)
+                reviewEntries = reviews,
+                perfectlyPassedIds = passedIds
             )
-            words to progress
+            val attemptedIds = reviews
+                .filter { it.question.sourceKind == "vocabulary" }
+                .map { it.question.id }
+                .toSet()
+            val available = if (dailyPlanMode) {
+                words.count { it.id !in passedIds && it.id !in attemptedIds }
+            } else 0
+            Triple(words, progress, available)
         }
         levelWords = result.first
         levelProgress = result.second
+        dailyAvailableWords = result.third
         loadedLevel = selectedLevel
     }
 
@@ -286,17 +376,31 @@ internal fun FrequencyVocabularyDrillScreen(
     }
 
     fun startDrill() {
-        if (isStartingDrill || loadedLevel != selectedLevel || levelWords.isEmpty()) return
+        if (
+            isStartingDrill || loadedLevel != selectedLevel || levelWords.isEmpty() ||
+            (dailyPlanMode && dailyAvailableWords <= 0)
+        ) return
         isStartingDrill = true
         drillScope.launch {
             val selected = withContext(Dispatchers.Default) {
-                val batch = selectFrequencyVocabularyEntries(
-                    selectedLevel,
-                    verbsOnly,
-                    selectedCount,
-                    LearningReviewStore.all(context),
-                    candidatePool = levelWords
-                )
+                val reviews = LearningReviewStore.all(context)
+                val batch = if (dailyPlanMode) {
+                    selectDailyNewFrequencyVocabularyEntries(
+                        level = selectedLevel,
+                        count = minOf(dailyTargetCount.coerceAtLeast(1), dailyAvailableWords),
+                        reviewEntries = reviews,
+                        perfectlyPassedIds = FrequencyVocabularyProgressStore.perfectlyPassedIds(context),
+                        candidatePool = levelWords
+                    )
+                } else {
+                    selectFrequencyVocabularyEntries(
+                        selectedLevel,
+                        verbsOnly,
+                        selectedCount,
+                        reviews,
+                        candidatePool = levelWords
+                    )
+                }
                 enrichFrequencyVocabularyWithSentenceContext(
                     batch,
                     requireUnambiguousBatch = true
@@ -395,7 +499,21 @@ internal fun FrequencyVocabularyDrillScreen(
                         color = Ink, fontSize = if (compact) 18.sp else 23.sp,
                         fontWeight = FontWeight.Bold, textAlign = TextAlign.Center
                     )
-                    if (!compact) Text(
+                    if (dailyPlanMode) {
+                        Text(
+                            "Dnešní dávka: ${minOf(dailyTargetCount, dailyAvailableWords)} nových slov",
+                            color = ForestText,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            "Opakování a dříve procvičovaná slova se sledují zvlášť.",
+                            color = Muted,
+                            fontSize = 12.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    } else if (!compact) Text(
                         if (verbsOnly) "Význam, tvary, běžné věty a výslovnost."
                         else "V A1 a A2 dostávají přednost nejdůležitější slovesa.",
                         color = Muted, fontSize = 13.sp, textAlign = TextAlign.Center
@@ -430,21 +548,31 @@ internal fun FrequencyVocabularyDrillScreen(
                             }
                         }
                     }
-                    Text("POČET SLOV", color = ForestText, fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                        listOf(5, 10).forEach { count ->
-                            val chosen = selectedCount == count
-                            Card(
-                                onClick = { selectedCount = count },
-                                modifier = Modifier.weight(1f), shape = RoundedCornerShape(14.dp),
-                                colors = CardDefaults.cardColors(containerColor = if (chosen) Mint else CardSurface)
-                            ) {
-                                Column(
-                                    Modifier.fillMaxWidth().padding(vertical = if (compact) 9.dp else 11.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
+                    if (!dailyPlanMode) {
+                        Text("POČET SLOV", color = ForestText, fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                            listOf(5, 10, 15).forEach { count ->
+                                val chosen = selectedCount == count
+                                Card(
+                                    onClick = { selectedCount = count },
+                                    modifier = Modifier.weight(1f), shape = RoundedCornerShape(14.dp),
+                                    colors = CardDefaults.cardColors(containerColor = if (chosen) Mint else CardSurface)
                                 ) {
-                                    Text(count.toString() + " slov", color = if (chosen) ForestText else Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                                    Text(if (count == 5) "Krátký trénink" else "Delší trénink", color = Muted, fontSize = 13.sp)
+                                    Column(
+                                        Modifier.fillMaxWidth().padding(vertical = if (compact) 9.dp else 11.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(count.toString() + " slov", color = if (chosen) ForestText else Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                                        Text(
+                                            when (count) {
+                                                5 -> "Krátký"
+                                                10 -> "Delší"
+                                                else -> "Plný"
+                                            } + " trénink",
+                                            color = Muted,
+                                            fontSize = 13.sp
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -480,16 +608,27 @@ internal fun FrequencyVocabularyDrillScreen(
                             textAlign = TextAlign.Center
                         )
                     }
+                    if (dailyPlanMode && visibleProgress != null) {
+                        Text(
+                            "V úrovni ${selectedLevel} zbývá ${dailyAvailableWords} dosud neprocvičených slov.",
+                            color = Muted,
+                            fontSize = 12.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                     Spacer(Modifier.weight(1f))
                     Button(
                         onClick = { startDrill() },
-                        enabled = loadedLevel == selectedLevel && levelWords.isNotEmpty() && !isStartingDrill,
+                        enabled = loadedLevel == selectedLevel && levelWords.isNotEmpty() &&
+                            !isStartingDrill && (!dailyPlanMode || dailyAvailableWords > 0),
                         modifier = Modifier.fillMaxWidth().heightIn(min = if (compact) 48.dp else 54.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = ActionColor, contentColor = ActionText),
                         shape = RoundedCornerShape(14.dp)
                     ) { Text(
                         when {
                             isStartingDrill -> "Připravuji sadu…"
+                            dailyPlanMode && dailyAvailableWords == 0 && loadedLevel == selectedLevel -> "V této úrovni už nejsou nová slova"
+                            dailyPlanMode -> "Spustit denní dávku"
                             loadedLevel == selectedLevel -> "Spustit dril"
                             else -> "Připravuji dril…"
                         },
