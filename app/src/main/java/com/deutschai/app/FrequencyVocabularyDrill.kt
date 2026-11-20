@@ -223,7 +223,7 @@ internal fun selectDailyNewFrequencyVocabularyEntries(
         val verbQuota = (target * 7 + 9) / 10
         takeFromLeastMasteredKinds(setOf(FrequencyWordKind.VERB), verbQuota)
         takeFromLeastMasteredKinds(
-            FrequencyWordKind.entries.filterNot { it == FrequencyWordKind.VERB }.toSet(),
+            FrequencyWordKind.values().filterNot { it == FrequencyWordKind.VERB }.toSet(),
             target
         )
     } else if (availableByKind.keys.isNotEmpty()) {
