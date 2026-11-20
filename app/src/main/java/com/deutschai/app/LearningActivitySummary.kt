@@ -214,7 +214,7 @@ internal fun LearningActivitySummaryCard(summary: LearningActivityOverview) {
                 LearningActivityMetric(
                     modifier = Modifier.weight(1f),
                     value = summary.monthAttempts.toString(),
-                    label = "zodpovězených otázek"
+                    label = "procvičovacích odpovědí"
                 )
                 LearningActivityMetric(
                     modifier = Modifier.weight(1f),
@@ -229,7 +229,7 @@ internal fun LearningActivitySummaryCard(summary: LearningActivityOverview) {
                 LearningActivityMetric(
                     modifier = Modifier.weight(1f),
                     value = summary.monthActiveDays.toString(),
-                    label = "aktivních dnů"
+                    label = "dnů s procvičováním"
                 )
                 LearningActivityMetric(
                     modifier = Modifier.weight(1f),
@@ -246,7 +246,7 @@ internal fun LearningActivitySummaryCard(summary: LearningActivityOverview) {
                 ) {
                     Text("POSLEDNÍCH 7 DNŮ", color = ForestText, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.7.sp)
                     Text(
-                        "${summary.lastSevenDaysAttempts} odpovědí · ${summary.lastSevenDaysActiveDays} aktivních dnů",
+                        "${summary.lastSevenDaysAttempts} odpovědí · ${summary.lastSevenDaysActiveDays} dnů s procvičováním",
                         color = Muted,
                         fontSize = 10.sp
                     )
