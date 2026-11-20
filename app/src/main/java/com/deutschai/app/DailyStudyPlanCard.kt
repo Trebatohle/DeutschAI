@@ -32,6 +32,7 @@ import java.time.DayOfWeek
 @Composable
 internal fun DailyStudyPlanCard(
     progress: DailyStudyPlanProgress,
+    dueReviewCount: Int = 0,
     onGoalChange: (Int) -> Unit,
     onStartDrill: () -> Unit,
     modifier: Modifier = Modifier
@@ -114,6 +115,16 @@ internal fun DailyStudyPlanCard(
                 trackColor = Mint
             )
             Text(message, color = Muted, fontSize = 12.sp, lineHeight = 17.sp)
+            Text(
+                if (dueReviewCount > 0) {
+                    "K samostatnému opakování: $dueReviewCount položek. Tyto položky se do cíle nových slov nezapočítávají."
+                } else {
+                    "Opakování se sleduje zvlášť a neubírá z cíle nových slov."
+                },
+                color = Muted,
+                fontSize = 11.sp,
+                lineHeight = 16.sp
+            )
 
             Text("Denní cíl", color = Ink, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
             Row(
