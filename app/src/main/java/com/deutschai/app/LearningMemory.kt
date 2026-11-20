@@ -137,6 +137,7 @@ internal object LearningReviewStore {
             .sortedWith(compareBy<ReviewMemoryEntry> { it.dueAtMillis }.thenByDescending { it.wrongCount })
             .take(MAX_ITEMS)
         writeEntries(context, trimmed)
+        LearningActivityStore.recordAnswer(context, wasCorrect, nowMillis)
     }
 
     /** Self-rated recall used by phrase cards; kept in the same review queue as quiz answers. */

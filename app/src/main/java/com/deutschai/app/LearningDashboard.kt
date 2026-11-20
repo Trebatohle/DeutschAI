@@ -165,6 +165,7 @@ internal fun LearningOverviewScreen(
     val placement = PlacementAssessmentStore.load(context)
     val allReviewEntries = remember(context) { LearningReviewStore.all(context) }
     val skillStats = LearningReviewStore.skillStats(context)
+    val activitySummary = LearningActivityStore.loadOverview(context)
     val cefrMap = buildCefrKnowledgeMap(allReviewEntries, placement)
     val courseResults = remember(context) {
         sentenceCourseCatalog.associate { course ->
@@ -226,6 +227,8 @@ internal fun LearningOverviewScreen(
                     Text("$dueCount položek čeká na opakování", color = Color(0xFFE0EAE5), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
+
+            LearningActivitySummaryCard(summary = activitySummary)
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
