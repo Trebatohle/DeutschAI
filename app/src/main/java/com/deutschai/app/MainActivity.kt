@@ -217,6 +217,9 @@ private fun BeatriceHome() {
     var reviewEntries by remember(preferences) { mutableStateOf(LearningReviewStore.all(context)) }
     var dueReviewEntries by remember(preferences) { mutableStateOf(dailyTrainingDueEntries(context)) }
     var rewardPoints by remember(preferences) { mutableStateOf(RewardPointsStore.load(context)) }
+    var dailyStudyPlanProgress by remember(preferences) {
+        mutableStateOf(DailyStudyPlanStore.loadProgress(context))
+    }
 
     var showConversation by remember { mutableStateOf(false) }
     var showDailyTraining by remember { mutableStateOf(false) }
@@ -392,6 +395,7 @@ private fun BeatriceHome() {
         dueReviewEntries = dailyTrainingDueEntries(context)
         progressStats = LearningProgressStore.load(context)
         rewardPoints = RewardPointsStore.load(context)
+        dailyStudyPlanProgress = DailyStudyPlanStore.loadProgress(context)
     }
 
     fun recordScore(score: Int, total: Int, activityKey: String) {
@@ -406,6 +410,7 @@ private fun BeatriceHome() {
         } else {
             LearningProgressStore.load(context)
         }
+        dailyStudyPlanProgress = DailyStudyPlanStore.loadProgress(context)
     }
 
     if (showPlacementWelcome) {
@@ -606,7 +611,10 @@ private fun BeatriceHome() {
                 }
                 refreshLearningMetrics()
             },
-            onHome = { navigateHome() },
+            onHome = {
+                refreshLearningMetrics()
+                navigateHome()
+            },
             onComplete = { score, total -> recordScore(score, total, "vocabulary_drill") }
         )
         return
@@ -922,6 +930,26 @@ private fun BeatriceHome() {
                                     )
                                 }
                             }
+
+                            DailyStudyPlanCard(
+                                progress = dailyStudyPlanProgress,
+                                onGoalChange = { target ->
+                                    DailyStudyPlanStore.setDailyGoal(context, target)
+                                    dailyStudyPlanProgress = DailyStudyPlanStore.loadProgress(context)
+                                },
+                                onStartDrill = {
+                                    saveLastActivity(
+                                        "vocabulary-drill",
+                                        "vocabulary-frequency-drill",
+                                        "Dril nejpoužívanějších slov"
+                                    )
+                                    vocabularyDrillVerbsOnly = false
+                                    vocabularyDrillOpenedFromHub = false
+                                    vocabularyDrillOpenedFromRootLibrary = false
+                                    vocabularyDrillOpenedFromVerbLibrary = false
+                                    showVocabularyDrill = true
+                                }
+                            )
 
                             HomeRecommendationCard(
                                 recommendation = homeRecommendation,
