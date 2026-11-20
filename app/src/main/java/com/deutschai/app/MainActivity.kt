@@ -240,6 +240,7 @@ private fun BeatriceHome() {
     var vocabularyDrillOpenedFromHub by remember { mutableStateOf(false) }
     var vocabularyDrillOpenedFromRootLibrary by remember { mutableStateOf(false) }
     var vocabularyDrillOpenedFromVerbLibrary by remember { mutableStateOf(false) }
+    var vocabularyDrillOpenedFromDailyPlan by remember { mutableStateOf(false) }
     var vocabularyDrillVerbsOnly by remember { mutableStateOf(false) }
     var showVocabularyNotebook by remember { mutableStateOf(false) }
     var showSavedVocabularyPractice by remember { mutableStateOf(false) }
@@ -301,6 +302,7 @@ private fun BeatriceHome() {
         vocabularyDrillOpenedFromHub = false
         vocabularyDrillOpenedFromRootLibrary = false
         vocabularyDrillOpenedFromVerbLibrary = false
+        vocabularyDrillOpenedFromDailyPlan = false
         vocabularyDrillVerbsOnly = false
         showVocabularyNotebook = false
         showSavedVocabularyPractice = false
@@ -603,6 +605,11 @@ private fun BeatriceHome() {
                         vocabularyDrillOpenedFromRootLibrary = false
                         vocabularyDrillVerbsOnly = false
                         selectedTab = "Knihovna"
+                    }
+                    vocabularyDrillOpenedFromDailyPlan -> {
+                        vocabularyDrillOpenedFromDailyPlan = false
+                        vocabularyDrillVerbsOnly = false
+                        selectedTab = "Domů"
                     }
                     else -> {
                         vocabularyDrillVerbsOnly = false
@@ -947,6 +954,7 @@ private fun BeatriceHome() {
                                     vocabularyDrillOpenedFromHub = false
                                     vocabularyDrillOpenedFromRootLibrary = false
                                     vocabularyDrillOpenedFromVerbLibrary = false
+                                    vocabularyDrillOpenedFromDailyPlan = true
                                     showVocabularyDrill = true
                                 }
                             )
@@ -980,6 +988,7 @@ private fun BeatriceHome() {
                                                     vocabularyDrillOpenedFromHub = false
                                                     vocabularyDrillOpenedFromRootLibrary = false
                                                     vocabularyDrillOpenedFromVerbLibrary = false
+                                                    vocabularyDrillOpenedFromDailyPlan = true
                                                     showVocabularyDrill = true
                                                 }
                                                 else -> showLearningHub = true
