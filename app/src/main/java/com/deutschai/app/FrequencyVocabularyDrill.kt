@@ -188,9 +188,11 @@ internal object FrequencyVocabularyProgressStore {
 
     fun recordPerfectDrillWord(context: Context, entry: FrequencyVocabularyEntry) {
         val preferences = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val updated = (preferences.getStringSet(PERFECTLY_PASSED_IDS, emptySet()) ?: emptySet())
-            .toMutableSet()
-            .apply { add(entry.id) }
+        val existing = preferences.getStringSet(PERFECTLY_PASSED_IDS, emptySet()) ?: emptySet()
+        if (entry.id !in existing) {
+            DailyStudyPlanStore.recordNewWord(context, entry.id)
+        }
+        val updated = existing.toMutableSet().apply { add(entry.id) }
         preferences.edit().putStringSet(PERFECTLY_PASSED_IDS, updated).apply()
     }
 }
