@@ -588,6 +588,10 @@ private fun BeatriceHome() {
     if (showVocabularyDrill) {
         FrequencyVocabularyDrillScreen(
             verbsOnly = vocabularyDrillVerbsOnly,
+            dailyPlanMode = vocabularyDrillOpenedFromDailyPlan,
+            recommendedLevel = recommendedDailyVocabularyLevel(PlacementAssessmentStore.load(context)),
+            dailyTargetCount = dailyStudyPlanProgress.remainingToday
+                .takeIf { it > 0 } ?: dailyStudyPlanProgress.targetWords,
             onBack = {
                 showVocabularyDrill = false
                 when {
@@ -940,6 +944,7 @@ private fun BeatriceHome() {
 
                             DailyStudyPlanCard(
                                 progress = dailyStudyPlanProgress,
+                                dueReviewCount = dueReviewEntries.size,
                                 onGoalChange = { target ->
                                     DailyStudyPlanStore.setDailyGoal(context, target)
                                     dailyStudyPlanProgress = DailyStudyPlanStore.loadProgress(context)
