@@ -656,15 +656,6 @@ private fun BeatriceHome() {
                 showArticleCategories = false
                 showVocabularyPractice = true
             },
-            onDrill = {
-                saveLastActivity("vocabulary-drill", "vocabulary-frequency-drill", "Dril nejpoužívanějších slov")
-                vocabularyDrillVerbsOnly = false
-                vocabularyDrillOpenedFromHub = false
-                vocabularyDrillOpenedFromRootLibrary = false
-                vocabularyDrillOpenedFromVerbLibrary = false
-                showArticleCategories = false
-                showVocabularyDrill = true
-            },
             onSelectCategory = { category ->
                 saveLastActivity("article-quiz", category.id, category.title)
                 selectedArticleCategory = category
@@ -715,15 +706,6 @@ private fun BeatriceHome() {
                 showLearningHub = false
                 showWordTools = true
             },
-            onVocabularyDrill = {
-                saveLastActivity("vocabulary-drill", "vocabulary-frequency-drill", "Dril nejpoužívanějších slov")
-                vocabularyDrillVerbsOnly = false
-                vocabularyDrillOpenedFromHub = true
-                vocabularyDrillOpenedFromRootLibrary = false
-                vocabularyDrillOpenedFromVerbLibrary = false
-                showLearningHub = false
-                showVocabularyDrill = true
-            }
         )
         return
     }
