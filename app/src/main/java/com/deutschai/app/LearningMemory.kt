@@ -19,7 +19,10 @@ internal data class ReviewQuestion(
     val translation: String = "",
     val cefrLevel: String = "",
     val courseId: String = "",
-    val passage: String = ""
+    val passage: String = "",
+    val focusTopicId: String = "",
+    val focusTopicTitle: String = "",
+    val focusTerm: String = ""
 ) {
     init {
         require(id.isNotBlank()) { "Review question ID must not be blank." }
@@ -229,6 +232,9 @@ internal object LearningReviewStore {
                     .put("cefrLevel", q.cefrLevel)
                     .put("courseId", q.courseId)
                     .put("passage", q.passage)
+                    .put("focusTopicId", q.focusTopicId)
+                    .put("focusTopicTitle", q.focusTopicTitle)
+                    .put("focusTerm", q.focusTerm)
                     .put("wrongCount", entry.wrongCount)
                     .put("correctStreak", entry.correctStreak)
                     .put("intervalDays", entry.intervalDays)
@@ -262,7 +268,10 @@ internal object LearningReviewStore {
             translation = optString("translation", ""),
             cefrLevel = optString("cefrLevel", ""),
             courseId = optString("courseId", ""),
-            passage = optString("passage", "")
+            passage = optString("passage", ""),
+            focusTopicId = optString("focusTopicId", ""),
+            focusTopicTitle = optString("focusTopicTitle", ""),
+            focusTerm = optString("focusTerm", "")
         )
     }
 }
@@ -305,7 +314,9 @@ internal fun LessonQuestion.toReviewQuestion(
     sourceKind: String,
     sourceTitle: String,
     cefrLevel: String = "",
-    courseId: String = ""
+    courseId: String = "",
+    focusTopicId: String = courseId,
+    focusTopicTitle: String = sourceTitle
 ): ReviewQuestion = ReviewQuestion(
     id = id,
     sourceKind = sourceKind,
@@ -317,7 +328,9 @@ internal fun LessonQuestion.toReviewQuestion(
     germanSentence = germanSentence,
     translation = translation,
     cefrLevel = cefrLevel,
-    courseId = courseId
+    courseId = courseId,
+    focusTopicId = focusTopicId,
+    focusTopicTitle = focusTopicTitle
 )
 
 internal fun WordToolQuestion.toReviewQuestion(
@@ -332,7 +345,10 @@ internal fun WordToolQuestion.toReviewQuestion(
     correctIndex = correctIndex,
     explanation = explanation,
     germanSentence = fullGerman,
-    translation = fullCzech
+    translation = fullCzech,
+    focusTopicId = "wordtools:${group.id}",
+    focusTopicTitle = group.title,
+    focusTerm = focusTerm
 )
 
 internal fun stableReviewId(vararg parts: String): String {

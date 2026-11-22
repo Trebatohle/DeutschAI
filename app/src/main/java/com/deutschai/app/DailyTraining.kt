@@ -68,7 +68,10 @@ internal fun buildDailyTrainingPool(): List<ReviewQuestion> {
                 correctIndex = choices.indexOf(word.article),
                 explanation = "${word.article} ${word.word} = ${word.czech}. Uč se podstatné jméno vždy společně se členem.",
                 germanSentence = "${word.article} ${word.word}",
-                translation = word.czech
+                translation = word.czech,
+                focusTopicId = "articles:${category.id}",
+                focusTopicTitle = category.title,
+                focusTerm = word.word
             )
         }
     }
@@ -87,7 +90,9 @@ internal fun buildDailyTrainingPool(): List<ReviewQuestion> {
                 result += question.toReviewQuestion(
                     id = stableReviewId("verbs", topic.id, question.prompt, question.germanSentence, question.translation),
                     sourceKind = "verbs",
-                    sourceTitle = topic.title
+                    sourceTitle = topic.title,
+                    focusTopicId = "verbs:${topic.id}",
+                    focusTopicTitle = topic.title
                 )
             }
         }
@@ -204,19 +209,45 @@ internal fun makePersonalizedDailyTrainingPlan(
     nowMillis: Long = System.currentTimeMillis()
 ): PersonalizedDailyTrainingPlan {
     val history = LearningReviewStore.all(context)
-    val historyIds = history.map { it.question.id }.toSet()
     val fullPool = buildDailyTrainingPool()
     val currentQuestionsById = fullPool.associateBy { it.id }
+    // Backfill fine-grained topic tags for questions answered before this feature existed.
+    val enrichedHistory = history.map { entry ->
+        val current = currentQuestionsById[entry.question.id] ?: return@map entry
+        val saved = entry.question
+        if (saved.focusTopicId.isBlank() && current.focusTopicId.isNotBlank()) {
+            entry.copy(
+                question = saved.copy(
+                    focusTopicId = current.focusTopicId,
+                    focusTopicTitle = current.focusTopicTitle,
+                    focusTerm = current.focusTerm
+                )
+            )
+        } else {
+            entry
+        }
+    }
+    val historyIds = enrichedHistory.map { it.question.id }.toSet()
     val due = selectDailyTrainingDueEntries(
         LearningReviewStore.prioritizedDue(context, nowMillis)
     ).map { entry ->
         val saved = enrichScheduledReviewQuestion(entry.question)
-        // Older reading-review entries predate passage persistence; restore their offline text
-        // from the bundled article rather than showing a context-free comprehension question.
-        if (saved.sourceKind == "reading" && saved.passage.isBlank()) {
-            saved.copy(passage = currentQuestionsById[saved.id]?.passage.orEmpty())
+        val current = currentQuestionsById[saved.id]
+        val tagged = if (saved.focusTopicId.isBlank() && current != null) {
+            saved.copy(
+                focusTopicId = current.focusTopicId,
+                focusTopicTitle = current.focusTopicTitle,
+                focusTerm = current.focusTerm
+            )
         } else {
             saved
+        }
+        // Older reading-review entries predate passage persistence; restore their offline text
+        // from the bundled article rather than showing a context-free comprehension question.
+        if (tagged.sourceKind == "reading" && tagged.passage.isBlank()) {
+            tagged.copy(passage = current?.passage.orEmpty())
+        } else {
+            tagged
         }
     }.distinctBy { it.id }
 
@@ -230,6 +261,7 @@ internal fun makePersonalizedDailyTrainingPlan(
         unseenQuestions = unseen,
         practicedQuestions = practiced,
         skillStats = LearningReviewStore.skillStats(context),
+        recurringErrors = buildRecurringLearningErrors(enrichedHistory),
         count = 10
     )
 }
@@ -269,6 +301,14 @@ private fun PersonalizedTrainingFocusCard(plan: PersonalizedDailyTrainingPlan) {
                 fontSize = 12.sp,
                 lineHeight = 18.sp
             )
+            if (plan.focusErrorQuestionCount > 0) {
+                Text(
+                    "Cílené otázky k této chybě: ${plan.focusErrorQuestionCount}",
+                    color = ForestText,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
             if (plan.dueReviewCount > 0) {
                 Text(
                     "V této sadě: " + plan.dueReviewCount + " položek k opakování na začátku.",

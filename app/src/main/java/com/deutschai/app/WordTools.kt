@@ -65,7 +65,8 @@ internal data class WordToolQuestion(
     val correctIndex: Int,
     val fullGerman: String,
     val fullCzech: String,
-    val explanation: String
+    val explanation: String,
+    val focusTerm: String = ""
 )
 
 internal data class WordToolMode(
@@ -376,7 +377,8 @@ internal fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Li
                         "Koncovka přivlastňovacího zájmena se řídí rodem, číslem a pádem podstatného jména. Sleduj celý příklad, nejen český překlad."
                     } else {
                         "Uč se výraz společně s jeho významem a příkladem použití."
-                    }
+                    },
+                    focusTerm = item.german
                 )
             }
             "sentences" -> {
@@ -403,7 +405,8 @@ internal fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Li
                     correctIndex = choices.indexOf(item.german),
                     fullGerman = item.sentenceGerman,
                     fullCzech = item.sentenceCzech,
-                    explanation = if (group.id == "possessives") "Tvar „${item.german}“ odpovídá rodu, číslu a pádu podstatného jména ve větě." else "Výraz „${item.german}“ zde znamená „${item.czech}“."
+                    explanation = if (group.id == "possessives") "Tvar „${item.german}“ odpovídá rodu, číslu a pádu podstatného jména ve větě." else "Výraz „${item.german}“ zde znamená „${item.czech}“.",
+                    focusTerm = item.german
                 )
             }
             else -> {
@@ -417,7 +420,8 @@ internal fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Li
                     correctIndex = choices.indexOf(czech),
                     fullGerman = german,
                     fullCzech = czech,
-                    explanation = if (group.id == "possessives") "Všimni si koncovky přivlastňovacího výrazu. Záleží na rodu, čísle a pádu podstatného jména." else "Zkus si přeložit celou větu a všímej si výrazu „" + item.german + "“ v kontextu."
+                    explanation = if (group.id == "possessives") "Všimni si koncovky přivlastňovacího výrazu. Záleží na rodu, čísle a pádu podstatného jména." else "Zkus si přeložit celou větu a všímej si výrazu „" + item.german + "“ v kontextu.",
+                    focusTerm = item.german
                 )
             }
         }
