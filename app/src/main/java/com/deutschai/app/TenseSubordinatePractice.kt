@@ -2,9 +2,9 @@
 package com.deutschai.app
 
 /**
- * Level-specific grammar tasks. A2 focuses on everyday Perfekt, common Präteritum
- * forms and foundational subordinate clauses. B1 adds narrative tense choice,
- * Plusquamperfekt and more demanding temporal, concessive, causal and result clauses.
+ * Level-specific grammar tasks. A2 covers foundational past forms and subordinate clauses;
+ * B1 adds narrative tense choice and more demanding clauses; B2 adds reported speech,
+ * passive alternatives and formal sentence patterns.
  */
 private data class TenseSubordinateItem(
     val id: String,
@@ -191,11 +191,99 @@ private val tenseSubordinateItems = listOf(
         "Nachdem die Techniker den Fehler gefunden _____, reparierten sie die Anlage.", listOf("hatten", "haben", "waren", "sind"), "hatten",
         "Nachdem die Techniker den Fehler gefunden hatten, reparierten sie die Anlage.", "Poté co technici našli chybu, opravili zařízení.",
         "Po „nachdem“ stojí dřívější děj v Plusquamperfektu: gefunden hatten."),
+
+
+    // B2 — indirect speech with Konjunktiv I and appropriate Konjunktiv-II substitutes.
+    TenseSubordinateItem("b2-rede-k1-sein", "B2", "Nepřímá řeč", "reported-speech", "Nepřímá řeč · B2", "Konjunktiv I · sein",
+        "Die Sprecherin erklärt: „Die Lage ist stabil.“\nIndirekt: Die Sprecherin erklärt, die Lage _____.", listOf("sei", "ist", "wäre", "war"), "sei",
+        "Die Sprecherin erklärt, die Lage sei stabil.", "Mluvčí vysvětluje, že situace je stabilní.",
+        "V nepřímé řeči se v psaném projevu často používá Konjunktiv I. Tvar slovesa „sein“ ve 3. osobě jednotného čísla je „sei“."),
+    TenseSubordinateItem("b2-rede-k1-haben", "B2", "Nepřímá řeč", "reported-speech", "Nepřímá řeč · B2", "Konjunktiv I · haben",
+        "Der Vorstand teilt mit: „Wir haben eine Lösung gefunden.“\nIndirekt: Der Vorstand teilt mit, er _____ eine Lösung gefunden.", listOf("habe", "hat", "hätte", "hatte"), "habe",
+        "Der Vorstand teilt mit, er habe eine Lösung gefunden.", "Vedení oznamuje, že našlo řešení.",
+        "Minulost v nepřímé řeči tvoří Konjunktiv I pomocného slovesa „haben“ a Partizip II: habe gefunden."),
+    TenseSubordinateItem("b2-rede-k1-seien-past", "B2", "Nepřímá řeč", "reported-speech", "Nepřímá řeč · B2", "Konjunktiv I · minulost se sein",
+        "Der Bericht meldet: „Die Verhandlungen sind gescheitert.“\nIndirekt: Der Bericht meldet, die Verhandlungen _____ gescheitert.", listOf("seien", "sind", "wären", "wurden"), "seien",
+        "Der Bericht meldet, die Verhandlungen seien gescheitert.", "Zpráva uvádí, že jednání ztroskotala.",
+        "U slovesa, které tvoří Perfekt se „sein“, použijeme v nepřímé řeči Konjunktiv I slovesa „sein“: seien gescheitert."),
+    TenseSubordinateItem("b2-rede-k1-modal", "B2", "Nepřímá řeč", "reported-speech", "Nepřímá řeč · B2", "Konjunktiv I · modální slovesa",
+        "Die Sprecherin betont: „Der Bericht muss überarbeitet werden.“\nIndirekt: Die Sprecherin betont, der Bericht _____ dringend überarbeitet werden.", listOf("müsse", "muss", "musste", "müsste"), "müsse",
+        "Die Sprecherin betont, der Bericht müsse dringend überarbeitet werden.", "Mluvčí zdůrazňuje, že zpráva musí být neprodleně přepracována.",
+        "Modální sloveso „müssen“ má v Konjunktivu I ve 3. osobě jednotného čísla tvar „müsse“."),
+    TenseSubordinateItem("b2-rede-k1-futur", "B2", "Nepřímá řeč", "reported-speech", "Nepřímá řeč · B2", "Konjunktiv I · werden",
+        "Der Minister kündigt an: „Das Gesetz wird im nächsten Jahr in Kraft treten.“\nIndirekt: Der Minister kündigt an, das Gesetz _____ im nächsten Jahr in Kraft treten.", listOf("werde", "wird", "würde", "wurde"), "werde",
+        "Der Minister kündigt an, das Gesetz werde im nächsten Jahr in Kraft treten.", "Ministr oznamuje, že zákon vstoupí v platnost příští rok.",
+        "Budoucnost v nepřímé řeči vyjadřujeme tvarem „werde“ a infinitivem na konci: werde in Kraft treten."),
+    TenseSubordinateItem("b2-rede-deixis", "B2", "Nepřímá řeč", "reported-speech", "Nepřímá řeč · B2", "Nepřímá řeč · zájmena a místní údaje",
+        "Die Mitarbeiterin sagte: „Ich arbeite seit Jahren hier.“\nIndirekt: Die Mitarbeiterin sagte, sie arbeite seit Jahren _____.", listOf("dort", "hier", "dorthin", "dahin"), "dort",
+        "Die Mitarbeiterin sagte, sie arbeite seit Jahren dort.", "Zaměstnankyně řekla, že tam pracuje už řadu let.",
+        "Při převodu přímé řeči do nepřímé se podle kontextu mění osoba i místní údaje: „ich“ → „sie“, „hier“ → „dort“."),
+    TenseSubordinateItem("b2-rede-k2-ersatz", "B2", "Nepřímá řeč", "reported-speech", "Nepřímá řeč · B2", "Konjunktiv II · náhradní tvar",
+        "Die Analysten sagen: „Die Kosten steigen weiter.“\nIndirekt: Die Analysten sagen, die Kosten _____ weiter.", listOf("würden steigen", "steigen", "stiegen", "sind gestiegen"), "würden steigen",
+        "Die Analysten sagen, die Kosten würden weiter steigen.", "Analytici říkají, že náklady budou nadále růst.",
+        "Tvar Konjunktivu I „steigen“ se u 3. osoby množného čísla shoduje s indikativem. Proto se pro jednoznačné označení nepřímé řeči volí Konjunktiv II, zde opis „würden steigen“."),
+    TenseSubordinateItem("b2-rede-passiv-perfekt", "B2", "Nepřímá řeč", "reported-speech", "Nepřímá řeč · B2", "Konjunktiv I · pasivum minulosti",
+        "Die Behörde berichtet: „Das neue Verfahren ist bereits getestet worden.“\nIndirekt: Die Behörde berichtet, das neue Verfahren _____ bereits getestet worden.", listOf("sei", "ist", "wäre", "wurde"), "sei",
+        "Die Behörde berichtet, das neue Verfahren sei bereits getestet worden.", "Úřad uvádí, že nový postup již byl otestován.",
+        "Minulý děj v pasivu lze v nepřímé řeči vyjádřit tvarem „sei“ a konstrukcí „Partizip II + worden“."),
+
+    // B2 — passive alternatives: sich lassen, sein + zu and -bar adjectives.
+    TenseSubordinateItem("b2-passiv-lassen-problem", "B2", "Náhrady pasiva", "passive-alternatives", "Náhrady pasiva · B2", "sich lassen + infinitiv",
+        "Das Problem _____ sich ohne großen Aufwand lösen.", listOf("lässt", "löst", "ließ", "wird"), "lässt",
+        "Das Problem lässt sich ohne großen Aufwand lösen.", "Tento problém lze vyřešit bez větší námahy.",
+        "Konstrukce „sich lassen + infinitiv“ vyjadřuje možnost a nahrazuje pasivum: Das Problem kann gelöst werden."),
+    TenseSubordinateItem("b2-passiv-lassen-geraete", "B2", "Náhrady pasiva", "passive-alternatives", "Náhrady pasiva · B2", "sich lassen + infinitiv",
+        "Die Geräte _____ sich aus der Ferne steuern.", listOf("lassen", "lässt", "ließen", "sind"), "lassen",
+        "Die Geräte lassen sich aus der Ferne steuern.", "Zařízení lze ovládat na dálku.",
+        "U množného podmětu použijeme tvar „lassen“. Význam odpovídá větě „Die Geräte können aus der Ferne gesteuert werden“."),
+    TenseSubordinateItem("b2-passiv-sein-zu-einreichen", "B2", "Náhrady pasiva", "passive-alternatives", "Náhrady pasiva · B2", "sein + zu + infinitiv",
+        "Die vollständigen Unterlagen sind bis Freitag _____.", listOf("einzureichen", "einreichen", "eingereicht", "zu einreichen"), "einzureichen",
+        "Die vollständigen Unterlagen sind bis Freitag einzureichen.", "Kompletní podklady je nutné předložit do pátku.",
+        "Konstrukce „sein + zu + infinitiv“ vyjadřuje povinnost a odpovídá pasivu s „müssen“: Die Unterlagen müssen eingereicht werden."),
+    TenseSubordinateItem("b2-passiv-sein-zu-einhalten", "B2", "Náhrady pasiva", "passive-alternatives", "Náhrady pasiva · B2", "sein + zu + infinitiv",
+        "Die Sicherheitsbestimmungen sind ausnahmslos _____.", listOf("einzuhalten", "einhalten", "eingehalten", "zu halten"), "einzuhalten",
+        "Die Sicherheitsbestimmungen sind ausnahmslos einzuhalten.", "Bez výjimky je nutné dodržovat bezpečnostní předpisy.",
+        "„Sind einzuhalten“ vyjadřuje závaznou povinnost. Jde o formálnější náhradu konstrukce „müssen eingehalten werden“."),
+    TenseSubordinateItem("b2-passiv-bar-recycelbar", "B2", "Náhrady pasiva", "passive-alternatives", "Náhrady pasiva · B2", "přípona -bar",
+        "Das verwendete Verpackungsmaterial kann wiederverwertet werden – es ist vollständig _____.", listOf("recycelbar", "recyceln", "recycelt", "recycelnbar"), "recycelbar",
+        "Das verwendete Verpackungsmaterial ist vollständig recycelbar.", "Použitý obalový materiál lze celý recyklovat.",
+        "Přípona „-bar“ tvoří přídavná jména vyjadřující možnost: „recycelbar“ znamená, že materiál lze recyklovat."),
+    TenseSubordinateItem("b2-passiv-bar-kuendbar", "B2", "Náhrady pasiva", "passive-alternatives", "Náhrady pasiva · B2", "přípona -bar",
+        "Der Vertrag kann mit einer Frist von drei Monaten gekündigt werden – er ist somit _____.", listOf("kündbar", "gekündigt", "kündigen", "kündlich"), "kündbar",
+        "Der Vertrag ist mit einer Frist von drei Monaten kündbar.", "Smlouvu lze vypovědět s tříměsíční výpovědní lhůtou.",
+        "Přídavné jméno „kündbar“ znamená, že smlouvu lze vypovědět. Jde o stručnou náhradu pasivní konstrukce."),
+
+    // B2 — precise formal connectors and more demanding sentence patterns.
+    TenseSubordinateItem("b2-satz-wenngleich", "B2", "Složitější souvětí", "complex-sentences", "Složitější souvětí · B2", "wenngleich · ústupek",
+        "Die Verhandlungen waren schwierig, _____ beide Seiten schließlich eine Einigung erzielten.", listOf("wenngleich", "deshalb", "sofern", "indem"), "wenngleich",
+        "Die Verhandlungen waren schwierig, wenngleich beide Seiten schließlich eine Einigung erzielten.", "Jednání byla obtížná, ačkoli obě strany nakonec dosáhly dohody.",
+        "„Wenngleich“ je formálnější spojka přípustkového významu. Ve vedlejší větě stojí časované sloveso na konci."),
+    TenseSubordinateItem("b2-satz-sofern", "B2", "Složitější souvětí", "complex-sentences", "Složitější souvětí · B2", "sofern · podmínka",
+        "Die Veröffentlichung erfolgt nur, _____ sämtliche Daten geprüft wurden.", listOf("sofern", "obwohl", "indem", "deshalb"), "sofern",
+        "Die Veröffentlichung erfolgt nur, sofern sämtliche Daten geprüft wurden.", "Zveřejnění proběhne pouze za předpokladu, že budou prověřena všechna data.",
+        "„Sofern“ uvádí podmínku a v tomto formálním kontextu znamená „za předpokladu, že“."),
+    TenseSubordinateItem("b2-satz-zumal", "B2", "Složitější souvětí", "complex-sentences", "Složitější souvětí · B2", "zumal · důvod",
+        "Wir sollten die Entscheidung vertagen, _____ noch wesentliche Informationen fehlen.", listOf("zumal", "sobald", "indem", "damit"), "zumal",
+        "Wir sollten die Entscheidung vertagen, zumal noch wesentliche Informationen fehlen.", "Rozhodnutí bychom měli odložit, zejména proto, že stále chybějí důležité informace.",
+        "„Zumal“ přidává zesilující důvod. Často se používá v argumentaci a ve formálnějším projevu."),
+    TenseSubordinateItem("b2-satz-wohingegen", "B2", "Složitější souvětí", "complex-sentences", "Složitější souvětí · B2", "wohingegen · protiklad",
+        "Einige Betriebe setzen auf Automatisierung, _____ andere gezielt in Weiterbildung investieren.", listOf("wohingegen", "deshalb", "sobald", "damit"), "wohingegen",
+        "Einige Betriebe setzen auf Automatisierung, wohingegen andere gezielt in Weiterbildung investieren.", "Některé podniky sází na automatizaci, zatímco jiné cíleně investují do dalšího vzdělávání.",
+        "„Wohingegen“ staví dvě skutečnosti do protikladu. Ve vedlejší větě zůstává sloveso na konci."),
+    TenseSubordinateItem("b2-satz-je-umso", "B2", "Složitější souvětí", "complex-sentences", "Složitější souvětí · B2", "je … umso · srovnání",
+        "Je transparenter die Abläufe sind, _____ leichter lassen sich Fehler vermeiden.", listOf("umso", "obwohl", "damit", "sofern"), "umso",
+        "Je transparenter die Abläufe sind, umso leichter lassen sich Fehler vermeiden.", "Čím jsou postupy transparentnější, tím snáze lze předcházet chybám.",
+        "Párová srovnávací konstrukce „je … umso“ vyjadřuje vztah „čím … tím“."),
+    TenseSubordinateItem("b2-satz-nicht-nur-sondern", "B2", "Složitější souvětí", "complex-sentences", "Složitější souvětí · B2", "nicht nur … sondern auch",
+        "Die Reform reduziert nicht nur den Verwaltungsaufwand, _____ sie schafft auch mehr Transparenz.", listOf("sondern", "denn", "damit", "obwohl"), "sondern",
+        "Die Reform reduziert nicht nur den Verwaltungsaufwand, sondern sie schafft auch mehr Transparenz.", "Reforma nejen snižuje administrativní zátěž, ale také zvyšuje transparentnost.",
+        "Párová spojka „nicht nur … sondern auch“ přidává druhý, rovnocenný argument.")
+
 )
 
 internal fun buildTenseSubordinateQuestions(level: String? = null): List<ReviewQuestion> {
-    require(level == null || level in setOf("A2", "B1")) {
-        "Tense and subordinate-clause practice is only defined for A2 and B1."
+    require(level == null || level in setOf("A2", "B1", "B2")) {
+        "Tense and subordinate-clause practice is only defined for A2, B1 and B2."
     }
     return tenseSubordinateItems.asSequence()
         .filter { level == null || it.level == level }

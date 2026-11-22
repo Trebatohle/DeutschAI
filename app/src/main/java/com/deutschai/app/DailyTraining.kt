@@ -80,7 +80,7 @@ internal fun buildDailyTrainingPool(): List<ReviewQuestion> {
     result += buildArticleContextQuestions()
     result += buildCaseContextQuestions()
     result += buildPrepositionContextQuestions()
-    // Tense and subordinate-clause tasks carry explicit A2/B1 CEFR tags.
+    // Tense and subordinate-clause tasks carry explicit A2/B1/B2 CEFR tags.
     result += buildTenseSubordinateQuestions()
 
     wordToolGroups.forEach { group ->
