@@ -261,7 +261,7 @@ internal object LearningReviewStore {
             germanSentence = optString("germanSentence", ""),
             translation = optString("translation", ""),
             cefrLevel = optString("cefrLevel", ""),
-            courseId = optString("courseId", "")
+            courseId = optString("courseId", ""),
             passage = optString("passage", "")
         )
     }
