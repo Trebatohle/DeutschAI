@@ -191,10 +191,6 @@ private val tenseSubordinateItems = listOf(
         "Nachdem die Techniker den Fehler gefunden _____, reparierten sie die Anlage.", listOf("hatten", "haben", "waren", "sind"), "hatten",
         "Nachdem die Techniker den Fehler gefunden hatten, reparierten sie die Anlage.", "Poté co technici našli chybu, opravili zařízení.",
         "Po „nachdem“ stojí dřívější děj v Plusquamperfektu: gefunden hatten."),
-    TenseSubordinateItem("b1-nebensatz-seitdem-practice", "B1", "Vedlejší věty", "subordinate", "Vedlejší věty · B1", "seitdem",
-        "Seitdem ich regelmäßig übe, _____ ich weniger Fehler.", listOf("mache", "machte", "gemacht", "machen"), "mache",
-        "Seitdem ich regelmäßig übe, mache ich weniger Fehler.", "Od té doby, co pravidelně procvičuji, dělám méně chyb.",
-        "„Seitdem“ vyjadřuje časovou souvislost, která stále trvá. Po vedlejší větě následuje v hlavní větě sloveso na druhé pozici.")
 )
 
 internal fun buildTenseSubordinateQuestions(level: String? = null): List<ReviewQuestion> {
