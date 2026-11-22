@@ -205,13 +205,23 @@ internal fun makePersonalizedDailyTrainingPlan(
 ): PersonalizedDailyTrainingPlan {
     val history = LearningReviewStore.all(context)
     val historyIds = history.map { it.question.id }.toSet()
+    val fullPool = buildDailyTrainingPool()
+    val currentQuestionsById = fullPool.associateBy { it.id }
     val due = selectDailyTrainingDueEntries(
         LearningReviewStore.prioritizedDue(context, nowMillis)
-    ).map { enrichScheduledReviewQuestion(it.question) }
-        .distinctBy { it.id }
+    ).map { entry ->
+        val saved = enrichScheduledReviewQuestion(entry.question)
+        // Older reading-review entries predate passage persistence; restore their offline text
+        // from the bundled article rather than showing a context-free comprehension question.
+        if (saved.sourceKind == "reading" && saved.passage.isBlank()) {
+            saved.copy(passage = currentQuestionsById[saved.id]?.passage.orEmpty())
+        } else {
+            saved
+        }
+    }.distinctBy { it.id }
 
     val dueIds = due.map { it.id }.toSet()
-    val availablePool = buildDailyTrainingPool().filterNot { it.id in dueIds }
+    val availablePool = fullPool.filterNot { it.id in dueIds }
     val unseen = availablePool.filterNot { it.id in historyIds }
     val practiced = availablePool.filter { it.id in historyIds }
 
