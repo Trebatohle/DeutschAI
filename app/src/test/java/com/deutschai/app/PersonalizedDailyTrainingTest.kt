@@ -217,6 +217,7 @@ class PersonalizedDailyTrainingTest {
     @Test
     fun possessiveWordToolLabelsMapToNominativeAccusativeAndDative() {
         assertEquals("Nominativ", wordToolCaseFocusTerm("můj (mužský rod, 1. pád)"))
+        assertEquals("Genitiv", wordToolCaseFocusTerm("genitiv (2. pád)"))
         assertEquals("Akkusativ", wordToolCaseFocusTerm("svého (mužský rod, 4. pád)"))
         assertEquals("Dativ", wordToolCaseFocusTerm("svému (mužský rod, 3. pád)"))
         assertEquals("", wordToolCaseFocusTerm("můj význam bez pádu"))
@@ -256,9 +257,9 @@ class PersonalizedDailyTrainingTest {
     fun caseContextBankCoversNominativeAccusativeAndDative() {
         val questions = buildCaseContextQuestions()
 
-        assertEquals(9, questions.size)
+        assertEquals(12, questions.size)
         assertEquals(
-            mapOf("Nominativ" to 3, "Akkusativ" to 3, "Dativ" to 3),
+            mapOf("Nominativ" to 3, "Genitiv" to 3, "Akkusativ" to 3, "Dativ" to 3),
             questions.groupingBy { it.focusTerm }.eachCount()
         )
         assertTrue(questions.all { it.focusTopicId == "cases:declension" })

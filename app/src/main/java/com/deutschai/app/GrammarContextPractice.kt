@@ -119,6 +119,24 @@ private val caseContextExamples = listOf(
         "Wir sprechen mit den Kindern.", "Mluvíme s dětmi.", "den",
         listOf("den", "die", "der", "dem"),
         "Předložka „mit“ vyžaduje 3. pád. V množném čísle používáme „den“ a podstatné jméno často dostává -n."
+    ),
+    CaseContextExample(
+        "genitive-rain", "Genitiv", "Wegen _____ Regens bleiben wir zu Hause.",
+        "Wegen des Regens bleiben wir zu Hause.", "Kvůli dešti zůstáváme doma.", "des",
+        listOf("des", "dem", "den", "der"),
+        "Předložka „wegen“ se ve spisovné němčině pojí s 2. pádem (Genitiv): des Regens."
+    ),
+    CaseContextExample(
+        "genitive-man", "Genitiv", "Das Auto _____ Mannes ist neu.",
+        "Das Auto des Mannes ist neu.", "Auto toho muže je nové.", "des",
+        listOf("des", "dem", "den", "der"),
+        "Vlastnický vztah vyjadřujeme 2. pádem: des Mannes."
+    ),
+    CaseContextExample(
+        "genitive-flower", "Genitiv", "Die Farbe _____ Blume ist schön.",
+        "Die Farbe der Blume ist schön.", "Barva květiny je krásná.", "der",
+        listOf("der", "die", "dem", "des"),
+        "U ženského rodu má určitý člen v 2. pádě tvar „der“: der Blume."
     )
 )
 

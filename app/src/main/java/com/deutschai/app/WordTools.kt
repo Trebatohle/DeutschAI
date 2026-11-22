@@ -60,6 +60,7 @@ internal data class WordToolGroup(
 
 internal fun wordToolCaseFocusTerm(description: String): String = when {
     Regex("""\b1\.\s*pád\b""", RegexOption.IGNORE_CASE).containsMatchIn(description) -> "Nominativ"
+    Regex("""\b2\.\s*pád\b""", RegexOption.IGNORE_CASE).containsMatchIn(description) -> "Genitiv"
     Regex("""\b4\.\s*pád\b""", RegexOption.IGNORE_CASE).containsMatchIn(description) -> "Akkusativ"
     Regex("""\b3\.\s*pád\b""", RegexOption.IGNORE_CASE).containsMatchIn(description) -> "Dativ"
     else -> ""
