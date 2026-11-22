@@ -93,6 +93,35 @@ internal fun buildDailyTrainingPool(): List<ReviewQuestion> {
         }
     }
 
+    // Reading comprehension is included with its original paragraph so the task stays self-contained.
+    readingArticles.forEach { article ->
+        buildReadingComprehensionQuestions(article).forEach { reading ->
+            result += ReviewQuestion(
+                id = reading.id,
+                sourceKind = "reading",
+                sourceTitle = "Čtení " + article.level + " · " + article.title,
+                prompt = reading.prompt,
+                choices = reading.choices,
+                correctIndex = reading.correctIndex,
+                explanation = reading.explanation,
+                cefrLevel = article.level,
+                passage = reading.passage
+            )
+        }
+    }
+
+    // A short listening sample from each supported level makes listening eligible for adaptive practice.
+    listOf("A1", "A2", "B1", "B2").forEach { level ->
+        buildListeningQuestions(
+            level = level,
+            mode = ListeningExerciseMode.MEANING,
+            count = 12,
+            random = kotlin.random.Random(level.hashCode() + java.time.LocalDate.now().dayOfYear)
+        ).forEach { listening ->
+            result += listeningReviewQuestion(listening)
+        }
+    }
+
     return result.distinctBy { it.id }.filter { it.correctIndex in it.choices.indices }
 }
 
@@ -170,39 +199,87 @@ internal fun selectDailyTrainingDueEntries(
         .take(limit.coerceAtLeast(0))
         .toList()
 
+internal fun makePersonalizedDailyTrainingPlan(
+    context: android.content.Context,
+    nowMillis: Long = System.currentTimeMillis()
+): PersonalizedDailyTrainingPlan {
+    val history = LearningReviewStore.all(context)
+    val historyIds = history.map { it.question.id }.toSet()
+    val due = selectDailyTrainingDueEntries(
+        LearningReviewStore.prioritizedDue(context, nowMillis)
+    ).map { enrichScheduledReviewQuestion(it.question) }
+        .distinctBy { it.id }
+
+    val dueIds = due.map { it.id }.toSet()
+    val availablePool = buildDailyTrainingPool().filterNot { it.id in dueIds }
+    val unseen = availablePool.filterNot { it.id in historyIds }
+    val practiced = availablePool.filter { it.id in historyIds }
+
+    return buildPersonalizedDailyTrainingPlan(
+        dueQuestions = due,
+        unseenQuestions = unseen,
+        practicedQuestions = practiced,
+        skillStats = LearningReviewStore.skillStats(context),
+        count = 10
+    )
+}
+
 internal fun makeDailyTrainingQuestions(
     context: android.content.Context,
     nowMillis: Long = System.currentTimeMillis()
-): List<ReviewQuestion> {
-    val history = LearningReviewStore.all(context).associateBy { it.question.id }
-    val dueEntries = selectDailyTrainingDueEntries(
-        LearningReviewStore.prioritizedDue(context, nowMillis)
-    )
-    val due = dueEntries
-        .map { enrichScheduledReviewQuestion(it.question) }
-        .distinctBy { it.id }
-    val needed = (10 - due.size).coerceAtLeast(0)
-    val dueIds = due.map { it.id }.toSet()
-    val availablePool = buildDailyTrainingPool().filterNot { it.id in dueIds }
-    // Prefer unseen material first; previously practiced material remains available for variety.
-    val available = (
-        availablePool.filterNot { it.id in history } +
-            availablePool.filter { it.id in history }.shuffled()
-        ).toMutableList()
-    val kindOrder = listOf("sentences", "wordtools", "articles", "verbs", "wordtools", "sentences", "articles", "verbs", "sentences", "wordtools")
-    val fresh = mutableListOf<ReviewQuestion>()
+): List<ReviewQuestion> = makePersonalizedDailyTrainingPlan(context, nowMillis).questions
 
-    kindOrder.forEach { kind ->
-        if (fresh.size < needed) {
-            val next = available.firstOrNull { it.sourceKind == kind && fresh.none { picked -> picked.id == it.id } }
-            if (next != null) fresh += next
+@Composable
+private fun PersonalizedTrainingFocusCard(plan: PersonalizedDailyTrainingPlan) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = CardSurface)
+    ) {
+        Column(
+            modifier = Modifier.padding(15.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                "DNEŠNÍ OSOBNÍ ZAMĚŘENÍ",
+                color = ForestText,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 0.8.sp
+            )
+            Text(
+                plan.focusTitle,
+                color = Ink,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                plan.focusDetail,
+                color = Muted,
+                fontSize = 12.sp,
+                lineHeight = 18.sp
+            )
+            if (plan.dueReviewCount > 0) {
+                Text(
+                    "V této sadě: " + plan.dueReviewCount + " položek k opakování na začátku.",
+                    color = ForestText,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+            val mix = plan.newQuestionCountsByKind.entries
+                .sortedByDescending { it.value }
+                .joinToString(" · ") { learningSkillTitle(it.key) + ": " + it.value }
+            if (mix.isNotBlank()) {
+                Text(
+                    "Nové otázky: " + mix,
+                    color = Muted,
+                    fontSize = 11.sp,
+                    lineHeight = 16.sp
+                )
+            }
         }
     }
-    if (fresh.size < needed) {
-        fresh += available.filterNot { candidate -> fresh.any { it.id == candidate.id } }.take(needed - fresh.size)
-    }
-    // Keep scheduled reviews at the beginning so the learner sees their due material first.
-    return (due + fresh).take(10)
 }
 
 @Composable
@@ -213,7 +290,8 @@ internal fun DailyTrainingScreen(
 ) {
     val context = LocalContext.current
     val speaker = rememberGermanSpeechPlayer()
-    var questions by remember { mutableStateOf(makeDailyTrainingQuestions(context)) }
+    var trainingPlan by remember { mutableStateOf(makePersonalizedDailyTrainingPlan(context)) }
+    var questions by remember { mutableStateOf(trainingPlan.questions) }
     var questionIndex by remember { mutableStateOf(0) }
     var selectedAnswer by remember { mutableStateOf<Int?>(null) }
     var score by remember { mutableStateOf(0) }
@@ -238,7 +316,8 @@ internal fun DailyTrainingScreen(
     }
 
     fun startNewDailyTraining() {
-        questions = makeDailyTrainingQuestions(context)
+        trainingPlan = makePersonalizedDailyTrainingPlan(context)
+        questions = trainingPlan.questions
         questionIndex = 0
         selectedAnswer = null
         heardCurrentAudio = false
@@ -256,6 +335,10 @@ internal fun DailyTrainingScreen(
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
             AppScreenHeader(title = "Osobní denní trénink", onBack = onBack, onHome = onHome)
+
+            if (!finished && !isMistakeReview && trainingPlan.questions.isNotEmpty()) {
+                PersonalizedTrainingFocusCard(plan = trainingPlan)
+            }
 
             if (finished) {
                 Card(
@@ -317,6 +400,26 @@ internal fun DailyTrainingScreen(
                     Column(modifier = Modifier.padding(17.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                         Text(question.sourceTitle, color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         Text(question.prompt, color = Ink, fontSize = 20.sp, lineHeight = 28.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+                if (question.sourceKind == "reading" && question.passage.isNotBlank()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(containerColor = CardSurface)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(15.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text("ÚRYVEK Z TEXTU", color = ForestText, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                question.passage,
+                                color = Ink,
+                                fontSize = 14.sp,
+                                lineHeight = 21.sp
+                            )
+                        }
                     }
                 }
                 val requiresListening = question.sourceKind == "listening" && question.germanSentence.isNotBlank()

@@ -18,7 +18,8 @@ internal data class ReviewQuestion(
     val germanSentence: String = "",
     val translation: String = "",
     val cefrLevel: String = "",
-    val courseId: String = ""
+    val courseId: String = "",
+    val passage: String = ""
 ) {
     init {
         require(id.isNotBlank()) { "Review question ID must not be blank." }
@@ -227,6 +228,7 @@ internal object LearningReviewStore {
                     .put("translation", q.translation)
                     .put("cefrLevel", q.cefrLevel)
                     .put("courseId", q.courseId)
+                    .put("passage", q.passage)
                     .put("wrongCount", entry.wrongCount)
                     .put("correctStreak", entry.correctStreak)
                     .put("intervalDays", entry.intervalDays)
@@ -260,6 +262,7 @@ internal object LearningReviewStore {
             translation = optString("translation", ""),
             cefrLevel = optString("cefrLevel", ""),
             courseId = optString("courseId", "")
+            passage = optString("passage", "")
         )
     }
 }
