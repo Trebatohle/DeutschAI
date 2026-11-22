@@ -181,6 +181,40 @@ class PersonalizedDailyTrainingTest {
     }
 
     @Test
+    fun supplementalPrepositionContextsProvideThreeNewExamplesForAnAufAndIn() {
+        val questions = buildPrepositionContextQuestions()
+
+        assertEquals(9, questions.size)
+        assertEquals(setOf("an", "auf", "in"), questions.map { it.focusTerm }.toSet())
+        assertEquals(mapOf("an" to 3, "auf" to 3, "in" to 3), questions.groupingBy { it.focusTerm }.eachCount())
+        assertTrue(questions.all { it.germanSentence.isNotBlank() && it.translation.isNotBlank() })
+        assertTrue(questions.all { it.prompt.contains("_____") })
+        assertEquals(questions.size, questions.map { it.id }.distinct().size)
+    }
+
+    @Test
+    fun targetedPrepositionMistakeUsesFreshContextSentencesBeforeStandardExamples() {
+        val history = listOf(
+            memoryEntry(question("old-an-one", "wordtools", "wordtools:prepositions", "Předložky", "an")),
+            memoryEntry(question("old-an-two", "wordtools", "wordtools:prepositions", "Předložky", "an"))
+        )
+        val freshContexts = buildPrepositionContextQuestions().filter { it.focusTerm == "an" }
+        val oldModeQuestion = question("standard-an", "wordtools", "wordtools:prepositions", "Předložky", "an")
+
+        val plan = buildPersonalizedDailyTrainingPlan(
+            dueQuestions = emptyList(),
+            unseenQuestions = freshContexts + oldModeQuestion,
+            practicedQuestions = emptyList(),
+            skillStats = emptyList(),
+            recurringErrors = buildRecurringLearningErrors(history),
+            count = 3
+        )
+
+        assertEquals(freshContexts.map { it.id }, plan.questions.map { it.id })
+        assertEquals(3, plan.focusErrorQuestionCount)
+    }
+
+    @Test
     fun zeroQuestionCountReturnsAnEmptyPlan() {
         val plan = buildPersonalizedDailyTrainingPlan(
             dueQuestions = listOf(question("due", "verbs")),

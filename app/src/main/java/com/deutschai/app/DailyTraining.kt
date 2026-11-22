@@ -76,6 +76,10 @@ internal fun buildDailyTrainingPool(): List<ReviewQuestion> {
         }
     }
 
+    // Context examples are inserted before the standard word-tool bank so a repeated term
+    // receives fresh sentence contexts before the older sample questions.
+    result += buildPrepositionContextQuestions()
+
     wordToolGroups.forEach { group ->
         wordToolModes.forEach { mode ->
             makeWordToolQuestions(group, mode).forEach { question ->
