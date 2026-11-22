@@ -215,6 +215,57 @@ class PersonalizedDailyTrainingTest {
     }
 
     @Test
+    fun possessiveWordToolLabelsMapToNominativeAccusativeAndDative() {
+        assertEquals("Nominativ", wordToolCaseFocusTerm("můj (mužský rod, 1. pád)"))
+        assertEquals("Akkusativ", wordToolCaseFocusTerm("svého (mužský rod, 4. pád)"))
+        assertEquals("Dativ", wordToolCaseFocusTerm("svému (mužský rod, 3. pád)"))
+        assertEquals("", wordToolCaseFocusTerm("můj význam bez pádu"))
+    }
+
+    @Test
+    fun verbFocusTermIsSharedByStandardAndAdvancedQuestionFormats() {
+        val topic = VerbPracticeLesson("verb_test", "Test", "Testovací slovesa", listOf("sein", "haben"))
+        val standard = LessonQuestion(
+            prompt = "Doplň správný tvar slovesa „sein“: Ich ___ heute hier.",
+            choices = listOf("bin", "bist", "ist"),
+            correctIndex = 0,
+            explanation = "Ich uses bin."
+        )
+        val advanced = LessonQuestion(
+            prompt = "Vyber správné sloveso podle českého významu.",
+            choices = listOf("bin (sein)", "habe (haben)"),
+            correctIndex = 0,
+            explanation = "sein"
+        )
+
+        assertEquals("sein", standard.verbFocusTerm(topic))
+        assertEquals("sein", advanced.verbFocusTerm(topic))
+    }
+
+    @Test
+    fun articleContextBankProvidesFreshExamplesForThreeGrammaticalGenders() {
+        val questions = buildArticleContextQuestions()
+
+        assertEquals(9, questions.size)
+        assertEquals(9, questions.map { it.focusTerm }.distinct().size)
+        assertTrue(questions.all { it.focusTopicId == "articles:nouns" })
+        assertTrue(questions.all { it.germanSentence.isNotBlank() && it.translation.isNotBlank() })
+    }
+
+    @Test
+    fun caseContextBankCoversNominativeAccusativeAndDative() {
+        val questions = buildCaseContextQuestions()
+
+        assertEquals(9, questions.size)
+        assertEquals(
+            mapOf("Nominativ" to 3, "Akkusativ" to 3, "Dativ" to 3),
+            questions.groupingBy { it.focusTerm }.eachCount()
+        )
+        assertTrue(questions.all { it.focusTopicId == "cases:declension" })
+        assertTrue(questions.all { it.choices.size == 4 && it.correctIndex in it.choices.indices })
+    }
+
+    @Test
     fun zeroQuestionCountReturnsAnEmptyPlan() {
         val plan = buildPersonalizedDailyTrainingPlan(
             dueQuestions = listOf(question("due", "verbs")),

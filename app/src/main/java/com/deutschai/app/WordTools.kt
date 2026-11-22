@@ -58,6 +58,13 @@ internal data class WordToolGroup(
     val items: List<WordToolItem>
 )
 
+internal fun wordToolCaseFocusTerm(description: String): String = when {
+    Regex("""\b1\.\s*pád\b""", RegexOption.IGNORE_CASE).containsMatchIn(description) -> "Nominativ"
+    Regex("""\b4\.\s*pád\b""", RegexOption.IGNORE_CASE).containsMatchIn(description) -> "Akkusativ"
+    Regex("""\b3\.\s*pád\b""", RegexOption.IGNORE_CASE).containsMatchIn(description) -> "Dativ"
+    else -> ""
+}
+
 internal data class WordToolQuestion(
     val id: String,
     val prompt: String,
@@ -66,7 +73,8 @@ internal data class WordToolQuestion(
     val fullGerman: String,
     val fullCzech: String,
     val explanation: String,
-    val focusTerm: String = ""
+    val focusTerm: String = "",
+    val focusCase: String = ""
 )
 
 internal data class WordToolMode(
@@ -378,7 +386,8 @@ internal fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Li
                     } else {
                         "Uč se výraz společně s jeho významem a příkladem použití."
                     },
-                    focusTerm = item.german
+                    focusTerm = item.german,
+                    focusCase = wordToolCaseFocusTerm(item.czech)
                 )
             }
             "sentences" -> {
@@ -406,7 +415,8 @@ internal fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Li
                     fullGerman = item.sentenceGerman,
                     fullCzech = item.sentenceCzech,
                     explanation = if (group.id == "possessives") "Tvar „${item.german}“ odpovídá rodu, číslu a pádu podstatného jména ve větě." else "Výraz „${item.german}“ zde znamená „${item.czech}“.",
-                    focusTerm = item.german
+                    focusTerm = item.german,
+                    focusCase = wordToolCaseFocusTerm(item.czech)
                 )
             }
             else -> {
@@ -421,7 +431,8 @@ internal fun makeWordToolQuestions(group: WordToolGroup, mode: WordToolMode): Li
                     fullGerman = german,
                     fullCzech = czech,
                     explanation = if (group.id == "possessives") "Všimni si koncovky přivlastňovacího výrazu. Záleží na rodu, čísle a pádu podstatného jména." else "Zkus si přeložit celou větu a všímej si výrazu „" + item.german + "“ v kontextu.",
-                    focusTerm = item.german
+                    focusTerm = item.german,
+                    focusCase = wordToolCaseFocusTerm(item.czech)
                 )
             }
         }

@@ -316,7 +316,8 @@ internal fun LessonQuestion.toReviewQuestion(
     cefrLevel: String = "",
     courseId: String = "",
     focusTopicId: String = courseId,
-    focusTopicTitle: String = sourceTitle
+    focusTopicTitle: String = sourceTitle,
+    focusTerm: String = ""
 ): ReviewQuestion = ReviewQuestion(
     id = id,
     sourceKind = sourceKind,
@@ -330,7 +331,8 @@ internal fun LessonQuestion.toReviewQuestion(
     cefrLevel = cefrLevel,
     courseId = courseId,
     focusTopicId = focusTopicId,
-    focusTopicTitle = focusTopicTitle
+    focusTopicTitle = focusTopicTitle,
+    focusTerm = focusTerm
 )
 
 internal fun WordToolQuestion.toReviewQuestion(
@@ -346,9 +348,9 @@ internal fun WordToolQuestion.toReviewQuestion(
     explanation = explanation,
     germanSentence = fullGerman,
     translation = fullCzech,
-    focusTopicId = "wordtools:${group.id}",
-    focusTopicTitle = group.title,
-    focusTerm = focusTerm
+    focusTopicId = if (group.id == "possessives" && focusCase.isNotBlank()) "cases:declension" else "wordtools:${group.id}",
+    focusTopicTitle = if (group.id == "possessives" && focusCase.isNotBlank()) "Pády" else group.title,
+    focusTerm = if (group.id == "possessives" && focusCase.isNotBlank()) focusCase else focusTerm
 )
 
 internal fun stableReviewId(vararg parts: String): String {

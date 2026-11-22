@@ -69,15 +69,16 @@ internal fun buildDailyTrainingPool(): List<ReviewQuestion> {
                 explanation = "${word.article} ${word.word} = ${word.czech}. Uč se podstatné jméno vždy společně se členem.",
                 germanSentence = "${word.article} ${word.word}",
                 translation = word.czech,
-                focusTopicId = "articles:${category.id}",
-                focusTopicTitle = category.title,
+                focusTopicId = "articles:nouns",
+                focusTopicTitle = "Členy a podstatná jména",
                 focusTerm = word.word
             )
         }
     }
 
-    // Context examples are inserted before the standard word-tool bank so a repeated term
-    // receives fresh sentence contexts before the older sample questions.
+    // Fresh offline contexts reinforce recurring noun, case and preposition mistakes.
+    result += buildArticleContextQuestions()
+    result += buildCaseContextQuestions()
     result += buildPrepositionContextQuestions()
 
     wordToolGroups.forEach { group ->
@@ -95,8 +96,9 @@ internal fun buildDailyTrainingPool(): List<ReviewQuestion> {
                     id = stableReviewId("verbs", topic.id, question.prompt, question.germanSentence, question.translation),
                     sourceKind = "verbs",
                     sourceTitle = topic.title,
-                    focusTopicId = "verbs:${topic.id}",
-                    focusTopicTitle = topic.title
+                    focusTopicId = "verbs:conjugation",
+                    focusTopicTitle = "Časování sloves",
+                    focusTerm = question.verbFocusTerm(topic)
                 )
             }
         }
