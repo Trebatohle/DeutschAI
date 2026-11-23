@@ -52,7 +52,7 @@ internal val frequencyVocabularyA1Batch1: List<FrequencyVocabularyEntry> = listO
 
     a1BatchEntry(FrequencyWordKind.VERB, "bauen", "stavět", "Wir bauen ein kleines Haus.", "Stavíme malý dům."),
     a1BatchEntry(FrequencyWordKind.VERB, "beginnen", "začít", "Der Film beginnt um acht Uhr.", "Film začíná v osm hodin."),
-    a1BatchEntry(FrequencyWordKind.VERB, "fehlen", "chybět", "Du fehlst mir.", "Chybíš mi."),
+    a1BatchEntry(FrequencyWordKind.VERB, "mieten", "pronajímat si", "Wir mieten eine kleine Wohnung.", "Pronajímáme si malý byt."),
     a1BatchEntry(FrequencyWordKind.VERB, "sich entschuldigen", "omluvit se", "Ich entschuldige mich für den Fehler.", "Omlouvám se za chybu."),
     a1BatchEntry(FrequencyWordKind.VERB, "funktionieren", "fungovat", "Mein Computer funktioniert wieder.", "Můj počítač zase funguje."),
     a1BatchEntry(FrequencyWordKind.VERB, "gratulieren", "gratulovat", "Wir gratulieren dir zum Geburtstag.", "Gratulujeme ti k narozeninám."),

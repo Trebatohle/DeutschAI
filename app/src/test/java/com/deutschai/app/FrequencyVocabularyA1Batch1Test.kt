@@ -25,6 +25,7 @@ class FrequencyVocabularyA1Batch1Test {
             .filterNot { it.level == "A1" && it.id in batchIds }
             .map { it.word.trim().lowercase() }.toSet()
         val duplicates = frequencyVocabularyA1Batch1.map { it.word.trim().lowercase() }.filter { it in oldWords }
+        println("A1 BATCH DIAGNOSTIC: overlaps=${duplicates.joinToString()}, catalogueUnique=${frequencyVocabularyCatalog.map { it.word.trim().lowercase() }.toSet().size}")
         assertTrue("A1 batch overlaps existing vocabulary: " + duplicates.joinToString(), duplicates.isEmpty())
     }
 }
