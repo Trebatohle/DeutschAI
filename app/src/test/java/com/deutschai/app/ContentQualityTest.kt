@@ -1468,7 +1468,7 @@ class ContentQualityTest {
             1396 + FREQUENCY_VOCABULARY_A1_BATCH1_COUNT + FREQUENCY_VOCABULARY_A2_PILOT_COUNT,
             allUniqueCount
         )
-        assertEquals(SPOKEN_FREQUENCY_ADDITION_COUNT + FREQUENCY_VOCABULARY_A1_BATCH1_COUNT + FREQUENCY_VOCABULARY_A1_BATCH2_COUNT + FREQUENCY_VOCABULARY_A2_PILOT_COUNT, frequencyVocabularyCatalog.size - 397)
+        assertEquals(SPOKEN_FREQUENCY_ADDITION_COUNT + FREQUENCY_VOCABULARY_A1_BATCH1_COUNT + FREQUENCY_VOCABULARY_A2_PILOT_COUNT, frequencyVocabularyCatalog.size - 397)
         assertTrue(frequencyVocabularyForLevel("A1").size > 100)
         assertTrue(frequencyVocabularyForLevel("A2").size > 100)
         assertTrue(frequencyVocabularyForLevel("B1").size > 100)
