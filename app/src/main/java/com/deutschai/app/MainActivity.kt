@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -64,6 +65,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -1289,13 +1291,11 @@ private fun BeatriceHome() {
 
 @Composable
 private fun GermanFlagMark() {
-    Column(
-        modifier = Modifier.size(29.dp).clip(CircleShape)
-    ) {
-        Box(modifier = Modifier.weight(1f).fillMaxWidth().background(Color(0xFF111111)))
-        Box(modifier = Modifier.weight(1f).fillMaxWidth().background(Color(0xFFDD0000)))
-        Box(modifier = Modifier.weight(1f).fillMaxWidth().background(Color(0xFFFFCE00)))
-    }
+    Image(
+        painter = painterResource(id = R.drawable.ic_launcher_brand),
+        contentDescription = "Němčina na jistotu",
+        modifier = Modifier.size(38.dp).clip(RoundedCornerShape(11.dp))
+    )
 }
 
 @Composable
