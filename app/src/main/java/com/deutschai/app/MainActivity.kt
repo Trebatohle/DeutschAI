@@ -825,6 +825,12 @@ private fun BeatriceHome() {
             hasLastActivity = lastActivityType.isNotBlank()
         )
     }
+    val homeProgressSummary = remember(reviewEntries, dailyStudyPlanProgress, habitStats) {
+        LearningActivityStore.loadOverview(context)
+    }
+    val totalLearnedWords = remember(dailyStudyPlanProgress) {
+        DailyStudyPlanStore.firstLearnedAtMillis(context).size
+    }
 
     Surface(modifier = Modifier.fillMaxSize(), color = Cream) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -912,6 +918,13 @@ private fun BeatriceHome() {
                                     vocabularyDrillOpenedFromDailyPlan = true
                                     showVocabularyDrill = true
                                 }
+                            )
+
+                            HomeProgressSnapshotCard(
+                                summary = homeProgressSummary,
+                                currentStreakDays = habitStats.currentStreakDays,
+                                totalLearnedWords = totalLearnedWords,
+                                onClick = { selectedTab = "Pokroky" }
                             )
 
                             HomeRecommendationCard(
