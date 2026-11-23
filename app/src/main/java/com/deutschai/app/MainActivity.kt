@@ -866,7 +866,7 @@ private fun BeatriceHome() {
                     ) {
                         GermanFlagMark()
                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text("DeutschAI", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                            Text("Němčina na jistotu", color = Ink, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                             Text(
                                 when (selectedTab) {
                                     "Pokroky" -> "Tvůj pokrok, krok za krokem."
