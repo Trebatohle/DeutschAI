@@ -25,7 +25,7 @@ class FrequencyVocabularyA2PilotTest {
         assertTrue("Pilot contains words already present in the old catalogue: " + overlaps.joinToString(), overlaps.isEmpty())
 
         assertEquals(
-            1396 + FREQUENCY_VOCABULARY_A1_BATCH1_COUNT + FREQUENCY_VOCABULARY_A2_PILOT_COUNT,
+            1396 + FREQUENCY_VOCABULARY_A1_BATCH1_COUNT + FREQUENCY_VOCABULARY_A1_BATCH2_COUNT + FREQUENCY_VOCABULARY_A2_PILOT_COUNT,
             frequencyVocabularyCatalog.map { it.word.trim().lowercase() }.toSet().size
         )
     }
