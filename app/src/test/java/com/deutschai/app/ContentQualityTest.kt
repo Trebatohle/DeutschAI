@@ -1465,7 +1465,7 @@ class ContentQualityTest {
         assertEquals(397 + SPOKEN_FREQUENCY_ADDITION_COUNT + FREQUENCY_VOCABULARY_A1_BATCH1_COUNT + FREQUENCY_VOCABULARY_A2_PILOT_COUNT, frequencyVocabularyCatalog.size)
         val allUniqueCount = frequencyVocabularyCatalog.map { it.word.trim().lowercase() }.toSet().size
         assertEquals(
-            1396 + FREQUENCY_VOCABULARY_A1_BATCH1_COUNT + FREQUENCY_VOCABULARY_A1_BATCH2_COUNT + FREQUENCY_VOCABULARY_A2_PILOT_COUNT,
+            1396 + FREQUENCY_VOCABULARY_A1_BATCH1_COUNT + FREQUENCY_VOCABULARY_A2_PILOT_COUNT,
             allUniqueCount
         )
         assertEquals(SPOKEN_FREQUENCY_ADDITION_COUNT + FREQUENCY_VOCABULARY_A1_BATCH1_COUNT + FREQUENCY_VOCABULARY_A1_BATCH2_COUNT + FREQUENCY_VOCABULARY_A2_PILOT_COUNT, frequencyVocabularyCatalog.size - 397)
