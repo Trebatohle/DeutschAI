@@ -892,56 +892,6 @@ private fun BeatriceHome() {
                 when (selectedTab) {
                     "Domů" -> {
                         Column(verticalArrangement = Arrangement.spacedBy(13.dp)) {
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(23.dp),
-                                colors = CardDefaults.cardColors(containerColor = if (IsDarkTheme) Color(0xFF3D392F) else Color(0xFFF4EFE5))
-                            ) {
-                                Column(
-                                    modifier = Modifier.fillMaxWidth().padding(18.dp),
-                                    verticalArrangement = Arrangement.spacedBy(7.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            "TVŮJ OSOBNÍ PLÁN",
-                                            color = if (IsDarkTheme) Color(0xFFE3D5B4) else Color(0xFF80663E),
-                                            fontSize = 10.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            letterSpacing = 1.3.sp
-                                        )
-                                        Icon(
-                                            Icons.Default.AutoAwesome,
-                                            contentDescription = null,
-                                            tint = if (IsDarkTheme) Gold else Color(0xFF9B7134),
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                    }
-                                    Text(
-                                        "Guten Tag!",
-                                        color = if (IsDarkTheme) Gold else Color(0xFF9B7134),
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                    Text(
-                                        "Dnes se posuneš zase o krok dál.",
-                                        color = Ink,
-                                        fontSize = 23.sp,
-                                        lineHeight = 28.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text(
-                                        "Tvůj plán vychází z toho, co už umíš a co potřebuješ upevnit.",
-                                        color = Muted,
-                                        fontSize = 12.sp,
-                                        lineHeight = 18.sp
-                                    )
-                                }
-                            }
-
                             DailyStudyPlanCard(
                                 progress = dailyStudyPlanProgress,
                                 dueReviewCount = dueReviewEntries.size,
@@ -1004,79 +954,6 @@ private fun BeatriceHome() {
                                     }
                                 }
                             )
-
-                            Text(
-                                "TVŮJ PŘEHLED",
-                                color = Muted,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.2.sp
-                            )
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.Top
-                            ) {
-                                ProgressCard(
-                                    modifier = Modifier.weight(1f),
-                                    title = "Zvládnuté",
-                                    value = reviewEntries.count { it.correctStreak >= 3 && it.intervalDays >= 7 }.toString(),
-                                    detail = "položek"
-                                )
-                                ProgressCard(
-                                    modifier = Modifier.weight(1f),
-                                    title = "K opakování",
-                                    value = dueReviewEntries.size.toString(),
-                                    detail = "připraveno"
-                                )
-                                ProgressCard(
-                                    modifier = Modifier.weight(1f),
-                                    title = "Série dní",
-                                    value = habitStats.currentStreakDays.toString(),
-                                    detail = "v řadě"
-                                )
-                            }
-
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(19.dp),
-                                colors = CardDefaults.cardColors(containerColor = CardSurface)
-                            ) {
-                                Column(
-                                    modifier = Modifier.fillMaxWidth().padding(15.dp),
-                                    verticalArrangement = Arrangement.spacedBy(9.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text("Tvůj studijní rytmus", color = Ink, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                                        Text(
-                                            habitStats.studyDaysInLastWeek.toString() + "/5 dní",
-                                            color = ForestText,
-                                            fontSize = 13.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    }
-                                    LinearProgressIndicator(
-                                        progress = { (habitStats.studyDaysInLastWeek / 5f).coerceIn(0f, 1f) },
-                                        modifier = Modifier.fillMaxWidth().height(7.dp),
-                                        color = ForestText,
-                                        trackColor = Mint
-                                    )
-                                    Text(
-                                        if (habitStats.studyDaysInLastWeek >= 5) {
-                                            "Týdenní cíl máš splněný. Udrž si pravidelnost."
-                                        } else {
-                                            "Stačí krátké soustředěné studium alespoň 5 dní v týdnu."
-                                        },
-                                        color = Muted,
-                                        fontSize = 12.sp,
-                                        lineHeight = 17.sp
-                                    )
-                                }
-                            }
 
                             if (
                                 lastActivityTitle.isNotBlank() &&
