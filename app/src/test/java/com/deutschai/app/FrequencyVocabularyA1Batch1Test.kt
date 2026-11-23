@@ -20,8 +20,9 @@ class FrequencyVocabularyA1Batch1Test {
         assertTrue(frequencyVocabularyA1Batch1.filter { it.article != null }.all {
             it.article in setOf("der", "die", "das")
         })
+        val batchIds = frequencyVocabularyA1Batch1.map(FrequencyVocabularyEntry::id).toSet()
         val oldWords = frequencyVocabularyCatalog
-            .filterNot { it.id in frequencyVocabularyA1Batch1.map(FrequencyVocabularyEntry::id).toSet() }
+            .filterNot { it.level == "A1" && it.id in batchIds }
             .map { it.word.trim().lowercase() }.toSet()
         val duplicates = frequencyVocabularyA1Batch1.map { it.word.trim().lowercase() }.filter { it in oldWords }
         assertTrue("A1 batch overlaps existing vocabulary: " + duplicates.joinToString(), duplicates.isEmpty())

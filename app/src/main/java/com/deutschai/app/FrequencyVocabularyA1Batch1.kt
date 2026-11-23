@@ -24,7 +24,7 @@ private fun a1BatchEntry(
 }
 
 internal val frequencyVocabularyA1Batch1: List<FrequencyVocabularyEntry> = listOf(
-    a1BatchEntry(FrequencyWordKind.NOUN, "Bäckerei", "pekárna", "Die Bäckerei ist gleich hier.", "Pekárna je hned tady.", "die", "Pl.: die Bäckereien"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Briefkasten", "poštovní schránka", "Der Briefkasten steht vor dem Haus.", "Poštovní schránka stojí před domem.", "der", "Pl.: die Briefkästen"),
     a1BatchEntry(FrequencyWordKind.NOUN, "Briefmarke", "poštovní známka", "Ich brauche eine Briefmarke.", "Potřebuji poštovní známku.", "die", "Pl.: die Briefmarken"),
     a1BatchEntry(FrequencyWordKind.NOUN, "Café", "kavárna", "Wir treffen uns im Café.", "Setkáme se v kavárně.", "das", "Pl.: die Cafés"),
     a1BatchEntry(FrequencyWordKind.NOUN, "Einkauf", "nákup", "Der Einkauf dauert nicht lange.", "Nákup netrvá dlouho.", "der", "Pl.: die Einkäufe"),
@@ -52,7 +52,7 @@ internal val frequencyVocabularyA1Batch1: List<FrequencyVocabularyEntry> = listO
 
     a1BatchEntry(FrequencyWordKind.VERB, "bauen", "stavět", "Wir bauen ein kleines Haus.", "Stavíme malý dům."),
     a1BatchEntry(FrequencyWordKind.VERB, "beginnen", "začít", "Der Film beginnt um acht Uhr.", "Film začíná v osm hodin."),
-    a1BatchEntry(FrequencyWordKind.VERB, "danken", "děkovat", "Ich danke dir für deine Hilfe.", "Děkuji ti za pomoc."),
+    a1BatchEntry(FrequencyWordKind.VERB, "fehlen", "chybět", "Du fehlst mir.", "Chybíš mi."),
     a1BatchEntry(FrequencyWordKind.VERB, "sich entschuldigen", "omluvit se", "Ich entschuldige mich für den Fehler.", "Omlouvám se za chybu."),
     a1BatchEntry(FrequencyWordKind.VERB, "funktionieren", "fungovat", "Mein Computer funktioniert wieder.", "Můj počítač zase funguje."),
     a1BatchEntry(FrequencyWordKind.VERB, "gratulieren", "gratulovat", "Wir gratulieren dir zum Geburtstag.", "Gratulujeme ti k narozeninám."),
