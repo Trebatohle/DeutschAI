@@ -9,7 +9,8 @@ private fun a1BatchEntry(
     german: String,
     translation: String,
     article: String? = null,
-    extra: String = ""
+    extra: String = "",
+    heard: String = ""
 ): FrequencyVocabularyEntry {
     val id = if (article != null) {
         val legacyId = stableReviewId("vocabulary", article, word.lowercase())
@@ -19,7 +20,8 @@ private fun a1BatchEntry(
     }
     return FrequencyVocabularyEntry(
         id = id, level = "A1", kind = kind, word = word, czech = czech,
-        article = article, extraInfo = extra, exampleGerman = german, exampleCzech = translation
+        article = article, extraInfo = extra, exampleGerman = german, exampleCzech = translation,
+        listeningAnswer = heard
     )
 }
 
@@ -51,15 +53,15 @@ internal val frequencyVocabularyA1Batch1: List<FrequencyVocabularyEntry> = listO
     a1BatchEntry(FrequencyWordKind.NOUN, "Zeitung", "noviny", "Ich lese jeden Morgen die Zeitung.", "Každé ráno čtu noviny.", "die", "Pl.: die Zeitungen"),
 
     a1BatchEntry(FrequencyWordKind.VERB, "bauen", "stavět", "Wir bauen ein kleines Haus.", "Stavíme malý dům."),
-    a1BatchEntry(FrequencyWordKind.VERB, "beginnen", "začít", "Der Film beginnt um acht Uhr.", "Film začíná v osm hodin."),
-    a1BatchEntry(FrequencyWordKind.VERB, "packen", "balit", "Ich packe meinen Koffer für die Reise.", "Balím si kufr na cestu."),
-    a1BatchEntry(FrequencyWordKind.VERB, "sich entschuldigen", "omluvit se", "Ich entschuldige mich für den Fehler.", "Omlouvám se za chybu."),
-    a1BatchEntry(FrequencyWordKind.VERB, "funktionieren", "fungovat", "Mein Computer funktioniert wieder.", "Můj počítač zase funguje."),
+    a1BatchEntry(FrequencyWordKind.VERB, "beginnen", "začít", "Der Film beginnt um acht Uhr.", "Film začíná v osm hodin.", heard = "beginnt"),
+    a1BatchEntry(FrequencyWordKind.VERB, "packen", "balit", "Ich packe meinen Koffer für die Reise.", "Balím si kufr na cestu.", heard = "packe"),
+    a1BatchEntry(FrequencyWordKind.VERB, "sich entschuldigen", "omluvit se", "Ich entschuldige mich für den Fehler.", "Omlouvám se za chybu.", heard = "entschuldige mich"),
+    a1BatchEntry(FrequencyWordKind.VERB, "funktionieren", "fungovat", "Mein Computer funktioniert wieder.", "Můj počítač zase funguje.", heard = "funktioniert"),
     a1BatchEntry(FrequencyWordKind.VERB, "gratulieren", "gratulovat", "Wir gratulieren dir zum Geburtstag.", "Gratulujeme ti k narozeninám."),
-    a1BatchEntry(FrequencyWordKind.VERB, "grüßen", "pozdravit", "Bitte grüße deine Eltern von mir.", "Pozdravuj prosím ode mě své rodiče."),
+    a1BatchEntry(FrequencyWordKind.VERB, "grüßen", "pozdravit", "Bitte grüße deine Eltern von mir.", "Pozdravuj prosím ode mě své rodiče.", heard = "grüße"),
     a1BatchEntry(FrequencyWordKind.VERB, "probieren", "vyzkoušet / ochutnat", "Möchtest du den Kuchen probieren?", "Chceš ochutnat ten koláč?"),
-    a1BatchEntry(FrequencyWordKind.VERB, "rufen", "volat", "Ich rufe dich heute Abend an.", "Zavolám ti dnes večer."),
-    a1BatchEntry(FrequencyWordKind.VERB, "wecken", "vzbudit", "Der Wecker weckt mich um sieben.", "Budík mě budí v sedm."),
+    a1BatchEntry(FrequencyWordKind.VERB, "rufen", "volat", "Ich rufe dich heute Abend an.", "Zavolám ti dnes večer.", heard = "rufe"),
+    a1BatchEntry(FrequencyWordKind.VERB, "wecken", "vzbudit", "Der Wecker weckt mich um sieben.", "Budík mě budí v sedm.", heard = "weckt"),
 
     a1BatchEntry(FrequencyWordKind.ADJECTIVE, "billig", "levný", "Dieses Brot ist billig.", "Tento chléb je levný."),
     a1BatchEntry(FrequencyWordKind.ADJECTIVE, "dunkel", "tmavý", "Das Zimmer ist dunkel.", "Pokoj je tmavý."),
