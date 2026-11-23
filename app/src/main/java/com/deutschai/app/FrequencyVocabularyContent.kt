@@ -574,7 +574,7 @@ private val frequencyVocabularyBaseCatalog: List<FrequencyVocabularyEntry> by la
     fvFunction("B2", "einerseits", "na jedné straně", "Einerseits bin ich müde, andererseits möchte ich ausgehen.", "Na jedné straně jsem unavený, na druhé straně chci jít ven."),
     fvFunction("B2", "andererseits", "na druhé straně", "Andererseits ist die Lösung nicht teuer.", "Na druhé straně není řešení drahé.")
 ).distinctBy { it.kind.name + ":" + it.word.lowercase() }
-    .let(::expandFrequencyVocabularyCatalog) + frequencyVocabularyA1Batch1 + frequencyVocabularyA2Pilot
+    .let(::expandFrequencyVocabularyCatalog) + frequencyVocabularyA1Batch1 + frequencyVocabularyA1Batch2 + frequencyVocabularyA2Pilot
 }
 
 internal val frequencyVocabularyCatalog: List<FrequencyVocabularyEntry> by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
