@@ -24,7 +24,7 @@ private fun a1BatchEntry(
 }
 
 internal val frequencyVocabularyA1Batch1: List<FrequencyVocabularyEntry> = listOf(
-    a1BatchEntry(FrequencyWordKind.NOUN, "Mülleimer", "odpadkový koš", "Der Mülleimer steht in der Küche.", "Odpadkový koš stojí v kuchyni.", "der", "Pl.: die Mülleimer"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Waschpulver", "prací prášek", "Das Waschpulver steht neben der Waschmaschine.", "Prací prášek stojí vedle pračky.", "das"),
     a1BatchEntry(FrequencyWordKind.NOUN, "Briefmarke", "poštovní známka", "Ich brauche eine Briefmarke.", "Potřebuji poštovní známku.", "die", "Pl.: die Briefmarken"),
     a1BatchEntry(FrequencyWordKind.NOUN, "Café", "kavárna", "Wir treffen uns im Café.", "Setkáme se v kavárně.", "das", "Pl.: die Cafés"),
     a1BatchEntry(FrequencyWordKind.NOUN, "Einkauf", "nákup", "Der Einkauf dauert nicht lange.", "Nákup netrvá dlouho.", "der", "Pl.: die Einkäufe"),
