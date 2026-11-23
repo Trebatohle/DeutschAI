@@ -1,151 +1,81 @@
 package com.deutschai.app
 
-/**
- * First independently reviewed A1 vocabulary batch.
- * Words are selected for beginner everyday communication (Goethe Start Deutsch 1 scope).
- */
 internal const val FREQUENCY_VOCABULARY_A1_BATCH1_COUNT = 50
 
-private fun a1BatchId(kind: FrequencyWordKind, word: String, article: String?): String =
-    if (article != null) {
+private fun a1BatchEntry(
+    kind: FrequencyWordKind,
+    word: String,
+    czech: String,
+    german: String,
+    translation: String,
+    article: String? = null,
+    extra: String = ""
+): FrequencyVocabularyEntry {
+    val id = if (article != null) {
         val legacyId = stableReviewId("vocabulary", article, word.lowercase())
         stableReviewId("vocabulary", legacyId)
     } else {
         stableReviewId("frequency_vocabulary", kind.name, word.lowercase())
     }
-
-private fun a1BatchNoun(
-    article: String, word: String, czech: String, plural: String,
-    german: String, translation: String
-) = FrequencyVocabularyEntry(
-    id = a1BatchId(FrequencyWordKind.NOUN, word, article),
-    level = "A1", kind = FrequencyWordKind.NOUN, word = word, czech = czech,
-    article = article, extraInfo = plural, exampleGerman = german, exampleCzech = translation
-)
-
-private fun a1BatchVerb(
-    word: String, czech: String, forms: String, german: String, translation: String,
-    heard: String = word
-) = FrequencyVocabularyEntry(
-    id = a1BatchId(FrequencyWordKind.VERB, word, null),
-    level = "A1", kind = FrequencyWordKind.VERB, word = word, czech = czech,
-    extraInfo = forms, exampleGerman = german, exampleCzech = translation, listeningAnswer = heard
-)
-
-private fun a1BatchAdjective(word: String, czech: String, german: String, translation: String) =
-    FrequencyVocabularyEntry(
-        id = a1BatchId(FrequencyWordKind.ADJECTIVE, word, null),
-        level = "A1", kind = FrequencyWordKind.ADJECTIVE, word = word, czech = czech,
-        exampleGerman = german, exampleCzech = translation
+    return FrequencyVocabularyEntry(
+        id = id, level = "A1", kind = kind, word = word, czech = czech,
+        article = article, extraInfo = extra, exampleGerman = german, exampleCzech = translation
     )
-
-private fun a1BatchAdverb(word: String, czech: String, german: String, translation: String) =
-    FrequencyVocabularyEntry(
-        id = a1BatchId(FrequencyWordKind.ADVERB, word, null),
-        level = "A1", kind = FrequencyWordKind.ADVERB, word = word, czech = czech,
-        exampleGerman = german, exampleCzech = translation
-    )
-
-private fun a1BatchFunction(word: String, czech: String, german: String, translation: String) =
-    FrequencyVocabularyEntry(
-        id = a1BatchId(FrequencyWordKind.FUNCTION, word, null),
-        level = "A1", kind = FrequencyWordKind.FUNCTION, word = word, czech = czech,
-        exampleGerman = german, exampleCzech = translation
-    )
+}
 
 internal val frequencyVocabularyA1Batch1: List<FrequencyVocabularyEntry> = listOf(
-    // 25 nouns
-    a1BatchNoun("die", "Bäckerei", "pekárna", "Pl.: die Bäckereien",
-        "Ich kaufe Brot in der Bäckerei.", "Kupuji chléb v pekárně."),
-    a1BatchNoun("die", "Briefmarke", "poštovní známka", "Pl.: die Briefmarken",
-        "Eine Briefmarke kostet einen Euro.", "Jedna poštovní známka stojí jedno euro."),
-    a1BatchNoun("das", "Café", "kavárna", "Pl.: die Cafés",
-        "Wir treffen uns im Café.", "Setkáme se v kavárně."),
-    a1BatchNoun("der", "Einkauf", "nákup", "Pl.: die Einkäufe",
-        "Der Einkauf dauert nicht lange.", "Nákup netrvá dlouho."),
-    a1BatchNoun("das", "Erdgeschoss", "přízemí", "Pl.: die Erdgeschosse",
-        "Unsere Wohnung ist im Erdgeschoss.", "Náš byt je v přízemí."),
-    a1BatchNoun("das", "Gemüse", "zelenina", "Obvykle bez množného čísla",
-        "Ich esse jeden Tag Gemüse.", "Každý den jím zeleninu."),
-    a1BatchNoun("das", "Gepäck", "zavazadla", "Obvykle bez množného čísla",
-        "Mein Gepäck ist sehr schwer.", "Moje zavazadla jsou velmi těžká."),
-    a1BatchNoun("die", "Hausaufgabe", "domácí úkol", "Pl.: die Hausaufgaben",
-        "Ich mache jetzt meine Hausaufgabe.", "Teď si dělám domácí úkol."),
-    a1BatchNoun("das", "Kleingeld", "drobné peníze", "Obvykle bez množného čísla",
-        "Hast du etwas Kleingeld?", "Máš nějaké drobné?"),
-    a1BatchNoun("der", "Kugelschreiber", "propisovací tužka", "Pl.: die Kugelschreiber",
-        "Mein Kugelschreiber ist blau.", "Moje propisovací tužka je modrá."),
-    a1BatchNoun("die", "Lebensmittel", "potraviny", "Používá se převážně v množném čísle",
-        "Wir kaufen Lebensmittel im Supermarkt.", "Nakupujeme potraviny v supermarketu."),
-    a1BatchNoun("die", "Lieblingsfarbe", "oblíbená barva", "Pl.: die Lieblingsfarben",
-        "Blau ist meine Lieblingsfarbe.", "Modrá je moje oblíbená barva."),
-    a1BatchNoun("das", "Obst", "ovoce", "Obvykle bez množného čísla",
-        "Zum Frühstück esse ich Obst.", "K snídani jím ovoce."),
-    a1BatchNoun("der", "Ort", "místo", "Pl.: die Orte",
-        "Das ist ein schöner Ort.", "To je krásné místo."),
-    a1BatchNoun("das", "Papier", "papír", "Pl.: die Papiere",
-        "Ich brauche ein Blatt Papier.", "Potřebuji list papíru."),
-    a1BatchNoun("die", "Person", "osoba", "Pl.: die Personen",
-        "Eine Person wartet vor dem Haus.", "Jedna osoba čeká před domem."),
-    a1BatchNoun("das", "Radio", "rádio", "Pl.: die Radios",
-        "Am Morgen höre ich Radio.", "Ráno poslouchám rádio."),
-    a1BatchNoun("der", "Reisepass", "cestovní pas", "Pl.: die Reisepässe",
-        "Mein Reisepass ist noch gültig.", "Můj cestovní pas je stále platný."),
-    a1BatchNoun("das", "Schiff", "loď", "Pl.: die Schiffe",
-        "Das Schiff fährt nach Deutschland.", "Loď pluje do Německa."),
-    a1BatchNoun("der", "Schirm", "deštník", "Pl.: die Schirme",
-        "Nimm bitte deinen Schirm mit.", "Vezmi si prosím deštník."),
-    a1BatchNoun("das", "Schlafzimmer", "ložnice", "Pl.: die Schlafzimmer",
-        "Das Schlafzimmer ist oben.", "Ložnice je nahoře."),
-    a1BatchNoun("das", "Schwimmbad", "plavecký bazén", "Pl.: die Schwimmbäder",
-        "Wir gehen heute ins Schwimmbad.", "Dnes jdeme do bazénu."),
-    a1BatchNoun("der", "Stadtplan", "plán města", "Pl.: die Stadtpläne",
-        "Hast du einen Stadtplan?", "Máš plán města?"),
-    a1BatchNoun("die", "Telefonnummer", "telefonní číslo", "Pl.: die Telefonnummern",
-        "Wie ist deine Telefonnummer?", "Jaké je tvoje telefonní číslo?"),
-    a1BatchNoun("die", "Zeitung", "noviny", "Pl.: die Zeitungen",
-        "Mein Vater liest jeden Morgen die Zeitung.", "Můj otec čte každé ráno noviny."),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Bäckerei", "pekárna", "Die Bäckerei ist gleich hier.", "Pekárna je hned tady.", "die", "Pl.: die Bäckereien"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Briefmarke", "poštovní známka", "Ich brauche eine Briefmarke.", "Potřebuji poštovní známku.", "die", "Pl.: die Briefmarken"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Café", "kavárna", "Wir treffen uns im Café.", "Setkáme se v kavárně.", "das", "Pl.: die Cafés"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Einkauf", "nákup", "Der Einkauf dauert nicht lange.", "Nákup netrvá dlouho.", "der", "Pl.: die Einkäufe"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Erdgeschoss", "přízemí", "Meine Wohnung ist im Erdgeschoss.", "Můj byt je v přízemí.", "das"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Gemüse", "zelenina", "Wir kaufen frisches Gemüse.", "Kupujeme čerstvou zeleninu.", "das"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Gepäck", "zavazadla", "Mein Gepäck ist sehr schwer.", "Moje zavazadla jsou velmi těžká.", "das"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Hausaufgabe", "domácí úkol", "Ich mache meine Hausaufgabe.", "Dělám svůj domácí úkol.", "die", "Pl.: die Hausaufgaben"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Kleingeld", "drobné", "Hast du Kleingeld?", "Máš drobné?", "das"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Kugelschreiber", "kuličkové pero", "Mein Kugelschreiber ist blau.", "Moje kuličkové pero je modré.", "der", "Pl.: die Kugelschreiber"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Lebensmittel", "potraviny", "Die Lebensmittel sind im Kühlschrank.", "Potraviny jsou v lednici.", "die", "Pl.: die Lebensmittel"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Lieblingsfarbe", "oblíbená barva", "Blau ist meine Lieblingsfarbe.", "Modrá je moje oblíbená barva.", "die", "Pl.: die Lieblingsfarben"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Obst", "ovoce", "Ich esse jeden Tag Obst.", "Každý den jím ovoce.", "das"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Ort", "místo", "Der Ort ist sehr ruhig.", "To místo je velmi klidné.", "der", "Pl.: die Orte"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Papier", "papír", "Das Papier liegt auf dem Tisch.", "Papír leží na stole.", "das"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Person", "osoba", "Eine Person wartet draußen.", "Venku čeká jedna osoba.", "die", "Pl.: die Personen"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Radio", "rádio", "Das Radio ist zu laut.", "Rádio je příliš hlasité.", "das", "Pl.: die Radios"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Reisepass", "cestovní pas", "Wo ist mein Reisepass?", "Kde je můj cestovní pas?", "der", "Pl.: die Reisepässe"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Schiff", "loď", "Das Schiff fährt nach Italien.", "Loď jede do Itálie.", "das", "Pl.: die Schiffe"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Schirm", "deštník", "Nimm bitte deinen Schirm mit.", "Vezmi si prosím deštník.", "der", "Pl.: die Schirme"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Schlafzimmer", "ložnice", "Das Schlafzimmer ist oben.", "Ložnice je nahoře.", "das", "Pl.: die Schlafzimmer"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Schwimmbad", "plavecký bazén", "Das Schwimmbad ist heute offen.", "Bazén je dnes otevřený.", "das", "Pl.: die Schwimmbäder"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Stadtplan", "plán města", "Hast du einen Stadtplan?", "Máš plán města?", "der", "Pl.: die Stadtpläne"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Telefonnummer", "telefonní číslo", "Wie ist deine Telefonnummer?", "Jaké je tvoje telefonní číslo?", "die", "Pl.: die Telefonnummern"),
+    a1BatchEntry(FrequencyWordKind.NOUN, "Zeitung", "noviny", "Ich lese jeden Morgen die Zeitung.", "Každé ráno čtu noviny.", "die", "Pl.: die Zeitungen"),
 
-    // 10 verbs
-    a1BatchVerb("bauen", "stavět", "baut · baute · hat gebaut",
-        "Sie bauen ein neues Haus.", "Staví nový dům.", "bauen"),
-    a1BatchVerb("beginnen", "začít / začínat", "beginnt · begann · hat begonnen",
-        "Der Film beginnt um acht Uhr.", "Film začíná v osm hodin.", "beginnt"),
-    a1BatchVerb("danken", "děkovat", "dankt · dankte · hat gedankt",
-        "Ich danke dir für deine Hilfe.", "Děkuji ti za pomoc.", "danke"),
-    a1BatchVerb("sich entschuldigen", "omluvit se", "entschuldigt sich · entschuldigte sich · hat sich entschuldigt",
-        "Ich möchte mich entschuldigen.", "Chtěl bych se omluvit.", "entschuldigen"),
-    a1BatchVerb("funktionieren", "fungovat", "funktioniert · funktionierte · hat funktioniert",
-        "Mein Computer funktioniert wieder.", "Můj počítač zase funguje.", "funktioniert"),
-    a1BatchVerb("gratulieren", "blahopřát", "gratuliert · gratulierte · hat gratuliert",
-        "Ich gratuliere dir zum Geburtstag.", "Blahopřeji ti k narozeninám.", "gratulieren"),
-    a1BatchVerb("grüßen", "pozdravit", "grüßt · grüßte · hat gegrüßt",
-        "Bitte grüß deine Eltern von mir.", "Pozdravuj prosím ode mě své rodiče.", "grüß"),
-    a1BatchVerb("probieren", "zkusit / ochutnat", "probiert · probierte · hat probiert",
-        "Möchtest du den Kuchen probieren?", "Chceš ochutnat ten koláč?", "probieren"),
-    a1BatchVerb("rufen", "volat / zavolat", "ruft · rief · hat gerufen",
-        "Ich rufe dich heute Abend an.", "Zavolám ti dnes večer.", "rufe"),
-    a1BatchVerb("wecken", "vzbudit", "weckt · weckte · hat geweckt",
-        "Der Wecker weckt mich um sieben Uhr.", "Budík mě budí v sedm hodin.", "weckt"),
+    a1BatchEntry(FrequencyWordKind.VERB, "bauen", "stavět", "Wir bauen ein kleines Haus.", "Stavíme malý dům."),
+    a1BatchEntry(FrequencyWordKind.VERB, "beginnen", "začít", "Der Film beginnt um acht Uhr.", "Film začíná v osm hodin."),
+    a1BatchEntry(FrequencyWordKind.VERB, "danken", "děkovat", "Ich danke dir für deine Hilfe.", "Děkuji ti za pomoc."),
+    a1BatchEntry(FrequencyWordKind.VERB, "sich entschuldigen", "omluvit se", "Ich entschuldige mich für den Fehler.", "Omlouvám se za chybu."),
+    a1BatchEntry(FrequencyWordKind.VERB, "funktionieren", "fungovat", "Mein Computer funktioniert wieder.", "Můj počítač zase funguje."),
+    a1BatchEntry(FrequencyWordKind.VERB, "gratulieren", "gratulovat", "Wir gratulieren dir zum Geburtstag.", "Gratulujeme ti k narozeninám."),
+    a1BatchEntry(FrequencyWordKind.VERB, "grüßen", "pozdravit", "Bitte grüße deine Eltern von mir.", "Pozdravuj prosím ode mě své rodiče."),
+    a1BatchEntry(FrequencyWordKind.VERB, "probieren", "vyzkoušet / ochutnat", "Möchtest du den Kuchen probieren?", "Chceš ochutnat ten koláč?"),
+    a1BatchEntry(FrequencyWordKind.VERB, "rufen", "volat", "Ich rufe dich heute Abend an.", "Zavolám ti dnes večer."),
+    a1BatchEntry(FrequencyWordKind.VERB, "wecken", "vzbudit", "Der Wecker weckt mich um sieben.", "Budík mě budí v sedm."),
 
-    // 8 adjectives
-    a1BatchAdjective("billig", "levný", "Das Brot ist hier billig.", "Chléb je tady levný."),
-    a1BatchAdjective("dunkel", "tmavý", "Im Winter wird es früh dunkel.", "V zimě se brzy stmívá."),
-    a1BatchAdjective("frisch", "čerstvý", "Das Brot ist frisch.", "Chléb je čerstvý."),
-    a1BatchAdjective("glücklich", "šťastný", "Ich bin heute sehr glücklich.", "Dnes jsem velmi šťastný."),
-    a1BatchAdjective("hell", "světlý", "Das Zimmer ist hell.", "Pokoj je světlý."),
-    a1BatchAdjective("kaputt", "rozbitý", "Mein Fahrrad ist kaputt.", "Moje kolo je rozbité."),
-    a1BatchAdjective("leer", "prázdný", "Die Flasche ist leer.", "Láhev je prázdná."),
-    a1BatchAdjective("nett", "milý", "Unsere Nachbarn sind sehr nett.", "Naši sousedé jsou velmi milí."),
+    a1BatchEntry(FrequencyWordKind.ADJECTIVE, "billig", "levný", "Dieses Brot ist billig.", "Tento chléb je levný."),
+    a1BatchEntry(FrequencyWordKind.ADJECTIVE, "dunkel", "tmavý", "Das Zimmer ist dunkel.", "Pokoj je tmavý."),
+    a1BatchEntry(FrequencyWordKind.ADJECTIVE, "frisch", "čerstvý", "Das Brot ist frisch.", "Chléb je čerstvý."),
+    a1BatchEntry(FrequencyWordKind.ADJECTIVE, "glücklich", "šťastný", "Sie ist heute sehr glücklich.", "Dnes je velmi šťastná."),
+    a1BatchEntry(FrequencyWordKind.ADJECTIVE, "hell", "světlý", "Die Küche ist hell.", "Kuchyně je světlá."),
+    a1BatchEntry(FrequencyWordKind.ADJECTIVE, "kaputt", "rozbitý", "Mein Handy ist kaputt.", "Můj mobil je rozbitý."),
+    a1BatchEntry(FrequencyWordKind.ADJECTIVE, "leer", "prázdný", "Die Flasche ist leer.", "Láhev je prázdná."),
+    a1BatchEntry(FrequencyWordKind.ADJECTIVE, "nett", "milý", "Unser Nachbar ist sehr nett.", "Náš soused je velmi milý."),
 
-    // 4 adverbs
-    a1BatchAdverb("draußen", "venku", "Die Kinder spielen draußen.", "Děti si hrají venku."),
-    a1BatchAdverb("früh", "brzy", "Ich stehe jeden Tag früh auf.", "Každý den brzy vstávám."),
-    a1BatchAdverb("gestern", "včera", "Gestern war ich zu Hause.", "Včera jsem byl doma."),
-    a1BatchAdverb("links", "vlevo", "Die Apotheke ist links.", "Lékárna je vlevo."),
+    a1BatchEntry(FrequencyWordKind.ADVERB, "draußen", "venku", "Die Kinder spielen draußen.", "Děti si hrají venku."),
+    a1BatchEntry(FrequencyWordKind.ADVERB, "früh", "brzy", "Ich stehe morgen früh auf.", "Zítra brzy vstávám."),
+    a1BatchEntry(FrequencyWordKind.ADVERB, "gestern", "včera", "Gestern war ich zu Hause.", "Včera jsem byl doma."),
+    a1BatchEntry(FrequencyWordKind.ADVERB, "links", "vlevo", "Die Bank ist links.", "Banka je vlevo."),
 
-    // 3 useful words
-    a1BatchFunction("natürlich", "samozřejmě", "Natürlich helfe ich dir.", "Samozřejmě ti pomohu."),
-    a1BatchFunction("wieder", "znovu / zase", "Wir sehen uns morgen wieder.", "Zítra se zase uvidíme."),
-    a1BatchFunction("genug", "dost", "Das ist genug für heute.", "To je pro dnešek dost.")
+    a1BatchEntry(FrequencyWordKind.FUNCTION, "natürlich", "samozřejmě", "Natürlich helfe ich dir.", "Samozřejmě ti pomohu."),
+    a1BatchEntry(FrequencyWordKind.FUNCTION, "wieder", "znovu", "Wir sehen uns morgen wieder.", "Zítra se znovu uvidíme."),
+    a1BatchEntry(FrequencyWordKind.FUNCTION, "genug", "dost", "Das ist genug für heute.", "To je pro dnešek dost.")
 )
