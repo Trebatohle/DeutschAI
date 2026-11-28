@@ -154,6 +154,15 @@ private fun SentenceCourseProgressCard(
     }
 }
 @Composable
+private fun FrequencyVocabularyMetric(modifier: Modifier, value: Int, label: String) {
+    Surface(modifier = modifier, color = Mint, shape = RoundedCornerShape(12.dp)) {
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 11.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text(value.toString(), color = ForestText, fontSize = 19.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+            Text(label, color = Muted, fontSize = 10.sp, lineHeight = 13.sp, maxLines = 2)
+        }
+    }
+}
+@Composable
 internal fun LearningOverviewScreen(
     onBack: () -> Unit,
     onPlacementTest: () -> Unit,
@@ -178,6 +187,7 @@ internal fun LearningOverviewScreen(
     var selectedCourseLevel by remember(placement?.assessedAtMillis) {
         mutableStateOf(placement?.estimatedLevel?.takeIf { it in listOf("A1", "A2", "B1", "B2") } ?: "A1")
     }
+    var showCourseDetails by remember(selectedCourseLevel) { mutableStateOf(false) }
     val totalAnswered = LearningReviewStore.totalAnswered(context)
     val masteredCount = LearningReviewStore.masteredCount(context)
     val dueCount = LearningReviewStore.pendingCount(context)
@@ -240,19 +250,12 @@ internal fun LearningOverviewScreen(
                     verticalArrangement = Arrangement.spacedBy(9.dp)
                 ) {
                     Text("NEJPOUŽÍVANĚJŠÍ SLOVNÍ ZÁSOBA", color = ForestText, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(frequencyPassedTotal.toString() + " / " + frequencyWordTotal, color = Ink, fontSize = 25.sp, fontWeight = FontWeight.Bold)
-                            Text("slov úspěšně zvládnutých na 100 % alespoň jednou", color = Muted, fontSize = 11.sp)
-                        }
-                        Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(frequencyMasteredTotal.toString(), color = ForestText, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                            Text("dlouhodobě upevněno", color = Muted, fontSize = 10.sp)
-                            Text(frequencyDueTotal.toString() + " k opakování", color = ForestText, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                    Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                        Text("$frequencyPassedTotal / $frequencyWordTotal", color = Ink, fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                        Text("slov úspěšně zvládnutých na 100 % alespoň jednou", color = Muted, fontSize = 11.sp, lineHeight = 15.sp)
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                            FrequencyVocabularyMetric(Modifier.weight(1f), frequencyMasteredTotal, "Dlouhodobě upevněno")
+                            FrequencyVocabularyMetric(Modifier.weight(1f), frequencyDueTotal, "K opakování")
                         }
                     }
                     frequencyLevelStats.forEach { stat ->
@@ -359,7 +362,7 @@ internal fun LearningOverviewScreen(
 
             Text("Postup v jednotlivých kurzech", color = Ink, fontSize = 19.sp, fontWeight = FontWeight.Bold)
             Text(
-                "U každé úrovně uvidíš, které tematické kurzy už máš dokončené, které máš rozpracované a kde můžeš pokračovat. Klepnutím na kurz se rovnou vrátíš k jeho procvičování.",
+                "Rychlý souhrn ukáže, jak postupuješ v každé úrovni. Podrobný seznam kurzů si můžeš rozbalit jen tehdy, když ho potřebuješ.",
                 color = Muted, fontSize = 13.sp, lineHeight = 19.sp
             )
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
@@ -383,40 +386,39 @@ internal fun LearningOverviewScreen(
                 }
             }
             val visibleCourses = courseProgress.filter { it.level == selectedCourseLevel }
-            val completedCourses = visibleCourses.count { it.isCompleted }
-            val startedCourses = visibleCourses.count { !it.isCompleted && it.answeredQuestions > 0 }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    "$completedCourses/${visibleCourses.size} kurzů dokončeno",
-                    color = ForestText,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text("$startedCourses rozpracováno", color = Muted, fontSize = 12.sp)
-            }
-            if (visibleCourses.isEmpty()) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(17.dp),
-                    colors = CardDefaults.cardColors(containerColor = CardSurface)
-                ) {
-                    Text(
-                        "Pro tuto úroveň zatím nejsou v knihovně tematické kurzy.",
-                        modifier = Modifier.padding(15.dp),
-                        color = Muted,
-                        fontSize = 13.sp
-                    )
+            val courseLevelSummary = buildSentenceCourseLevelSummary(courseProgress, selectedCourseLevel)
+            val completedCourses = courseLevelSummary.completedCourses
+            val startedCourses = courseLevelSummary.startedCourses
+            val notStartedCourses = courseLevelSummary.notStartedCourses
+
+            Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = CardSurface)) {
+                Column(modifier = Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text("$completedCourses z ${courseLevelSummary.totalCourses}", color = Ink, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                            Text("dokončených kurzů", color = Muted, fontSize = 11.sp)
+                        }
+                        Text(if (visibleCourses.isEmpty()) "Bez kurzů" else "$startedCourses rozpracováno", color = ForestText, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                    LinearProgressIndicator(progress = { courseLevelSummary.completionPercent / 100f }, modifier = Modifier.fillMaxWidth(), color = ForestText, trackColor = Mint)
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Dokončeno: $completedCourses", color = ForestText, fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
+                        Text("Rozpracováno: $startedCourses", color = Muted, fontSize = 10.sp)
+                        Text("Čeká: $notStartedCourses", color = Muted, fontSize = 10.sp)
+                    }
+                    if (visibleCourses.isNotEmpty()) {
+                        Button(onClick = { showCourseDetails = !showCourseDetails }, modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp), colors = ButtonDefaults.buttonColors(containerColor = Mint, contentColor = ForestText), shape = RoundedCornerShape(12.dp)) {
+                            Text(if (showCourseDetails) "Skrýt seznam kurzů" else "Zobrazit seznam kurzů (${visibleCourses.size})", fontWeight = FontWeight.SemiBold)
+                        }
+                    } else {
+                        Text("Pro tuto úroveň zatím nejsou v knihovně tematické kurzy.", color = Muted, fontSize = 12.sp)
+                    }
                 }
-            } else {
+            }
+
+            if (showCourseDetails) {
                 visibleCourses.forEach { course ->
-                    SentenceCourseProgressCard(
-                        progress = course,
-                        onClick = { onOpenCourse(course.courseId) }
-                    )
+                    SentenceCourseProgressCard(progress = course, onClick = { onOpenCourse(course.courseId) })
                 }
             }
 

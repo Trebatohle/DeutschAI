@@ -900,35 +900,6 @@ private fun BeatriceHome() {
                 when (selectedTab) {
                     "Domů" -> {
                         Column(verticalArrangement = Arrangement.spacedBy(13.dp)) {
-                            DailyStudyPlanCard(
-                                progress = dailyStudyPlanProgress,
-                                dueReviewCount = dueReviewEntries.size,
-                                onGoalChange = { target ->
-                                    DailyStudyPlanStore.setDailyGoal(context, target)
-                                    dailyStudyPlanProgress = DailyStudyPlanStore.loadProgress(context)
-                                },
-                                onStartDrill = {
-                                    saveLastActivity(
-                                        "vocabulary-drill",
-                                        "vocabulary-frequency-drill",
-                                        "Dril nejpoužívanějších slov"
-                                    )
-                                    vocabularyDrillVerbsOnly = false
-                                    vocabularyDrillOpenedFromHub = false
-                                    vocabularyDrillOpenedFromRootLibrary = false
-                                    vocabularyDrillOpenedFromVerbLibrary = false
-                                    vocabularyDrillOpenedFromDailyPlan = true
-                                    showVocabularyDrill = true
-                                }
-                            )
-
-                            HomeProgressSnapshotCard(
-                                summary = homeProgressSummary,
-                                currentStreakDays = habitStats.currentStreakDays,
-                                totalLearnedWords = totalLearnedWords,
-                                onClick = { selectedTab = "Pokroky" }
-                            )
-
                             HomeRecommendationCard(
                                 recommendation = homeRecommendation,
                                 onAction = {
@@ -997,6 +968,49 @@ private fun BeatriceHome() {
                                     }
                                 }
                             }
+
+                            Text(
+                                "DNEŠNÍ STUDIUM",
+                                color = ForestText,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.9.sp
+                            )
+                            DailyStudyPlanCard(
+                                progress = dailyStudyPlanProgress,
+                                dueReviewCount = dueReviewEntries.size,
+                                onGoalChange = { target ->
+                                    DailyStudyPlanStore.setDailyGoal(context, target)
+                                    dailyStudyPlanProgress = DailyStudyPlanStore.loadProgress(context)
+                                },
+                                onStartDrill = {
+                                    saveLastActivity(
+                                        "vocabulary-drill",
+                                        "vocabulary-frequency-drill",
+                                        "Dril nejpoužívanějších slov"
+                                    )
+                                    vocabularyDrillVerbsOnly = false
+                                    vocabularyDrillOpenedFromHub = false
+                                    vocabularyDrillOpenedFromRootLibrary = false
+                                    vocabularyDrillOpenedFromVerbLibrary = false
+                                    vocabularyDrillOpenedFromDailyPlan = true
+                                    showVocabularyDrill = true
+                                }
+                            )
+
+                            Text(
+                                "TVŮJ POKROK",
+                                color = ForestText,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.9.sp
+                            )
+                            HomeProgressSnapshotCard(
+                                summary = homeProgressSummary,
+                                currentStreakDays = habitStats.currentStreakDays,
+                                totalLearnedWords = totalLearnedWords,
+                                onClick = { selectedTab = "Pokroky" }
+                            )
 
                             Card(
                                 onClick = { selectedTab = "Knihovna" },

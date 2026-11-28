@@ -146,6 +146,17 @@ internal fun LatestResultLine(result: CourseResult?) {
 }
 
 
+internal data class SentenceCourseLevelSummary(
+    val totalCourses: Int,
+    val completedCourses: Int,
+    val startedCourses: Int
+) {
+    val notStartedCourses: Int
+        get() = (totalCourses - completedCourses - startedCourses).coerceAtLeast(0)
+
+    val completionPercent: Int
+        get() = if (totalCourses == 0) 0 else completedCourses * 100 / totalCourses
+}
 internal data class SentenceCourseLearningProgress(
     val courseId: String,
     val title: String,
@@ -165,6 +176,18 @@ internal data class SentenceCourseLearningProgress(
             answeredQuestions > 0 -> "Rozpracováno"
             else -> "Nezahájeno"
         }
+}
+
+internal fun buildSentenceCourseLevelSummary(
+    courses: List<SentenceCourseLearningProgress>,
+    level: String
+): SentenceCourseLevelSummary {
+    val matchingCourses = courses.filter { it.level == level }
+    return SentenceCourseLevelSummary(
+        totalCourses = matchingCourses.size,
+        completedCourses = matchingCourses.count { it.isCompleted },
+        startedCourses = matchingCourses.count { !it.isCompleted && it.answeredQuestions > 0 }
+    )
 }
 
 /**
