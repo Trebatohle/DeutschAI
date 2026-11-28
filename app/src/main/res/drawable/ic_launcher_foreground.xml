@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+
+    <!-- Cream speech bubble with the German flag -->
+    <path
+        android:fillColor="#FFF4DF"
+        android:pathData="M108,79 C165,49 291,48 362,82 C407,104 431,148 419,194 C407,239 368,264 311,272 L244,275 L168,330 L187,270 C135,260 99,232 86,194 C71,151 80,105 108,79 Z" />
+    <path
+        android:fillColor="#1E2423"
+        android:pathData="M112,105 C172,80 294,78 364,108 L380,145 C312,123 195,125 96,162 C95,139 101,119 112,105 Z" />
+    <path
+        android:fillColor="#D6282F"
+        android:pathData="M96,162 C195,125 312,123 380,145 L383,190 C304,170 189,180 102,216 C92,200 90,180 96,162 Z" />
+    <path
+        android:fillColor="#F2BD45"
+        android:pathData="M102,216 C189,180 304,170 383,190 C375,225 348,246 311,253 L214,253 L164,291 L177,251 C146,244 118,233 102,216 Z" />
+
+    <!-- Brandenburg Gate -->
+    <path
+        android:fillColor="#D9A94E"
+        android:pathData="M158,260 L364,260 L355,281 L167,281 Z" />
+    <path
+        android:fillColor="#FFF0D0"
+        android:pathData="M172,278 L194,278 L194,380 L172,380 Z M207,278 L229,278 L229,380 L207,380 Z M242,278 L264,278 L264,380 L242,380 Z M277,278 L299,278 L299,380 L277,380 Z M312,278 L334,278 L334,380 L312,380 Z" />
+    <path
+        android:fillColor="#D9A94E"
+        android:pathData="M151,378 L355,378 L367,393 L139,393 Z" />
+    <path
+        android:fillColor="#FFF0D0"
+        android:pathData="M163,249 L352,249 L364,263 L151,263 Z" />
+    <path
+        android:fillColor="#D9A94E"
+        android:pathData="M184,242 L333,242 L346,250 L171,250 Z" />
+    <!-- Small central quadriga silhouette -->
+    <path
+        android:fillColor="#FFF0D0"
+        android:pathData="M242,241 C245,233 251,229 258,230 C266,231 270,237 272,243 L263,246 L259,241 L255,247 L248,245 Z M252,228 L252,218 L258,211 L264,219 L264,229 Z M242,236 L235,232 L230,236 L235,242 L244,241 Z M270,237 L278,232 L284,237 L279,243 L271,242 Z" />
+
+    <!-- Open book -->
+    <path
+        android:fillColor="#D9A94E"
+        android:pathData="M83,385 C137,353 207,354 255,386 C303,354 373,353 429,385 L429,432 C365,407 306,412 255,453 C204,412 145,407 83,432 Z" />
+    <path
+        android:fillColor="#FFF7E7"
+        android:pathData="M91,385 C143,358 207,363 250,394 L250,443 C203,414 145,410 91,428 Z" />
+    <path
+        android:fillColor="#FFF7E7"
+        android:pathData="M261,394 C305,363 369,358 421,385 L421,428 C367,410 307,414 261,443 Z" />
+    <path
+        android:fillColor="#D9A94E"
+        android:pathData="M107,390 C151,371 200,378 232,399 C194,384 151,383 111,401 Z M280,399 C312,378 361,371 405,390 L401,401 C361,383 318,384 280,399 Z" />
+    <path
+        android:fillColor="#D9A94E"
+        android:pathData="M255,389 L261,393 L261,447 L255,453 L249,447 L249,393 Z" />
+</vector>

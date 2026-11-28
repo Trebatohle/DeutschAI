@@ -1,0 +1,211 @@
+package com.deutschai.app
+
+import kotlin.math.roundToInt
+
+internal enum class HomeRecommendationType {
+    REVIEW_DUE,
+    FOCUS_SKILL,
+    CONTINUE_ACTIVITY,
+    EXPLORE_LIBRARY
+}
+
+internal data class SkillLearningPerformance(
+    val sourceKind: String,
+    val title: String,
+    val attempts: Int,
+    val correctAnswers: Int,
+    val accuracyPercent: Int,
+    val trackedQuestions: Int
+)
+
+internal data class HomeStudyRecommendation(
+    val type: HomeRecommendationType,
+    val title: String,
+    val explanation: String,
+    val actionLabel: String,
+    val sourceKind: String? = null,
+    val dueCount: Int = 0,
+    val accuracyPercent: Int? = null,
+    val estimatedMinutes: Int = 5
+)
+
+/**
+ * Summarizes only answers that have a recorded attempt count.
+ * Old review records without answer-history data are deliberately excluded
+ * rather than being presented as a guessed accuracy percentage.
+ */
+internal fun isPlacementAssessmentQuestion(question: ReviewQuestion): Boolean {
+    val title = question.sourceTitle.trim()
+    return question.sourceKind.equals("placement", ignoreCase = true) ||
+        title.startsWith("Rozřazovací test", ignoreCase = true) ||
+        title.startsWith("Vstupní rozřazovací test", ignoreCase = true)
+}
+
+internal fun summarizeLearningSkillPerformance(
+    entries: List<ReviewMemoryEntry>
+): List<SkillLearningPerformance> =
+    entries
+        .filter { it.question.sourceKind.isNotBlank() && !isPlacementAssessmentQuestion(it.question) }
+        .groupBy { it.question.sourceKind }
+        .mapNotNull { (sourceKind, skillEntries) ->
+            val attempts = skillEntries.sumOf { it.attemptCount.coerceAtLeast(0) }
+            if (attempts <= 0) return@mapNotNull null
+
+            val correct = skillEntries.sumOf { entry ->
+                entry.correctCount.coerceIn(0, entry.attemptCount.coerceAtLeast(0))
+            }.coerceAtMost(attempts)
+            SkillLearningPerformance(
+                sourceKind = sourceKind,
+                title = learningSkillTitle(sourceKind),
+                attempts = attempts,
+                correctAnswers = correct,
+                accuracyPercent = (correct * 100.0 / attempts).roundToInt(),
+                trackedQuestions = skillEntries.size
+            )
+        }
+        .sortedWith(
+            compareBy<SkillLearningPerformance> { it.accuracyPercent }
+                .thenByDescending { it.attempts }
+        )
+
+/**
+ * Selects one useful next step from real local learning history.
+ * Due reviews take priority, then a repeatedly weak skill, followed by a
+ * continuation/exploration prompt when the app has too little learning evidence.
+ */
+internal fun buildHomeStudyRecommendation(
+    allEntries: List<ReviewMemoryEntry>,
+    dueEntries: List<ReviewMemoryEntry>,
+    hasLastActivity: Boolean
+): HomeStudyRecommendation {
+    val eligibleDueEntries = dueEntries.filterNot { isPlacementAssessmentQuestion(it.question) }
+    if (eligibleDueEntries.isNotEmpty()) {
+        val nextDue = eligibleDueEntries.first()
+        val sourceKind = nextDue.question.sourceKind
+        val skillTitle = learningSkillTitle(sourceKind)
+        val matchingDueCount = eligibleDueEntries.count { it.question.sourceKind == sourceKind }
+        val repeatedMistake = nextDue.wrongCount >= 2
+        val dueExplanation = if (matchingDueCount == 1) {
+            "1 položka z této oblasti je připravená k opakování."
+        } else {
+            matchingDueCount.toString() + " položky z této oblasti jsou připravené k opakování."
+        }
+        return HomeStudyRecommendation(
+            type = HomeRecommendationType.REVIEW_DUE,
+            title = "Opakuj: " + skillTitle,
+            explanation = if (repeatedMistake) {
+                "V této oblasti se ti už některé otázky opakovaně pletly. Teď je vhodný čas vrátit se k nim a upevnit si správné řešení."
+            } else {
+                dueExplanation + " Krátký návrat pomůže přesunout znalosti do dlouhodobé paměti."
+            },
+            actionLabel = "Spustit denní trénink",
+            sourceKind = sourceKind,
+            dueCount = eligibleDueEntries.size,
+            estimatedMinutes = 5
+        )
+    }
+
+    val weakestSkill = summarizeLearningSkillPerformance(allEntries)
+        .firstOrNull { it.attempts >= 4 && it.accuracyPercent <= 75 }
+
+    if (weakestSkill != null) {
+        return HomeStudyRecommendation(
+            type = HomeRecommendationType.FOCUS_SKILL,
+            title = "Zaměř se na: " + weakestSkill.title,
+            explanation = "V uložených odpovědích máš v této oblasti úspěšnost " +
+                weakestSkill.accuracyPercent + " % (" + weakestSkill.attempts +
+                " odpovědí). Doporučuji krátké cílené procvičení, než přejdeš k další látce.",
+            actionLabel = "Procvičit tuto oblast",
+            sourceKind = weakestSkill.sourceKind,
+            accuracyPercent = weakestSkill.accuracyPercent,
+            estimatedMinutes = 7
+        )
+    }
+
+    if (hasLastActivity) {
+        return HomeStudyRecommendation(
+            type = HomeRecommendationType.CONTINUE_ACTIVITY,
+            title = "Navazuj tam, kde jsi skončil/a",
+            explanation = "Udrž návaznost ve studiu a pokračuj v poslední rozpracované aktivitě.",
+            actionLabel = "Pokračovat v učení",
+            estimatedMinutes = 5
+        )
+    }
+
+    return HomeStudyRecommendation(
+        type = HomeRecommendationType.EXPLORE_LIBRARY,
+        title = "Vyber si další smysluplný krok",
+        explanation = "Zvol si téma nebo dovednost, které chceš posílit. Výsledky dalších cvičení pomohou sestavit přesnější osobní plán.",
+        actionLabel = "Vybrat první lekci",
+        estimatedMinutes = 5
+    )
+}
+
+
+internal val cefrKnowledgeLevels = listOf("A1", "A2", "B1", "B2", "C1", "C2")
+
+internal data class CefrLevelKnowledge(
+    val level: String,
+    val accuracyPercent: Int?,
+    val answeredQuestions: Int,
+    val correctAnswers: Int,
+    val sourceLabel: String
+) {
+    val statusLabel: String
+        get() = when {
+            accuracyPercent == null -> "Zatím neověřeno"
+            answeredQuestions < 5 -> "První výsledky"
+            accuracyPercent >= 85 -> "Dobře upevněno"
+            accuracyPercent >= 65 -> "Rozvíjíš"
+            else -> "Potřebuje posílit"
+        }
+}
+
+/**
+ * Builds an A1–C2 map from questions explicitly tagged with their CEFR level.
+ * Legacy records without a level are never assigned by guesswork; when there
+ * is no tagged practice data, the most recent placement result is used instead.
+ */
+internal fun buildCefrKnowledgeMap(
+    entries: List<ReviewMemoryEntry>,
+    placement: PlacementAssessmentReport? = null
+): List<CefrLevelKnowledge> =
+    cefrKnowledgeLevels.map { level ->
+        val levelEntries = entries.filter {
+            it.question.cefrLevel.equals(level, ignoreCase = true) && it.attemptCount > 0
+        }
+        if (levelEntries.isNotEmpty()) {
+            val attempts = levelEntries.sumOf { it.attemptCount.coerceAtLeast(0) }
+            val correct = levelEntries.sumOf {
+                it.correctCount.coerceIn(0, it.attemptCount.coerceAtLeast(0))
+            }.coerceAtMost(attempts)
+            val hasPlacementAttempts = levelEntries.any {
+                it.question.sourceTitle.startsWith("Rozřazovací test")
+            }
+            val hasPracticeAttempts = levelEntries.any {
+                !it.question.sourceTitle.startsWith("Rozřazovací test")
+            }
+            val sourceLabel = when {
+                hasPlacementAttempts && hasPracticeAttempts -> "Test + procvičování"
+                hasPlacementAttempts -> "Vstupní test"
+                else -> "Procvičování"
+            }
+            CefrLevelKnowledge(
+                level = level,
+                accuracyPercent = if (attempts == 0) null else (correct * 100.0 / attempts).roundToInt(),
+                answeredQuestions = attempts,
+                correctAnswers = correct,
+                sourceLabel = sourceLabel
+            )
+        } else {
+            val placementResult = placement?.levelResults?.get(level)
+                ?.takeIf { it.total > 0 }
+            CefrLevelKnowledge(
+                level = level,
+                accuracyPercent = placementResult?.accuracyPercent,
+                answeredQuestions = placementResult?.total ?: 0,
+                correctAnswers = placementResult?.correct ?: 0,
+                sourceLabel = if (placementResult == null) "" else "Vstupní test"
+            )
+        }
+    }

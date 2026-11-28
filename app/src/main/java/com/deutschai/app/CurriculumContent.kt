@@ -20,7 +20,7 @@ internal data class GuidedDialogueTopic(
     val turns: List<GuidedDialogueTurn>
 )
 
-internal val starterGuidedDialogueTopics = listOf(
+internal val starterGuidedDialogueTopics by lazy(LazyThreadSafetyMode.PUBLICATION) { listOf(
     GuidedDialogueTopic(
         id = "kennenlernen",
         title = "Seznámení",
@@ -178,6 +178,7 @@ internal val starterGuidedDialogueTopics = listOf(
         )
     )
 )
+}
 
 internal data class ArticleWord(val article: String, val word: String, val czech: String)
 internal data class ArticleCategory(
@@ -189,7 +190,7 @@ internal data class ArticleCategory(
 
 private fun aw(article: String, word: String, czech: String) = ArticleWord(article, word, czech)
 
-internal val articleCategories = listOf(
+internal val articleCategories by lazy(LazyThreadSafetyMode.PUBLICATION) { listOf(
     ArticleCategory("zuhause", "Bydlení a domácnost", "Pokoje, nábytek a vybavení", listOf(
         aw("die","Wohnung","byt"), aw("das","Zimmer","pokoj"), aw("die","Küche","kuchyně"), aw("das","Bad","koupelna"), aw("der","Flur","chodba"),
         aw("die","Tür","dveře"), aw("das","Fenster","okno"), aw("der","Tisch","stůl"), aw("der","Stuhl","židle"), aw("das","Bett","postel"),
@@ -331,6 +332,7 @@ internal val articleCategories = listOf(
         aw("die","Abfahrt","odjezd"), aw("die","Ankunft","příjezd"), aw("der","Gepäckwagen","vozík na zavazadla"), aw("die","Toilette","toaleta"), aw("der","Notausgang","nouzový východ")
     ))
 )
+}
 
 internal data class VerbPhrase(
     val german: String,
@@ -358,7 +360,7 @@ internal data class VerbPracticeLesson(
 
 private fun vp(german: String, czech: String) = VerbPhrase(german, czech)
 
-private val baseVerbDefinitions = listOf(
+private val baseVerbDefinitions by lazy(LazyThreadSafetyMode.PUBLICATION) { listOf(
     VerbDefinition(
         "sein", "sein", "být", "Stav a vlastnosti",
         listOf("Ich","Du","Er","Wir","Sie"), listOf("Já","Ty","On/Ona","My","Oni"),
@@ -564,10 +566,11 @@ private val baseVerbDefinitions = listOf(
         listOf(vp("die Frage sehr gut","otázce velmi dobře"),vp("diesen Satz nicht","této větě nerozumím"),vp("den Text ohne Wörterbuch","textu bez slovníku"),vp("einander immer besser","si navzájem stále lépe"),vp("die Erklärung jetzt","vysvětlení teď"))
     )
 )
+}
 
-internal val verbDefinitions = baseVerbDefinitions + extendedVerbDefinitions
+internal val verbDefinitions by lazy(LazyThreadSafetyMode.PUBLICATION) { baseVerbDefinitions + extendedVerbDefinitions }
 
-private val baseVerbPracticeTopics = listOf(
+private val baseVerbPracticeTopics by lazy(LazyThreadSafetyMode.PUBLICATION) { listOf(
     VerbPracticeLesson("verb_basics", "1. Základní slovesa", "Být, mít, přijít, dělat a jít", listOf("sein","haben","kommen","machen","gehen")),
     VerbPracticeLesson("verb_communication", "2. Komunikace a znalosti", "Mluvit, vědět, rozumět, číst a psát", listOf("sprechen","wissen","verstehen","lesen","schreiben")),
     VerbPracticeLesson("verb_food", "3. Jídlo a nákup", "Jíst, pít, kupovat, brát a potřebovat", listOf("essen","trinken","kaufen","nehmen","brauchen")),
@@ -579,16 +582,17 @@ private val baseVerbPracticeTopics = listOf(
     VerbPracticeLesson("verb_work", "9. Práce a komunikace", "Pracovat, mluvit, psát, dávat a brát", listOf("arbeiten","sprechen","schreiben","geben","nehmen")),
     VerbPracticeLesson("verb_mixed", "10. Smíšené opakování", "Mix důležitých sloves ze všech předchozích sad", listOf("sein","haben","wissen","essen","trinken"))
 )
+}
 
-internal val verbPracticeTopics = baseVerbPracticeTopics + extendedVerbPracticeTopics
+internal val verbPracticeTopics by lazy(LazyThreadSafetyMode.PUBLICATION) { baseVerbPracticeTopics + extendedVerbPracticeTopics }
 
-internal val advancedVerbPracticeTopics = verbPracticeTopics.mapIndexed { index, topic ->
+internal val advancedVerbPracticeTopics by lazy(LazyThreadSafetyMode.PUBLICATION) { verbPracticeTopics.mapIndexed { index, topic ->
     topic.copy(
         id = "advanced_${topic.id}",
         title = "${index + 1}. ${topic.title.substringAfter(". ")} · Pokročilé",
         subtitle = "Stejných pět sloves, ale vybíráš správné sloveso ze čtyř různých možností."
     )
-}
+} }
 
 internal fun expandedCourseQuestions(id: String): List<LessonQuestion> {
     fun q(prompt: String, choices: List<String>, answer: Int, explanation: String) =
@@ -680,6 +684,25 @@ internal data class SentenceCourseDefinition(
     val level: String = "A1"
 )
 
+/**
+ * Keeps course previews lightweight: the course list needs only id/title/level.
+ * Sentence rows are parsed once, only when a learner opens that specific course.
+ */
+internal fun <T> deferredCourseList(
+    expectedSize: Int,
+    createItems: () -> List<T>
+): List<T> = object : AbstractList<T>() {
+    private val materializedItems: List<T> by lazy(LazyThreadSafetyMode.PUBLICATION, createItems)
+
+    override val size: Int
+        get() = expectedSize
+
+    override fun get(index: Int): T {
+        if (index !in 0 until expectedSize) throw IndexOutOfBoundsException("Index: $index, size: $expectedSize")
+        return materializedItems[index]
+    }
+}
+
 private fun sentenceCourse(
     id: String,
     title: String,
@@ -689,14 +712,16 @@ private fun sentenceCourse(
     id = id,
     title = title,
     subtitle = subtitle,
-    items = rows.map { row ->
-        val fields = row.split("§", limit = 3)
-        require(fields.size == 3) { "Invalid sentence-course row: $row" }
-        SentencePracticeItem(fields[0], fields[1], fields[2])
+    items = deferredCourseList(rows.size) {
+        rows.map { row ->
+            val fields = row.split("§", limit = 3)
+            require(fields.size == 3) { "Invalid sentence-course row: $row" }
+            SentencePracticeItem(fields[0], fields[1], fields[2])
+        }
     }
 )
 
-private val a1SentenceCourseCatalog = listOf(
+private val a1SentenceCourseCatalog by lazy(LazyThreadSafetyMode.PUBLICATION) { listOf(
     sentenceCourse("first_steps", "První kroky", "Pozdravy, seznamování a zdvořilé fráze",
         "Pozdravíš někoho ráno.§Guten Morgen!§Dobré ráno!",
         "Přes den někoho zdvořile pozdravíš.§Guten Tag!§Dobrý den!",
@@ -728,22 +753,22 @@ private val a1SentenceCourseCatalog = listOf(
         "Řekneš, že vstáváš v sedm.§Ich stehe um sieben Uhr auf.§Vstávám v sedm hodin.",
         "Vysvětlíš, že ráno piješ kávu.§Am Morgen trinke ich Kaffee.§Ráno piji kávu.",
         "Řekneš, že snídáš doma.§Ich frühstücke zu Hause.§Snídám doma.",
-        "Popíšeš cestu do práce.§Ich fahre mit dem Bus zur Arbeit.§Jedu do práce autobusem.",
+        "Řekneš, že do práce jedeš autobusem.§Ich fahre mit dem Bus zur Arbeit.§Jedu do práce autobusem.",
         "Řekneš, že dnes pracuješ.§Ich arbeite heute.§Dnes pracuji.",
         "Vysvětlíš, že máš hodně práce.§Heute habe ich viel zu tun.§Dnes mám hodně práce.",
         "Řekneš, že máš krátkou přestávku.§Ich mache eine kurze Pause.§Dělám si krátkou přestávku.",
-        "Popíšeš oběd v poledne.§Ich esse um zwölf Uhr zu Mittag.§Obědvám ve dvanáct hodin.",
+        "Řekneš, že obědváš ve dvanáct hodin.§Ich esse um zwölf Uhr zu Mittag.§Obědvám ve dvanáct hodin.",
         "Řekneš, že odpoledne nakupuješ.§Am Nachmittag gehe ich einkaufen.§Odpoledne jdu nakupovat.",
         "Vysvětlíš, že přijdeš domů v šest.§Ich komme um sechs Uhr nach Hause.§Přijdu domů v šest hodin.",
         "Řekneš, že večer vaříš večeři.§Am Abend koche ich das Abendessen.§Večer vařím večeři.",
-        "Popíšeš, co děláš po práci.§Nach der Arbeit ruhe ich mich aus.§Po práci odpočívám.",
+        "Řekneš, že po práci odpočíváš.§Nach der Arbeit ruhe ich mich aus.§Po práci odpočívám.",
         "Řekneš, že dnes nemáš čas.§Heute habe ich keine Zeit.§Dnes nemám čas.",
         "Zeptáš se, kolik je hodin.§Wie spät ist es?§Kolik je hodin?",
         "Odpovíš, že jsou tři hodiny.§Es ist drei Uhr.§Jsou tři hodiny.",
         "Řekneš, že zítra vstáváš brzy.§Morgen stehe ich früh auf.§Zítra vstávám brzy.",
         "Vysvětlíš, že dnes pracuješ z domova.§Heute arbeite ich von zu Hause.§Dnes pracuji z domova.",
         "Řekneš, že každý den chodíš pěšky.§Ich gehe jeden Tag zu Fuß.§Každý den chodím pěšky.",
-        "Popíšeš večerní rutinu.§Vor dem Schlafen lese ich ein Buch.§Před spaním čtu knihu.",
+        "Řekneš, že před spaním čteš knihu.§Vor dem Schlafen lese ich ein Buch.§Před spaním čtu knihu.",
         "Řekneš, že jsi unavený a chceš spát.§Ich bin müde und möchte schlafen.§Jsem unavený a chci spát.",
         "Zeptáš se na plán na dnešek.§Was machst du heute?§Co dnes děláš?",
         "Odpovíš, že dnes uklízíš byt.§Heute räume ich die Wohnung auf.§Dnes uklízím byt.",
@@ -768,7 +793,7 @@ private val a1SentenceCourseCatalog = listOf(
         "Omluvíš se za zpoždění.§Entschuldige bitte, ich bin zu spät.§Promiň, jdu pozdě.",
         "Zeptáš se na telefonní číslo.§Wie ist deine Telefonnummer?§Jaké je tvoje telefonní číslo?",
         "Řekneš, že rád trávíš čas s přáteli.§Ich verbringe gern Zeit mit Freunden.§Rád trávím čas s přáteli.",
-        "Popíšeš společný rodinný oběd.§Am Sonntag essen wir zusammen zu Mittag.§V neděli společně obědváme.",
+        "Řekneš, že v neděli společně obědváte.§Am Sonntag essen wir zusammen zu Mittag.§V neděli společně obědváme.",
         "Řekneš, že tvá sestra ráda čte.§Meine Schwester liest sehr gern.§Moje sestra velmi ráda čte.",
         "Zeptáš se, jak se má něčí maminka.§Wie geht es deiner Mutter?§Jak se má tvoje maminka?",
         "Odpovíš, že se má dobře.§Ihr geht es gut, danke.§Má se dobře, děkuji.",
@@ -903,14 +928,14 @@ private val a1SentenceCourseCatalog = listOf(
         "Zeptáš se, zda někdo rád plave.§Schwimmst du gern?§Rád plaveš?",
         "Řekneš, že dnes nemáš chuť sportovat.§Heute habe ich keine Lust auf Sport.§Dnes nemám chuť sportovat.",
         "Navrhneš výlet do přírody.§Lass uns am Sonntag einen Ausflug machen.§Udělejme si v neděli výlet.",
-        "Popíšeš, že rád fotíš.§Ich mache gern Fotos von der Natur.§Rád fotím přírodu.",
+        "Řekneš, že rád fotíš přírodu.§Ich mache gern Fotos von der Natur.§Rád fotím přírodu.",
         "Řekneš, že o víkendu navštívíš muzeum.§Am Samstag besuche ich ein Museum.§V sobotu navštívím muzeum.",
         "Zeptáš se, kdy začíná představení.§Wann beginnt die Vorstellung?§Kdy začíná představení?",
         "Řekneš, že hudba je příliš hlasitá.§Die Musik ist mir zu laut.§Hudba je na mě příliš hlasitá.",
         "Povíš, že raději jezdíš na kole.§Ich fahre lieber mit dem Fahrrad.§Raději jezdím na kole.",
         "Odmítneš pozvání, protože jsi unavený.§Danke, aber ich bin heute müde.§Děkuji, ale dnes jsem unavený.",
         "Řekneš, že se na výlet těšíš.§Ich freue mich auf den Ausflug.§Těším se na výlet.",
-        "Popíšeš plán na neděli.§Am Sonntag möchte ich lange schlafen und danach frühstücken.§V neděli chci dlouho spát a potom snídat.",
+        "Řekneš, že v neděli chceš dlouho spát a potom snídat.§Am Sonntag möchte ich lange schlafen und danach frühstücken.§V neděli chci dlouho spát a potom snídat.",
         "Rozloučíš se a popřeješ hezký víkend.§Ich wünsche dir ein schönes Wochenende!§Přeji ti hezký víkend!"
     ),
     sentenceCourse("home", "Doma a v bytě", "Pokoje, každodenní potřeby a sousedé",
@@ -968,11 +993,35 @@ private val a1SentenceCourseCatalog = listOf(
         "Poděkuješ za pobyt a rozloučíš se.§Vielen Dank für den angenehmen Aufenthalt.§Moc děkuji za příjemný pobyt."
     )
 )
+}
 
-internal val sentenceCourseCatalog = a1SentenceCourseCatalog + expandedSentenceCourseCatalog
+/**
+ * Loads only the sentence-course groups needed for the selected CEFR level.
+ * The main course library can therefore stay responsive without initializing all
+ * A1-B2 sentence content when the learner only opens the level picker.
+ */
+internal fun sentenceCourseCatalogForLevel(level: String): List<SentenceCourseDefinition> =
+    when (level) {
+        "A1" -> a1SentenceCourseCatalog +
+            expandedSentenceCourseCatalog.filter { it.level == level } +
+            additionalA1SentenceCourseCatalog
+        "A2" -> expandedSentenceCourseCatalog.filter { it.level == level } +
+            additionalA2SentenceCourseCatalog
+        "B1", "B2" -> expandedSentenceCourseCatalog.filter { it.level == level } +
+            b1B2ThematicSentenceCourseCatalog.filter { it.level == level }
+        else -> emptyList()
+    }
 
-internal fun sentenceCourseQuestions(courseId: String): List<LessonQuestion> {
-    val course = sentenceCourseCatalog.firstOrNull { it.id == courseId } ?: return emptyList()
+internal val sentenceCourseCatalog by lazy(LazyThreadSafetyMode.PUBLICATION) {
+    listOf("A1", "A2", "B1", "B2").flatMap(::sentenceCourseCatalogForLevel)
+}
+
+internal fun sentenceCourseQuestions(
+    courseId: String,
+    level: String? = null
+): List<LessonQuestion> {
+    val courses = level?.let(::sentenceCourseCatalogForLevel) ?: sentenceCourseCatalog
+    val course = courses.firstOrNull { it.id == courseId } ?: return emptyList()
     val items = course.items
     return items.mapIndexed { index, item ->
         val options = listOf(

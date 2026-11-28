@@ -13,7 +13,7 @@ internal data class ReadingArticle(
 }
 
 internal val readingArticles: List<ReadingArticle>
-    get() = readingArticlesA1 + readingArticlesA1Extra + readingArticlesA2 + readingArticlesA2Extra + readingArticlesB1 + readingArticlesB1Extra + readingArticlesB2 + readingArticlesB2Extra
+    get() = readingArticlesA1 + readingArticlesA1Extra + readingArticlesA1New + readingArticlesA2 + readingArticlesA2Extra + readingArticlesA2New + readingArticlesB1 + readingArticlesB1Extra + readingArticlesB2 + readingArticlesB2Extra
 
 private val coreGermanGlossary = mapOf(
     "ich" to "já", "du" to "ty", "er" to "on", "sie" to "ona / oni / ony", "es" to "to / ono",
@@ -140,6 +140,10 @@ private val coreGermanGlossary = mapOf(
     "der Unterschied" to "rozdíl", "die Gemeinsamkeit" to "společný rys", "die Möglichkeit" to "možnost"
 )
 
+private val bundledVocabularyTranslations: Map<String, String> by lazy(LazyThreadSafetyMode.PUBLICATION) {
+    vocabularyCatalog.associate { it.word.lowercase() to it.czech }
+}
+
 internal fun lookupReadingWordTranslation(article: ReadingArticle, rawWord: String): String? {
     val original = rawWord.trim().trim(',', '.', '!', '?', ';', ':', '„', '“', '"', '\'', '(', ')')
     if (original.isBlank()) return null
@@ -186,8 +190,21 @@ internal fun lookupReadingWordTranslation(article: ReadingArticle, rawWord: Stri
         findDictionaryMeaning(article.glossary, candidate)?.let { return it }
         coreGermanGlossary.entries.firstOrNull { it.key.equals(candidate, ignoreCase = true) }?.value?.let { return it }
         findDictionaryMeaning(coreGermanGlossary, candidate)?.let { return it }
+        bundledVocabularyTranslations[candidate]?.let { return it }
     }
     return null
+}
+
+internal fun readingExampleSentence(article: ReadingArticle, rawWord: String): String {
+    val word = rawWord.trim()
+    if (word.isBlank()) return article.title
+    val sentences = article.body
+        .split(Regex("(?<=[.!?])\\s+|\\n+"))
+        .map { it.trim() }
+        .filter { it.isNotBlank() }
+    return sentences.firstOrNull { it.contains(word, ignoreCase = true) }
+        ?: sentences.firstOrNull()
+        ?: word
 }
 
 internal fun translateReadingWord(article: ReadingArticle, rawWord: String): String =
